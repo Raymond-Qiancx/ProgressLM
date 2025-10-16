@@ -1,0 +1,58 @@
+VLAC 图像序列评估工具
+======================
+
+目录结构:
+├── utils/               # 核心工具代码（从原项目复制，未修改）
+│   ├── model_utils.py
+│   ├── data_processing_vlm.py
+│   ├── video_tool.py
+│   └── magic_detect.py
+├── scripts/             # Shell脚本
+│   ├── eval.sh          # 主评估脚本（修改配置后运行）
+│   └── eval_example.sh  # 示例脚本
+├── run_eval.py          # Python评估脚本（被shell脚本调用）
+└── results/             # 结果输出目录（自动创建）
+
+快速开始:
+---------
+
+1. 下载VLAC模型
+   从 https://huggingface.co/InternRobotics/VLAC 下载模型
+
+2. 修改配置
+   编辑 scripts/eval.sh 文件，修改以下变量:
+   - MODEL_PATH: 模型路径
+   - DATA_DIR: 图像目录
+   - TASK_DESCRIPTION: 任务描述
+
+3. 运行评估
+   bash scripts/eval.sh
+
+输入数据格式:
+------------
+图像目录应包含按顺序命名的图像文件:
+  trajectory/
+  ├── frame_000.jpg
+  ├── frame_001.jpg
+  ├── frame_002.jpg
+  └── ...
+
+输出:
+-----
+结果保存在 results/ 目录下的JSON文件中，包含:
+- VOC (Value-Order Correlation): 轨迹质量指标
+- Negative Rate: 负向动作比例
+- critic_list: 每步的奖励值
+- value_list: 每帧的任务完成度
+
+直接使用Python脚本:
+-------------------
+python run_eval.py \
+    --model_path ./models/VLAC \
+    --data_dir ./data/images \
+    --task "Pick up the bowl" \
+    --batch_num 5 \
+    --skip 1
+
+查看所有参数:
+python run_eval.py --help

@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "evo-vlac"
+version = "1.0.0"
+description = "VLAC: A Vision-Language-Action-Critic Model for Robotic Real-World Reinforcement Learning"
+readme = "README.md"
+authors = [
+    {name = "zhangqi", email = "zhangqi1@pjlab.org"}
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11"
+]
+license = "Apache-2.0"
+requires-python = ">=3.8"
+dependencies = [
+"ms-swift==3.3",
+"transformers>=4.51.0",
+"peft>=0.15.2",
+"opencv-python",
+"loguru",
+"timm",
+"flash-attn"
+]
+
+[project.urls]
+Homepage = "https://github.com/7-Z-7/VLAC"
+Repository = "https://github.com/7-Z-7/VLAC"
+
+[tool.setuptools.packages.find]
+include = ["evo_vlac*"]

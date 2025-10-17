@@ -37,11 +37,11 @@ OUTPUT_DIR="/home/vcj9002/jianshu/Results/progressLM/eval/vlac"
 
 # --- GPU and Passthrough Arguments ---
 # Specify the GPU IDs to use, comma-separated (e.g., "0,1,4,7").
-GPU_IDS="0,1,2,3,4,5,6,7"
+GPU_IDS="0,1,2,3,4,5"
 
 # Other arguments to pass directly to the underlying run_eval.py script.
 # Example: --batch_num 10 --rich
-PASSTHROUGH_ARGS="--batch_num 5"
+PASSTHROUGH_ARGS="--batch_num 128"
 
 
 # ============================================================================

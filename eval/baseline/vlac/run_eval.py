@@ -242,12 +242,15 @@ def main():
         # Multi-GPU mode
         from utils.multi_gpu_utils import multi_gpu_trajectory_critic
 
+        # Convert comma-separated string to list of ints
+        gpu_ids_list = [int(gid) for gid in args.gpu_ids.split(',')]
+
         critic_list, value_list = multi_gpu_trajectory_critic(
             model_path=args.model_path,
             model_type=args.model_type,
             task=args.task,
             image_list=test_images,
-            num_gpus=args.num_gpus,
+            gpu_ids=gpu_ids_list,
             ref_image_list=ref_images,
             batch_num=args.batch_num,
             ref_num=args.ref_num if ref_images else 0,

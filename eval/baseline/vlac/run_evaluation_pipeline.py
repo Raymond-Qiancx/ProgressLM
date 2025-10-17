@@ -173,8 +173,8 @@ def main():
                     ] + passthrough_args
 
                     try:
-                        # Using DEVNULL to hide stdout/stderr from the quieted child process
-                        subprocess.run(command, check=True, capture_output=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                        # We still pass --quiet, but capture output here to debug if something goes wrong.
+                        process = subprocess.run(command, check=True, capture_output=True, text=True)
                         
                         # Read results from the generated JSON to update metrics
                         with open(output_path, 'r') as f:
@@ -185,8 +185,21 @@ def main():
                         voc_scores.append(voc)
                         neg_rates.append(neg_rate)
 
-                    except (subprocess.CalledProcessError, FileNotFoundError, json.JSONDecodeError) as e:
+                    except subprocess.CalledProcessError as e:
                         error_count += 1
+                        # Print the error to the main console for debugging
+                        pbar.write(f"\n--- ERROR processing {timestamp_id} ---")
+                        pbar.write(f"  Return Code: {e.returncode}")
+                        if e.stdout:
+                            pbar.write(f"  Stdout: {e.stdout.strip()}")
+                        if e.stderr:
+                            pbar.write(f"  Stderr: {e.stderr.strip()}")
+                        pbar.write("--- END ERROR ---")
+                    except (FileNotFoundError, json.JSONDecodeError) as e:
+                        error_count += 1
+                        pbar.write(f"\n--- ERROR processing {timestamp_id} (Post-processing failed) ---")
+                        pbar.write(f"  Error: {e}")
+                        pbar.write("--- END ERROR ---")
                     
                     pbar.update(1)
 

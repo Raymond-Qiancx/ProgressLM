@@ -6,6 +6,8 @@ import tempfile
 import shutil
 import time
 import threading
+import signal
+import sys
 from pathlib import Path
 from tqdm import tqdm
 import multiprocessing as mp
@@ -272,6 +274,24 @@ def main():
         )
         worker.start()
         workers.append(worker)
+
+    # Set up a signal handler for Ctrl+C (SIGINT) to ensure graceful shutdown
+    def cleanup_on_signal(sig, frame):
+        print('\n[INFO] Ctrl+C detected. Terminating all worker processes...')
+        for w in workers:
+            if w.is_alive():
+                w.terminate() # Sends SIGTERM
+        # Wait for them to terminate
+        for w in workers:
+            if w.pid is not None:
+                try:
+                    w.join(timeout=5)
+                except Exception as e:
+                    print(f"[WARN] Error joining worker {w.pid}: {e}")
+        print('[INFO] Cleanup complete. Exiting.')
+        sys.exit(1) # Exit with a non-zero code to indicate interruption
+
+    signal.signal(signal.SIGINT, cleanup_on_signal)
 
     # 3. Start a background thread to feed the task queue
     # This prevents the main process from blocking if the queue gets full.

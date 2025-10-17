@@ -100,11 +100,15 @@ def pipeline_worker(
 
     # 1. Initialize model once
     try:
+        # Extract batch_num for engine initialization. Default to a safe value if not provided.
+        batch_num_for_init = int(passthrough_args.get('batch_num', 8))
+
         critic = GAC_model(tag='critic')
         critic.init_model(
             model_path=model_path,
             model_type=model_type,
-            device_map=device
+            device_map=device,
+            max_batch_size=batch_num_for_init  # Pass correct batch size to the engine
         )
         # Apply relevant passthrough args to the model instance
         critic.temperature = passthrough_args.get('temperature', 0.5)

@@ -186,10 +186,11 @@ class GAC_model():
         logits = logits / self.temperature
         input_ids = input_ids[:, -logits_to_keep:]
         return selective_log_softmax(logits, input_ids) 
-    def init_model(self,model_path,model_type='internvl2',device_map:str = 'auto',torch_dtype=torch.bfloat16,adapter: str = None):
+    def init_model(self,model_path,model_type='internvl2',device_map:str = 'auto',torch_dtype=torch.bfloat16,adapter: str = None, max_batch_size: int = 8):
         """
         Args:
             device_map: ['auto', 'cuda:0',...]
+            max_batch_size: The maximum batch size for the inference engine.
         """
         template_type = model_type
         print(f'template_type: {template_type}')
@@ -204,7 +205,7 @@ class GAC_model():
 
         from swift.llm import PtEngine
         from swift.plugin import InferStats
-        self.engine = PtEngine.from_model_template(self.model, self.template, max_batch_size=0)
+        self.engine = PtEngine.from_model_template(self.model, self.template, max_batch_size=max_batch_size)
 
         self.infer_stats = InferStats()
         seed_everything(42)

@@ -43,6 +43,12 @@ GPU_IDS="0,1,2,3,4,5"
 # Example: --batch_num 10 --rich
 PASSTHROUGH_ARGS="--batch_num 128"
 
+# --- Environment Variables for Underlying Libraries ---
+# MAX_NUM: Overrides the internal batch size limit of the 'swift' library,
+# allowing the --batch_num argument to take full effect.
+# This should generally be set to the same value as --batch_num.
+MAX_NUM=128
+
 
 # ============================================================================
 # EXECUTION LOGIC (DO NOT MODIFY)
@@ -85,6 +91,7 @@ echo "Mode: cross_trajectory_ref=$cross_trajectory_ref"
 echo "Command: $CMD"
 echo ""
 
+export MAX_NUM
 eval $CMD
 
 echo -e "\n\033[0;32m[INFO] Pipeline finished successfully!\033[0m"

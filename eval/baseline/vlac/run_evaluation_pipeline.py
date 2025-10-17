@@ -5,6 +5,7 @@ import glob
 import tempfile
 import shutil
 import time
+import threading
 from pathlib import Path
 from tqdm import tqdm
 import multiprocessing as mp
@@ -175,7 +176,18 @@ def pipeline_worker(
         except Exception as e:
             result_queue.put({'status': 'ERROR', 'error': f"[GPU:{gpu_id}] Failed on job {job['output_path']}: {e}"})
 
+
 # --- Main Orchestrator Logic ---
+
+def feed_the_workers(task_queue: mp.Queue, all_jobs: list, num_workers: int):
+    """
+    Puts all jobs and sentinel values onto the task queue in the background.
+    """
+    for job in all_jobs:
+        task_queue.put(job)
+    # Add sentinel values to stop workers
+    for _ in range(num_workers):
+        task_queue.put(None)
 
 def main():
     parser = argparse.ArgumentParser(description="Main pipeline to evaluate VLAC with a persistent process pool.")
@@ -261,15 +273,15 @@ def main():
         worker.start()
         workers.append(worker)
 
-    # 3. Distribute jobs
-    for job in all_jobs:
-        task_queue.put(job)
+    # 3. Start a background thread to feed the task queue
+    # This prevents the main process from blocking if the queue gets full.
+    feeder_thread = threading.Thread(
+        target=feed_the_workers,
+        args=(task_queue, all_jobs, len(gpu_ids))
+    )
+    feeder_thread.start()
 
-    # 4. Add sentinel values to stop workers
-    for _ in gpu_ids:
-        task_queue.put(None)
-
-    # 5. Collect results and update progress bar
+    # 4. Collect results and update progress bar
     error_count = 0
     voc_scores = []
     neg_rates = []
@@ -299,7 +311,8 @@ def main():
             pbar.set_postfix(avg_VOC=f'{avg_voc:.3f}', avg_NegRate=f'{avg_neg_rate:.3f}', errors=error_count, refresh=True)
             pbar.update(1)
 
-    # 6. Cleanup and Final Write
+    # 5. Cleanup and Final Write
+    feeder_thread.join() # Wait for the feeder thread to finish
     for worker in workers:
         worker.join()
 

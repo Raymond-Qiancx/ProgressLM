@@ -22,7 +22,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils import GAC_model
 
 
-def load_images_from_dir(image_dir, pattern="*.jpg", max_images=None):
+def load_images_from_dir(image_dir, pattern="*.jpg", max_images=None, quiet=False):
     """
     从目录加载图像序列
 
@@ -30,6 +30,7 @@ def load_images_from_dir(image_dir, pattern="*.jpg", max_images=None):
         image_dir: 图像目录路径
         pattern: 文件匹配模式 (*.jpg, *.png, etc.)
         max_images: 最大加载图像数量，None表示加载全部
+        quiet: 是否抑制输出
 
     Returns:
         List[PIL.Image]: 图像列表
@@ -46,15 +47,19 @@ def load_images_from_dir(image_dir, pattern="*.jpg", max_images=None):
         image_paths = image_paths[:max_images]
 
     if len(image_paths) == 0:
+        # This is a fatal error for this script, so it should not be quieted.
         raise ValueError(f"No images found in {image_dir} with pattern {pattern}")
 
-    print(f"Loading {len(image_paths)} images from {image_dir}")
+    if not quiet:
+        print(f"Loading {len(image_paths)} images from {image_dir}")
+    
     images = []
     for path in image_paths:
         try:
             img = Image.open(path).convert('RGB')
             images.append(img)
         except Exception as e:
+            # Warnings should probably not be quieted
             print(f"Warning: Failed to load {path}: {e}")
             continue
 
@@ -117,6 +122,16 @@ def parse_args():
                         help='Output directory for results')
     parser.add_argument('--output_name', type=str, default=None,
                         help='Output filename (default: auto-generated)')
+    
+    # New quiet argument
+    parser.add_argument('--quiet', action='store_true',
+                        help='Suppress all print output except for fatal errors.')
+
+    # This argument is passed by the pipeline but not used directly in the arg parser logic of this script before.
+    # It was just accessed. Let's add it for clarity.
+    parser.add_argument('--num_gpus', type=int, default=1,
+                        help='Number of GPUs to use.')
+
 
     return parser.parse_args()
 
@@ -128,52 +143,58 @@ def main():
     # 创建输出目录
     os.makedirs(args.output_dir, exist_ok=True)
 
-    print("="*80)
-    print("VLAC Image Sequence Evaluation")
-    print("="*80)
-    print(f"Model Path: {args.model_path}")
-    print(f"Data Directory: {args.data_dir}")
-    print(f"Task: {args.task}")
-    print(f"Device: {args.device}")
-    print(f"Batch Size: {args.batch_num}")
-    print(f"Skip: {args.skip}")
-    print(f"Number of GPUs: {args.num_gpus}")
-    if args.num_gpus > 1:
-        print(f"Mode: Multi-GPU Data Parallel")
-    else:
-        print(f"Mode: Single GPU")
-    print("="*80)
+    if not args.quiet:
+        print("="*80)
+        print("VLAC Image Sequence Evaluation")
+        print("="*80)
+        print(f"Model Path: {args.model_path}")
+        print(f"Data Directory: {args.data_dir}")
+        print(f"Task: {args.task}")
+        print(f"Device: {args.device}")
+        print(f"Batch Size: {args.batch_num}")
+        print(f"Skip: {args.skip}")
+        print(f"Number of GPUs: {args.num_gpus}")
+        if args.num_gpus > 1:
+            print(f"Mode: Multi-GPU Data Parallel")
+        else:
+            print(f"Mode: Single GPU")
+        print("="*80)
 
     # ========== 1. 加载图像 ==========
-    print("\n[Step 1/4] Loading images...")
+    if not args.quiet:
+        print("\n[Step 1/4] Loading images...")
     start_time = time.time()
 
     test_images = load_images_from_dir(
         args.data_dir,
         pattern=args.image_pattern,
-        max_images=args.max_images
+        max_images=args.max_images,
+        quiet=args.quiet
     )
 
     ref_images = None
     if args.ref_dir and os.path.exists(args.ref_dir):
-        print(f"Loading reference images from {args.ref_dir}")
+        if not args.quiet:
+            print(f"Loading reference images from {args.ref_dir}")
         ref_images = load_images_from_dir(
             args.ref_dir,
-            pattern=args.image_pattern
+            pattern=args.image_pattern,
+            quiet=args.quiet
         )
-        print(f"Loaded {len(ref_images)} reference images")
+        if not args.quiet:
+            print(f"Loaded {len(ref_images)} reference images")
 
     load_time = time.time() - start_time
-    print(f"Image loading completed in {load_time:.2f}s")
+    if not args.quiet:
+        print(f"Image loading completed in {load_time:.2f}s")
 
     # ========== 2. 初始化模型 ==========
-    # For multi-GPU mode, we skip initialization here and let workers initialize
-    # For single-GPU mode, we initialize as before
     init_time = 0
     critic = None
 
     if args.num_gpus == 1:
-        print("\n[Step 2/4] Initializing VLAC model...")
+        if not args.quiet:
+            print("\n[Step 2/4] Initializing VLAC model...")
         start_time = time.time()
 
         critic = GAC_model(tag='critic')
@@ -188,15 +209,18 @@ def main():
         critic.set_system_prompt()
 
         init_time = time.time() - start_time
-        print(f"Model initialization completed in {init_time:.2f}s")
+        if not args.quiet:
+            print(f"Model initialization completed in {init_time:.2f}s")
     else:
-        print("\n[Step 2/4] Skipping model initialization (multi-GPU workers will initialize)")
-        print(f"Each of the {args.num_gpus} GPUs will initialize its own model instance")
+        if not args.quiet:
+            print("\n[Step 2/4] Skipping model initialization (multi-GPU workers will initialize)")
+            print(f"Each of the {args.num_gpus} GPUs will initialize its own model instance")
 
     # ========== 3. 运行评估 ==========
-    print("\n[Step 3/4] Running trajectory evaluation...")
-    print(f"Evaluating {len(test_images)} images with skip={args.skip}")
-    print(f"This will generate {len(range(args.skip, len(test_images), args.skip))} critic scores")
+    if not args.quiet:
+        print("\n[Step 3/4] Running trajectory evaluation...")
+        print(f"Evaluating {len(test_images)} images with skip={args.skip}")
+        print(f"This will generate {len(range(args.skip, len(test_images), args.skip))} critic scores")
 
     start_time = time.time()
 
@@ -237,44 +261,44 @@ def main():
         )
 
     eval_time = time.time() - start_time
-    print(f"Evaluation completed in {eval_time:.2f}s")
+    if not args.quiet:
+        print(f"Evaluation completed in {eval_time:.2f}s")
 
     # ========== 4. 计算质量指标 ==========
-    print("\n[Step 4/4] Computing quality metrics...")
+    if not args.quiet:
+        print("\n[Step 4/4] Computing quality metrics...")
 
-    # For multi-GPU mode, we need to create a temporary critic instance for metric computation
-    if args.num_gpus > 1:
+    if args.num_gpus > 1 and 'critic' not in locals():
         critic = GAC_model(tag='critic')
 
     voc = critic.compute_voc(value_list)
     negative_rate = critic.compute_negative_rate(critic_list)
 
     # ========== 输出结果 ==========
-    print("\n" + "="*80)
-    print("EVALUATION RESULTS")
-    print("="*80)
-    print(f"Task: {args.task}")
-    print(f"Total Frames: {len(test_images)}")
-    print(f"Evaluated Steps: {len(critic_list)}")
-    print(f"\nQuality Metrics:")
-    print(f"  VOC (Value-Order Correlation): {voc:.4f}")
-    print(f"    → Range: -1 to +1, higher is better")
-    print(f"    → Interpretation: {'Excellent (>0.5)' if voc > 0.5 else 'Good (0.3-0.5)' if voc > 0.3 else 'Poor (<0.3)'}")
-    print(f"  Negative Rate: {negative_rate:.4f}")
-    print(f"    → Range: 0 to 1, lower is better")
-    print(f"    → Interpretation: {'Excellent (<0.2)' if negative_rate < 0.2 else 'Fair (0.2-0.4)' if negative_rate < 0.4 else 'Poor (>0.4)'}")
+    if not args.quiet:
+        print("\n" + "="*80)
+        print("EVALUATION RESULTS")
+        print("="*80)
+        print(f"Task: {args.task}")
+        print(f"Total Frames: {len(test_images)}")
+        print(f"Evaluated Steps: {len(critic_list)}")
+        print(f"\nQuality Metrics:")
+        print(f"  VOC (Value-Order Correlation): {voc:.4f}")
+        print(f"    → Range: -1 to +1, higher is better")
+        print(f"    → Interpretation: {'Excellent (>0.5)' if voc > 0.5 else 'Good (0.3-0.5)' if voc > 0.3 else 'Poor (<0.3)'}")
+        print(f"  Negative Rate: {negative_rate:.4f}")
+        print(f"    → Range: 0 to 1, lower is better")
+        print(f"    → Interpretation: {'Excellent (<0.2)' if negative_rate < 0.2 else 'Fair (0.2-0.4)' if negative_rate < 0.4 else 'Poor (>0.4)'}")
+        print(f"\nValue List (Task Progress %):")
+        print(f"  Start: {value_list[0]:.2f}%")
+        print(f"  End: {value_list[-1]:.2f}%")
+        print(f"  Full: {[f'{v:.2f}' for v in value_list]}")
+        print(f"\nCritic List (Step-wise Rewards):")
+        print(f"  Positive steps: {sum(1 for c in critic_list if float(c) > 0)}/{len(critic_list)}")
+        print(f"  Negative steps: {sum(1 for c in critic_list if float(c) < 0)}/{len(critic_list)}")
+        print(f"  Full: {critic_list}")
 
-    print(f"\nValue List (Task Progress %):")
-    print(f"  Start: {value_list[0]:.2f}%")
-    print(f"  End: {value_list[-1]:.2f}%")
-    print(f"  Full: {[f'{v:.2f}' for v in value_list]}")
-
-    print(f"\nCritic List (Step-wise Rewards):")
-    print(f"  Positive steps: {sum(1 for c in critic_list if float(c) > 0)}/{len(critic_list)}")
-    print(f"  Negative steps: {sum(1 for c in critic_list if float(c) < 0)}/{len(critic_list)}")
-    print(f"  Full: {critic_list}")
-
-    # ========== 保存结果 ==========
+    # ========== 保存结果 ========== 
     if args.output_name:
         output_filename = args.output_name if args.output_name.endswith('.json') else f"{args.output_name}.json"
     else:
@@ -320,8 +344,9 @@ def main():
     with open(output_path, 'w') as f:
         json.dump(results, f, indent=2)
 
-    print(f"\nResults saved to: {output_path}")
-    print("="*80)
+    if not args.quiet:
+        print(f"\nResults saved to: {output_path}")
+        print("="*80)
 
     # 返回质量指标用于脚本判断
     return voc, negative_rate

@@ -5,8 +5,8 @@ import glob
 import subprocess
 import tempfile
 import shutil
-import collections
 from pathlib import Path
+from tqdm import tqdm
 
 def load_trajectories_from_file(jsonl_path, image_root_dir):
     """
@@ -21,6 +21,8 @@ def load_trajectories_from_file(jsonl_path, image_root_dir):
             try:
                 data = json.loads(line)
             except json.JSONDecodeError:
+                # This warning can be noisy, print only if not in quiet mode from a higher level
+                # For now, we keep it, as this function is not aware of a quiet flag.
                 print(f"Warning: Skipping malformed JSON line in {jsonl_path}: {line.strip()}")
                 continue
 
@@ -58,27 +60,18 @@ def find_cross_reference(current_timestamp_id, search_pool):
     """
     current_trajectory = search_pool[current_timestamp_id]
 
-    # Priority 1: Find another trajectory with the exact same task_goal (implicitly same task_type)
     for timestamp, trajectory_data in search_pool.items():
         if timestamp == current_timestamp_id:
             continue
-        # Since all trajectories in the search_pool are from the same task_type file,
-        # we can be more specific if needed, but for now, any other trajectory is a valid cross-ref.
-        # This implementation prioritizes by task_goal string, which should be the same for all.
         if trajectory_data["task_goal"] == current_trajectory["task_goal"]:
-            print(f"  Found cross-ref for {current_timestamp_id} (same task_goal): {timestamp}")
             return trajectory_data["visual_demo_paths"]
 
-    # Priority 2: Find another trajectory with the same number of total_steps
     for timestamp, trajectory_data in search_pool.items():
         if timestamp == current_timestamp_id:
             continue
         if trajectory_data["total_steps"] == current_trajectory["total_steps"]:
-            print(f"  Found cross-ref for {current_timestamp_id} (same total_steps): {timestamp}")
             return trajectory_data["visual_demo_paths"]
 
-    # Fallback: If no suitable cross-reference is found, use its own demo
-    print(f"  Warning: No suitable cross-ref found for {current_timestamp_id}. Falling back to self-reference.")
     return current_trajectory["visual_demo_paths"]
 
 def prepare_temp_dir(image_paths, temp_dir_root):
@@ -116,71 +109,103 @@ def main():
         script_dir = Path(__file__).parent
         vlac_eval_script = script_dir / 'run_eval.py'
 
-        total_files = len(jsonl_files)
-        print(f"Found {total_files} task types (JSONL files) to process.")
-        
-        file_count = 0
+        # First, count total number of trajectories for tqdm
+        print("Pre-calculating total number of trajectories...")
+        total_trajectories = 0
         for jsonl_file in jsonl_files:
-            file_count += 1
-            task_type_sanitized = os.path.basename(jsonl_file).replace('.jsonl', '')
-            print(f"\n--- Processing Task Type ({file_count}/{total_files}): {task_type_sanitized} ---")
-            
-            trajectories_in_task = load_trajectories_from_file(jsonl_file, args.image_root_dir)
-            
-            for timestamp_id, trajectory_data in trajectories_in_task.items():
-                print(f"  -> Processing Trajectory: {timestamp_id}")
+            # A bit inefficient to load files twice, but necessary for a clean progress bar
+            trajectories = load_trajectories_from_file(jsonl_file, args.image_root_dir)
+            total_trajectories += len(trajectories)
+        print(f"Found {total_trajectories} total trajectories to evaluate.")
 
-                stages = sorted(trajectory_data["stages"], key=lambda x: x["progress"])
-                main_trajectory_paths = [s["image_path"] for s in stages]
+        # Initialize trackers for metrics
+        error_count = 0
+        voc_scores = []
+        neg_rates = []
+
+        with tqdm(total=total_trajectories, desc="Overall Progress", unit="traj") as pbar:
+            for jsonl_file in jsonl_files:
+                trajectories_in_task = load_trajectories_from_file(jsonl_file, args.image_root_dir)
                 
-                if not main_trajectory_paths:
-                    print("  Warning: No stages found for this trajectory. Skipping.")
-                    continue
+                for timestamp_id, trajectory_data in trajectories_in_task.items():
+                    # Update postfix at the beginning of the loop for immediate feedback
+                    avg_voc = sum(voc_scores) / len(voc_scores) if voc_scores else 0
+                    avg_neg_rate = sum(neg_rates) / len(neg_rates) if neg_rates else 0
+                    pbar.set_postfix(avg_VOC=f'{avg_voc:.3f}', avg_NegRate=f'{avg_neg_rate:.3f}', errors=error_count, refresh=True)
 
-                if args.cross_trajectory_ref:
-                    ref_trajectory_paths = find_cross_reference(timestamp_id, trajectories_in_task)
-                else:
-                    ref_trajectory_paths = find_self_reference(trajectory_data)
+                    stages = sorted(trajectory_data["stages"], key=lambda x: x["progress"])
+                    main_trajectory_paths = [s["image_path"] for s in stages]
+                    
+                    if not main_trajectory_paths:
+                        error_count += 1
+                        pbar.update(1)
+                        continue
 
-                if not ref_trajectory_paths:
-                    print("  Warning: No reference trajectory found. Skipping.")
-                    continue
+                    if args.cross_trajectory_ref:
+                        ref_trajectory_paths = find_cross_reference(timestamp_id, trajectories_in_task)
+                    else:
+                        ref_trajectory_paths = find_self_reference(trajectory_data)
 
-                main_dir = prepare_temp_dir(main_trajectory_paths, run_temp_root)
-                ref_dir = prepare_temp_dir(ref_trajectory_paths, run_temp_root)
-                
-                # Original task_type had slashes, which we need for the output filename.
-                # We can't perfectly reconstruct it, so we use the sanitized one.
-                # This is a change in output naming convention.
-                output_filename = f"{task_type_sanitized}_{timestamp_id}.json"
-                
-                num_gpus = len(args.gpu_ids.split(','))
-                command = [
-                    'python', str(vlac_eval_script),
-                    '--model_path', args.model_path,
-                    '--data_dir', main_dir,
-                    '--ref_dir', ref_dir,
-                    '--task', trajectory_data['task_goal'],
-                    '--output_dir', args.output_dir,
-                    '--output_name', output_filename,
-                    '--gpu_ids', args.gpu_ids,
-                    '--num_gpus', str(num_gpus)
-                ] + passthrough_args
+                    if not ref_trajectory_paths:
+                        error_count += 1
+                        pbar.update(1)
+                        continue
 
-                print(f"  Executing VLAC evaluation for {timestamp_id}...")
+                    main_dir = prepare_temp_dir(main_trajectory_paths, run_temp_root)
+                    ref_dir = prepare_temp_dir(ref_trajectory_paths, run_temp_root)
+                    
+                    task_type_sanitized = os.path.basename(jsonl_file).replace('.jsonl', '')
+                    output_filename = f"{task_type_sanitized}_{timestamp_id}.json"
+                    output_path = os.path.join(args.output_dir, output_filename)
 
-                try:
-                    process = subprocess.run(command, check=True, capture_output=True, text=True)
-                    print(f"    Successfully evaluated. Results saved in {args.output_dir}/{output_filename}")
-                except subprocess.CalledProcessError as e:
-                    print(f"    ERROR: Evaluation failed for {timestamp_id}.")
-                    print(f"    Return Code: {e.returncode}")
-                    print(f"    Stdout: {e.stdout}")
-                    print(f"    Stderr: {e.stderr}")
+                    num_gpus = len(args.gpu_ids.split(','))
+                    command = [
+                        'python', str(vlac_eval_script),
+                        '--model_path', args.model_path,
+                        '--data_dir', main_dir,
+                        '--ref_dir', ref_dir,
+                        '--task', trajectory_data['task_goal'],
+                        '--output_dir', args.output_dir,
+                        '--output_name', output_filename,
+                        '--gpu_ids', args.gpu_ids,
+                        '--num_gpus', str(num_gpus),
+                        '--quiet' # Suppress output from the child script
+                    ] + passthrough_args
+
+                    try:
+                        # Using DEVNULL to hide stdout/stderr from the quieted child process
+                        subprocess.run(command, check=True, capture_output=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                        
+                        # Read results from the generated JSON to update metrics
+                        with open(output_path, 'r') as f:
+                            results = json.load(f)
+                        
+                        voc = results['metrics']['voc']
+                        neg_rate = results['metrics']['negative_rate']
+                        voc_scores.append(voc)
+                        neg_rates.append(neg_rate)
+
+                    except (subprocess.CalledProcessError, FileNotFoundError, json.JSONDecodeError) as e:
+                        error_count += 1
+                    
+                    pbar.update(1)
 
     finally:
         print(f"\nCleaning up temporary directory: {run_temp_root}")
         shutil.rmtree(run_temp_root)
+    
+    # Final summary
+    print("\n" + "="*80)
+    print("Evaluation Summary")
+    print("="*80)
+    final_avg_voc = sum(voc_scores) / len(voc_scores) if voc_scores else 0
+    final_avg_neg_rate = sum(neg_rates) / len(neg_rates) if neg_rates else 0
+    print(f"Total Trajectories Evaluated: {total_trajectories}")
+    print(f"Successful Evaluations: {len(voc_scores)}")
+    print(f"Failed Evaluations (Errors): {error_count}")
+    print(f"\nFinal Average VOC: {final_avg_voc:.4f}")
+    print(f"Final Average Negative Rate: {final_avg_neg_rate:.4f}")
+    print("="*80)
 
 if __name__ == "__main__":
     main()

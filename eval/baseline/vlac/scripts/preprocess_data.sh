@@ -8,9 +8,9 @@ PROJECT_ROOT=$(dirname $(dirname $(dirname "$SCRIPT_DIR")))
 
 # --- Configuration ---
 # Default input file. Can be overridden by command line argument.
-INPUT_JSONL="${PROJECT_ROOT}/data/h5_tienkung_xsens_converted.jsonl"
+INPUT_JSONL="/home/vcj9002/jianshu/workspace/code/ProgressLM/data/h5_tienkung_xsens_converted.jsonl"
 # Default output directory.
-OUTPUT_DIR="${PROJECT_ROOT}/data/h5_tienkung_xsens_converted_split"
+OUTPUT_DIR="/home/vcj9002/jianshu/workspace/code/ProgressLM/data/h5_tienkung_xsens_split"
 # ---------------------
 
 # Allow overriding input file from command line

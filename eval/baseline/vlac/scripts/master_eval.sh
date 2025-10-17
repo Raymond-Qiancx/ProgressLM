@@ -23,7 +23,7 @@ cross_trajectory_ref=true
 # --- Path Configuration (MUST BE ABSOLUTE PATHS) ---
 # Path to the directory containing the pre-processed (split) .jsonl files.
 # This directory is created by running the preprocess_data.sh script.
-PROCESSED_DATA_DIR="/home/vcj9002/jianshu/workspace/code/ProgressLM/data/h5_tienkung_xsens_converted_split"
+PROCESSED_DATA_DIR="/home/vcj9002/jianshu/workspace/code/ProgressLM/data/h5_tienkung_xsens_split"
 
 # Path to the root directory containing all image folders (e.g., h5_tienkung_xsens_1rgb/...).
 IMAGE_ROOT_DIR="/home/vcj9002/jianshu/workspace/data/robomind/data/images"
@@ -37,7 +37,7 @@ OUTPUT_DIR="/home/vcj9002/jianshu/workspace/data/robomind/data/annotations/cache
 
 # --- GPU and Passthrough Arguments ---
 # Specify the GPU IDs to use, comma-separated (e.g., "0,1,4,7").
-GPU_IDS="0,1,2,3"
+GPU_IDS="0,1,2,3,4,5,6,7"
 
 # Other arguments to pass directly to the underlying run_eval.py script.
 # Example: --batch_num 10 --rich

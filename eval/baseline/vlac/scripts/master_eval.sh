@@ -21,8 +21,9 @@
 cross_trajectory_ref=true
 
 # --- Path Configuration (MUST BE ABSOLUTE PATHS) ---
-# Path to the .jsonl file containing the dataset description.
-JSONL_PATH="/home/vcj9002/jianshu/workspace/code/ProgressLM/data/h5_tienkung_xsens_converted.jsonl"
+# Path to the directory containing the pre-processed (split) .jsonl files.
+# This directory is created by running the preprocess_data.sh script.
+PROCESSED_DATA_DIR="/home/vcj9002/jianshu/workspace/code/ProgressLM/data/h5_tienkung_xsens_converted_split"
 
 # Path to the root directory containing all image folders (e.g., h5_tienkung_xsens_1rgb/...).
 IMAGE_ROOT_DIR="/home/vcj9002/jianshu/workspace/data/robomind/data/images"
@@ -63,7 +64,7 @@ PIPELINE_SCRIPT="$SCRIPT_DIR/../run_evaluation_pipeline.py"
 
 # Build the command
 CMD="python $PIPELINE_SCRIPT \
-    --jsonl_path $JSONL_PATH \
+    --processed_data_dir $PROCESSED_DATA_DIR \
     --image_root_dir $IMAGE_ROOT_DIR \
     --model_path $MODEL_PATH \
     --output_dir $OUTPUT_DIR \

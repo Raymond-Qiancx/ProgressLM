@@ -145,8 +145,8 @@ class VisualProgressProcessor:
         
         # 1. 系统提示词的第一部分
         system_prompt = (
-            "You are an expert AI analyst specializing in generating step-by-step reasoning "
-            "for visual task-progress evaluations. Your objective is not to estimate from scratch. "
+            "You are an expert AI analyst specializing in visual task-progress evaluations "
+            "Your objective is not to estimate from scratch. "
             "Instead, your task is to construct a perfect, human-like chain of thought that "
             "logically explains and justifies a known, ground-truth progress score. "
             "Your entire response must read as if you are deducing the conclusion independently "
@@ -351,20 +351,27 @@ class VisualProgressProcessor:
             message_content = self.build_message_content(sample)
             
             # 调用GPT-5 API
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[
+            # 注意：GPT-5使用max_completion_tokens而不是max_tokens
+            api_params = {
+                "model": self.model,
+                "messages": [
                     {
                         "role": "user",
                         "content": message_content
                     }
                 ],
-                temperature=0.7,
-                max_tokens=2000,
-                # GPT-5特有参数
-                verbosity="medium",
-                reasoning_effort="medium"  # 使用中等推理深度
-            )
+                "temperature": 1,
+                "max_completion_tokens": 3000  # GPT-5使用max_completion_tokens
+            }
+            
+            # 添加GPT-5特有参数（如果支持）
+            # 注意：如果这些参数导致错误，可以注释掉
+            if self.model.startswith("gpt-5"):
+                # api_params["verbosity"] = "medium"  # 如果不支持，注释此行
+                # api_params["reasoning_effort"] = "medium"  # 如果不支持，注释此行
+                pass  # 暂时不添加特殊参数，避免兼容性问题
+            
+            response = self.client.chat.completions.create(**api_params)
             
             # 提取响应
             assistant_response = response.choices[0].message.content

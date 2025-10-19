@@ -16,11 +16,11 @@ API_KEY="sk-proj-k1amIBIsRhfzNrsjbX6T7fG6CwlLXOM91jBA0zP0PsiCGBQoEAcJXqXqZXe1GjH
 DEFAULT_INPUT="/home/vcj9002/jianshu/workspace/code/ProgressLM/data/train/sft/h5_tienkung_xsens_sft.jsonl"
 DEFAULT_OUTPUT="/home/vcj9002/jianshu/Results/progressLM/cold-data/h5_tienkung_xsens_output_$(date +%Y%m%d_%H%M%S).jsonl"
 DEFAULT_IMAGE_DIR="/home/vcj9002/jianshu/workspace/data/robomind/data/images"
-DEFAULT_MODEL="gpt-5-mini"
+DEFAULT_MODEL="gpt-5"
 DEFAULT_WORKERS=3
 
 # 拓展功能默认配置
-DEFAULT_LIMIT="5"        # 默认不限制数量，如需限制设置为数字，例如: DEFAULT_LIMIT=100
+DEFAULT_LIMIT=""        # 默认不限制数量，如需限制设置为数字，例如: DEFAULT_LIMIT=100
 DEFAULT_RESUME=true    # 默认不启用断点续传，如需启用设置为: DEFAULT_RESUME=true
 DEFAULT_NO_RETRY=false  # 默认重试失败样本，如不需要重试设置为: DEFAULT_NO_RETRY=true
 

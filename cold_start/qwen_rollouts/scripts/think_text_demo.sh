@@ -25,7 +25,9 @@
 MODEL_PATH="/projects/b1222/userdata/jianshu/chengxuan/saved/models/Qwen2.5-VL-32B-Instruct"
 
 # Dataset configuration
-DATASET_PATH="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/train/text_demo/text_h5_tienkung_xsens_sft.jsonl"
+# DATASET_PATH="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/train/text_demo/text_h5_tienkung_xsens_sft.jsonl"
+
+DATASET_PATH="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/train/visual_demo/visual_h5_franka_3rgb_sft.jsonl"
 
 IMAGE_ROOT="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/images"
 
@@ -51,7 +53,7 @@ MIN_PIXELS=$((1280*28*28))
 MAX_PIXELS=$((5120*28*28))
 
 # Processing parameters
-LIMIT=16  # Limit samples to process after expansion (-1 for all)
+LIMIT=-1  # Limit samples to process after expansion (-1 for all)
 
 # Misc
 VERBOSE=false  # Set to true for detailed output

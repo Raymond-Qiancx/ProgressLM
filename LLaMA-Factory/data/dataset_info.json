@@ -730,5 +730,20 @@
       "prompt": "content"
     },
     "folder": "python"
+  },
+  "frm_cold_all": {
+    "file_name": "../../data/sft_data/frm_cold_all.jsonl",
+    "formatting": "sharegpt",
+    "columns": {
+      "messages": "messages",
+      "images": "images"
+    },
+    "tags": {
+      "role_tag": "role",
+      "content_tag": "content",
+      "user_tag": "user",
+      "assistant_tag": "assistant",
+      "system_tag": "system"
+    }
   }
 }

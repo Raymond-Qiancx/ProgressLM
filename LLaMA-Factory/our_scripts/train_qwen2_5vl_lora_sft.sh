@@ -13,6 +13,10 @@
 
 set -e  # Exit on error
 
+# ==================== GPU Configuration ====================
+# Set which GPUs to use (0,1,2,3 means using 4 GPUs)
+export CUDA_VISIBLE_DEVICES=0,1,2,3
+
 # ==================== Configuration ====================
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"

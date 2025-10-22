@@ -1,5 +1,5 @@
 ### Model Configuration
-model_name_or_path: Qwen/Qwen2.5-VL-3B-Instruct  # Using 3B model
+model_name_or_path: /projects/b1222/userdata/jianshu/chengxuan/saved/models/Qwen2.5-VL-3B-Instruct  # Using 3B model
 image_max_pixels: 1280*28*28  # ~1M pixels (matches training data config)
 video_max_pixels: 16384   # Maximum pixels for video input (if needed)
 trust_remote_code: true

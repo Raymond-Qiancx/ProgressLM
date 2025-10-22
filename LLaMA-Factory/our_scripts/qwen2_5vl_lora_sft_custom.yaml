@@ -24,7 +24,7 @@ preprocessing_num_workers: 16
 dataloader_num_workers: 4
 
 ### Output Configuration
-output_dir: saves/qwen2_5vl-3b/lora/sft_frm_cold  # Updated for 3B model and FRM dataset
+output_dir: /projects/b1222/userdata/jianshu/chengxuan/saved/saved_results/progresslm/models/sft  # Updated for 3B model and FRM dataset
 logging_steps: 10
 save_steps: 500
 save_total_limit: 3  # Keep only the last 3 checkpoints

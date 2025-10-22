@@ -1,0 +1,65 @@
+### Model Configuration
+model_name_or_path: Qwen/Qwen2.5-VL-7B-Instruct
+image_max_pixels: 262144  # Maximum pixels for image input
+video_max_pixels: 16384   # Maximum pixels for video input (if needed)
+trust_remote_code: true
+
+### Training Method
+stage: sft
+do_train: true
+finetuning_type: lora
+lora_rank: 8
+lora_alpha: 16
+lora_target: all
+lora_dropout: 0.05
+
+### Dataset Configuration
+# Replace with your dataset name registered in data/dataset_info.json
+dataset: mllm_demo,identity,alpaca_en_demo  # Example datasets, modify as needed
+template: qwen2_vl
+cutoff_len: 4096
+max_samples: null # Remove or set to null for using all samples
+overwrite_cache: true
+preprocessing_num_workers: 16
+dataloader_num_workers: 4
+
+### Output Configuration
+output_dir: saves/qwen2_5vl-7b/lora/sft_custom
+logging_steps: 10
+save_steps: 500
+save_total_limit: 3  # Keep only the last 3 checkpoints
+plot_loss: true
+overwrite_output_dir: true
+save_only_model: false
+report_to: tensorboard  # Options: none, wandb, tensorboard, swanlab, mlflow
+
+### Training Hyperparameters
+per_device_train_batch_size: 4
+gradient_accumulation_steps: 8
+learning_rate: 1.0e-4
+num_train_epochs: 3.0
+lr_scheduler_type: cosine
+warmup_ratio: 0.1
+warmup_steps: 0
+weight_decay: 0.0
+optim: adamw_torch
+bf16: true
+fp16: false
+max_grad_norm: 1.0
+ddp_timeout: 180000000
+resume_from_checkpoint: null  # Set to checkpoint path if resuming
+
+### Evaluation (Optional)
+val_size: 0.0  # Set to 0.1 for 10% validation split
+per_device_eval_batch_size: 1
+eval_strategy: "no"  # Options: no, steps, epoch
+eval_steps: 500
+# do_eval: false
+
+### Logging and Checkpointing
+logging_first_step: true
+save_on_each_node: false
+save_safetensors: true
+
+### Other Settings
+seed: 42

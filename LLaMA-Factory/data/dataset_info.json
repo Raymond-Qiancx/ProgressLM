@@ -744,7 +744,6 @@
       "user_tag": "user",
       "assistant_tag": "assistant",
       "system_tag": "system"
-    },
-    "image_path": "/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/images"
+    }
   }
 }

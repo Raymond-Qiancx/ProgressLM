@@ -22,6 +22,7 @@ max_samples: null # Use all 18,580 samples
 overwrite_cache: true
 preprocessing_num_workers: 16
 dataloader_num_workers: 4
+media_dir: /projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/images  # Directory containing images
 
 ### Output Configuration
 output_dir: /projects/b1222/userdata/jianshu/chengxuan/saved/saved_results/progresslm/models/sft  # Updated for 3B model and FRM dataset

@@ -6,6 +6,10 @@ adapter_name_or_path: /projects/b1222/userdata/jianshu/chengxuan/saved/saved_res
 template: qwen2_vl
 trust_remote_code: true
 
+### Finetuning Configuration (required for export)
+stage: sft
+finetuning_type: lora
+
 ### Export Configuration
 export_dir: /projects/b1222/userdata/jianshu/chengxuan/saved/saved_results/progresslm/models/merged_model  # Output directory for merged model
 export_size: 5  # Split into max 5GB shards

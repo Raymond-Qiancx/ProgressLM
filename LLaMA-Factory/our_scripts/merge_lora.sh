@@ -78,6 +78,10 @@ adapter_name_or_path: $ADAPTER_PATH
 template: qwen2_vl
 trust_remote_code: true
 
+### Finetuning Configuration (required for export)
+stage: sft
+finetuning_type: lora
+
 ### Export Configuration
 export_dir: $OUTPUT_DIR
 export_size: 5

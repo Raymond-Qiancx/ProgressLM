@@ -17,10 +17,10 @@ lora_dropout: 0.05
 # Using frm_cold_all dataset (18,580 samples: 7,572 text + 11,008 visual)
 dataset: frm_cold_all
 template: qwen2_vl
-cutoff_len: 4096
+cutoff_len: 30000  # Increased to handle longer sequences with images
 max_samples: null # Use all 18,580 samples
 overwrite_cache: true
-preprocessing_num_workers: 32
+preprocessing_num_workers: 48
 dataloader_num_workers: 16
 media_dir: /projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/images  # Directory containing images
 

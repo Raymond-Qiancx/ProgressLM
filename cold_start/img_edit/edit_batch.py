@@ -26,12 +26,6 @@ shared_progress['failed'] = 0
 shared_progress['total'] = 0
 progress_lock = Lock()
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='[%(asctime)s][GPU:%(gpu_id)s] %(message)s',
-    datefmt='%H:%M:%S'
-)
-
 @dataclass
 class EditTask:
     prompt: str
@@ -56,9 +50,9 @@ class GlobalProgressBar:
                 total=self.total,
                 desc=f"Processing on {self.num_processes} GPUs",
                 unit="img",
-                bar_format='{desc}: {percentage:3.0f}%|{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}, Errors: {postfix[errors]} ({postfix[error_rate]:.1f}%)]',
-                postfix={'errors': 0, 'error_rate': 0}
+                bar_format='{desc}: {percentage:3.0f}%|{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]'
             )
+            self.pbar.set_postfix({'errors': 0, 'error_rate': 0.0})
         return self
     
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -127,8 +121,20 @@ class QwenImageEditProcessor:
         
     def _setup_logger(self):
         logger = logging.getLogger(f"GPU_{self.gpu_id}")
-        for handler in logger.handlers:
-            handler.addFilter(lambda record: setattr(record, 'gpu_id', self.gpu_id) or True)
+        logger.setLevel(logging.INFO)
+
+        # Remove existing handlers to avoid duplication
+        logger.handlers.clear()
+
+        # Create handler with custom format
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter(
+            f'[%(asctime)s][GPU:{self.gpu_id}] %(message)s',
+            datefmt='%H:%M:%S'
+        )
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+
         return logger
     
     def _load_checkpoint(self):
@@ -218,7 +224,7 @@ class QwenImageEditProcessor:
                 
                 # Run inference
                 with torch.inference_mode():
-                    with torch.cuda.amp.autocast(dtype=torch.bfloat16):
+                    with torch.amp.autocast('cuda', dtype=torch.bfloat16):
                         output = self.pipeline(**inputs)
                         output_image = output.images[0]
                 

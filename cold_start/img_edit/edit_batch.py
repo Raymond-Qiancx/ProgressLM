@@ -15,16 +15,12 @@ from accelerate import PartialState
 from diffusers import QwenImageEditPipeline
 import time
 from tqdm import tqdm
-from threading import Lock
 import multiprocessing
 
-# Set up multiprocessing manager for shared progress
+# Set up multiprocessing manager for shared progress (only used for total count)
 manager = multiprocessing.Manager()
 shared_progress = manager.dict()
-shared_progress['completed'] = 0
-shared_progress['failed'] = 0
 shared_progress['total'] = 0
-progress_lock = Lock()
 
 @dataclass
 class EditTask:
@@ -34,57 +30,45 @@ class EditTask:
     meta_data: Dict
     output_path: Optional[str] = None
 
-class GlobalProgressBar:
-    """Global progress bar that aggregates progress from all GPUs"""
-    
-    def __init__(self, total: int, num_processes: int):
+class PerGPUProgressBar:
+    """Per-GPU progress bar - each GPU shows its own progress on a fixed line"""
+
+    def __init__(self, total: int, gpu_id: int, num_processes: int):
         self.total = total
+        self.gpu_id = gpu_id
         self.num_processes = num_processes
         self.pbar = None
         self.completed = 0
         self.failed = 0
-        
+
     def __enter__(self):
-        if PartialState().process_index == 0:
-            # Get initial completed count from shared progress
-            initial_completed = shared_progress.get('completed', 0)
-            initial_failed = shared_progress.get('failed', 0)
-
-            self.pbar = tqdm(
-                total=self.total,
-                initial=initial_completed + initial_failed,
-                desc=f"Processing on {self.num_processes} GPUs",
-                unit="img",
-                bar_format='{desc}: {percentage:3.0f}%|{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]'
-            )
-
-            error_rate = (initial_failed / (initial_completed + initial_failed) * 100) if (initial_completed + initial_failed) > 0 else 0.0
-            self.pbar.set_postfix({'errors': initial_failed, 'error_rate': error_rate})
+        # Each GPU creates its own progress bar at a fixed position
+        self.pbar = tqdm(
+            total=self.total,
+            position=self.gpu_id,
+            desc=f"GPU {self.gpu_id}",
+            unit="img",
+            leave=True,
+            bar_format='{desc}: {percentage:3.0f}%|{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]'
+        )
+        self.pbar.set_postfix({'errors': 0})
         return self
-    
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.pbar:
             self.pbar.close()
-    
+
     def update(self, success: bool = True):
-        with progress_lock:
+        """Update this GPU's progress bar"""
+        if self.pbar:
             if success:
-                shared_progress['completed'] += 1
+                self.completed += 1
             else:
-                shared_progress['failed'] += 1
-            
-            if self.pbar and PartialState().process_index == 0:
-                self.completed = shared_progress['completed']
-                self.failed = shared_progress['failed']
-                total_processed = self.completed + self.failed
-                
-                self.pbar.n = total_processed
-                error_rate = (self.failed / total_processed * 100) if total_processed > 0 else 0
-                self.pbar.set_postfix({
-                    'errors': self.failed,
-                    'error_rate': error_rate
-                })
-                self.pbar.refresh()
+                self.failed += 1
+
+            self.pbar.update(1)
+            self.pbar.set_postfix({'errors': self.failed})
+            self.pbar.refresh()
 
 class QwenImageEditProcessor:
     def __init__(
@@ -312,8 +296,6 @@ class QwenImageEditProcessor:
         if self.gpu_id == 0:
             total_already_completed = self._count_completed_from_checkpoints()
             shared_progress['total'] = len(all_tasks_raw)
-            shared_progress['completed'] = total_already_completed
-            shared_progress['failed'] = 0
             if total_already_completed > 0:
                 self.logger.info(f"Resuming from checkpoint: {total_already_completed}/{len(all_tasks_raw)} tasks already completed")
 
@@ -329,9 +311,9 @@ class QwenImageEditProcessor:
         # Split tasks between GPUs
         with self.distributed_state.split_between_processes(all_tasks) as tasks_for_gpu:
             results = []
-            
-            # Create global progress bar
-            with GlobalProgressBar(total_tasks, self.num_processes) as progress_bar:
+
+            # Create per-GPU progress bar
+            with PerGPUProgressBar(len(tasks_for_gpu), self.gpu_id, self.num_processes) as progress_bar:
                 # Process each task
                 for task in tasks_for_gpu:
                     result = self.process_single_task(task, progress_bar)

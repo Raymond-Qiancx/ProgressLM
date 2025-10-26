@@ -1,16 +1,10 @@
 #!/bin/bash
 
 #####################################################################
-# Text Demo Progress Estimation Evaluation Script - 72B Model
+# Text Demo Progress Estimation Evaluation Script
 #
 # This script runs progress estimation evaluation on Text Demo dataset
-# using Qwen2-VL 72B model with MODEL PARALLELISM (single process mode).
-#
-# Key features:
-# - Single process inference (no multi-GPU data parallelism)
-# - Model automatically distributed across 4 GPUs
-# - Optimized for 72B/32B large models
-# - Batch size defaults to 1 for memory efficiency
+# using Qwen2-VL model with distributed GPU support.
 #
 # Expected JSONL format:
 # {
@@ -27,22 +21,23 @@
 
 # ======================== Configuration ========================
 
-# Model configuration - 72B Model
-MODEL_PATH="/projects/p32958/chengxuan/models/Qwen2.5-VL-72B-Instruct"
+# Model configuration
+# MODEL_PATH="/projects/b1222/userdata/jianshu/chengxuan/saved/saved_results/progresslm/models/3b_sft_qwen25vl"
+MODEL_PATH="/projects/p32958/chengxuan/models/Qwen2.5-VL-32B-Instruct"
 
 # Dataset configuration - using merged eval dataset
 DATASET_PATH="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/eval/text/text_eval_all.jsonl"
 IMAGE_ROOT="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/images"
 
 # Output configuration
-OUTPUT_DIR="/projects/b1222/userdata/jianshu/chengxuan/saved/eval_results/raw_72B_eval"
+OUTPUT_DIR="/projects/b1222/userdata/jianshu/chengxuan/saved/eval_results/raw_32B_text"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-OUTPUT_FILE="${OUTPUT_DIR}/eval_text_72b_${TIMESTAMP}.jsonl"
-LOG_FILE="${OUTPUT_DIR}/eval_text_72b_${TIMESTAMP}.log"
+OUTPUT_FILE="${OUTPUT_DIR}/eval_text_results_${TIMESTAMP}.jsonl"
+LOG_FILE="${OUTPUT_DIR}/eval_text_${TIMESTAMP}.log"
 
-# GPU configuration - Use all 4 GPUs for model parallelism
-GPU_IDS="0,1,2,3"  # All 4 GPUs will be used for model parallelism
-BATCH_SIZE=32  # Small batch size for 72B model (increase if memory allows)
+# GPU configuration
+GPU_IDS="0,1,2,3"  # Comma-separated GPU IDs to use
+BATCH_SIZE=6  # Batch size per GPU (can be higher since only 1 image per sample)
 
 # Inference configuration
 NUM_INFERENCES=1  # Number of inferences per sample (data expansion factor)
@@ -64,17 +59,13 @@ VERBOSE=false  # Set to true for detailed output
 # ======================== Auto Configuration ========================
 
 echo "======================================================================"
-echo "Text Demo Progress Estimation - 72B Model (Model Parallelism)"
+echo "Text Demo Progress Estimation - Evaluation"
 echo "======================================================================"
-echo "Model: $MODEL_PATH"
 echo "Dataset: $DATASET_PATH"
 echo "Output: $OUTPUT_FILE"
-echo "GPUs: $GPU_IDS (Model Parallelism Mode)"
-echo "Batch Size: $BATCH_SIZE"
+echo "GPUs: $GPU_IDS"
+echo "Batch Size per GPU: $BATCH_SIZE"
 echo "Inferences per Sample: $NUM_INFERENCES"
-echo "======================================================================"
-echo "NOTE: Using SINGLE PROCESS with MODEL PARALLELISM"
-echo "      Model will be automatically distributed across all 4 GPUs"
 echo "======================================================================"
 
 # ======================== Validation ========================
@@ -103,19 +94,19 @@ mkdir -p "$OUTPUT_DIR"
 
 # ======================== Run Inference ========================
 
-# Set CUDA visible devices to all GPUs for model parallelism
+# Set CUDA visible devices to all GPUs
 export CUDA_VISIBLE_DEVICES=$GPU_IDS
 
 # Get the script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+PROJECT_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
 EVAL_DIR="$PROJECT_DIR/qwen25vl"
 
 # Change to eval directory
 cd "$EVAL_DIR" || exit 1
 
-# Build command - using run_text_demo_single.py for 72B model
-CMD="python run_text_demo_single.py \
+# Build command
+CMD="python run_text_demo.py \
     --model-path $MODEL_PATH \
     --dataset-path $DATASET_PATH \
     --output-file $OUTPUT_FILE \
@@ -143,7 +134,7 @@ if [ "$VERBOSE" = true ]; then
     CMD="$CMD --verbose"
 fi
 
-echo "Starting 72B model evaluation inference..."
+echo "Starting evaluation inference..."
 echo ""
 
 # Execute command with logging

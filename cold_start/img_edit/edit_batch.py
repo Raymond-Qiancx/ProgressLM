@@ -46,13 +46,20 @@ class GlobalProgressBar:
         
     def __enter__(self):
         if PartialState().process_index == 0:
+            # Get initial completed count from shared progress
+            initial_completed = shared_progress.get('completed', 0)
+            initial_failed = shared_progress.get('failed', 0)
+
             self.pbar = tqdm(
                 total=self.total,
+                initial=initial_completed + initial_failed,
                 desc=f"Processing on {self.num_processes} GPUs",
                 unit="img",
                 bar_format='{desc}: {percentage:3.0f}%|{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]'
             )
-            self.pbar.set_postfix({'errors': 0, 'error_rate': 0.0})
+
+            error_rate = (initial_failed / (initial_completed + initial_failed) * 100) if (initial_completed + initial_failed) > 0 else 0.0
+            self.pbar.set_postfix({'errors': initial_failed, 'error_rate': error_rate})
         return self
     
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -273,21 +280,53 @@ class QwenImageEditProcessor:
     
     def process_batch(self, jsonl_path: str):
         """Process batch with global progress tracking"""
-        # Load all tasks
-        all_tasks = self.load_tasks(jsonl_path)
-        
-        # Set total count on first GPU
+        # Load all tasks (before checkpoint filtering)
+        all_tasks_raw = []
+        with open(jsonl_path, 'r', encoding='utf-8') as f:
+            for line in f:
+                try:
+                    data = json.loads(line.strip())
+                    all_tasks_raw.append(data)
+                except Exception as e:
+                    self.logger.error(f"Error loading line: {e}")
+
+        # Count completed tasks across all GPUs for checkpoint resume
+        total_completed = len(self.completed_tasks)
+
+        # Gather completed counts from all GPUs
+        all_completed_counts = [None] * self.num_processes
+        all_completed_counts[self.gpu_id] = total_completed
+
+        # Share completed counts (simple approach: use shared dict)
+        with progress_lock:
+            if f'completed_gpu_{self.gpu_id}' not in shared_progress:
+                shared_progress[f'completed_gpu_{self.gpu_id}'] = total_completed
+
+        self.distributed_state.wait_for_everyone()
+
+        # Calculate total completed tasks across all GPUs
+        total_already_completed = sum(
+            shared_progress.get(f'completed_gpu_{i}', 0)
+            for i in range(self.num_processes)
+        )
+
+        # Initialize shared progress on GPU 0
         if self.gpu_id == 0:
-            shared_progress['total'] = len(all_tasks)
-            shared_progress['completed'] = 0
+            shared_progress['total'] = len(all_tasks_raw)
+            shared_progress['completed'] = total_already_completed
             shared_progress['failed'] = 0
-        
+            if total_already_completed > 0:
+                self.logger.info(f"Resuming from checkpoint: {total_already_completed}/{len(all_tasks_raw)} tasks already completed")
+
         # Wait for initialization
         self.distributed_state.wait_for_everyone()
-        
+
+        # Load tasks with checkpoint filtering (will skip already completed)
+        all_tasks = self.load_tasks(jsonl_path)
+
         # Get total from shared memory
-        total_tasks = shared_progress['total'] if self.gpu_id == 0 else len(all_tasks)
-        
+        total_tasks = shared_progress['total']
+
         # Split tasks between GPUs
         with self.distributed_state.split_between_processes(all_tasks) as tasks_for_gpu:
             results = []

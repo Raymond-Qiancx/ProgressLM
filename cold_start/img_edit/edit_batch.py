@@ -33,18 +33,20 @@ class EditTask:
 class PerGPUProgressBar:
     """Per-GPU progress bar - each GPU shows its own progress on a fixed line"""
 
-    def __init__(self, total: int, gpu_id: int, num_processes: int):
+    def __init__(self, total: int, gpu_id: int, num_processes: int, initial: int = 0):
         self.total = total
         self.gpu_id = gpu_id
         self.num_processes = num_processes
+        self.initial = initial
         self.pbar = None
-        self.completed = 0
+        self.completed = initial  # Start from already completed count
         self.failed = 0
 
     def __enter__(self):
         # Each GPU creates its own progress bar at a fixed position
         self.pbar = tqdm(
             total=self.total,
+            initial=self.initial,  # Start progress bar from already completed tasks
             position=self.gpu_id,
             desc=f"GPU {self.gpu_id}",
             unit="img",
@@ -282,15 +284,23 @@ class QwenImageEditProcessor:
 
     def process_batch(self, jsonl_path: str):
         """Process batch with global progress tracking"""
-        # Load all tasks (before checkpoint filtering)
+        # Load all tasks (without checkpoint filtering first)
         all_tasks_raw = []
         with open(jsonl_path, 'r', encoding='utf-8') as f:
-            for line in f:
+            for line_num, line in enumerate(f, 1):
                 try:
                     data = json.loads(line.strip())
-                    all_tasks_raw.append(data)
+                    image_path = self.image_dir / data['meta_data']['id'] / data['meta_data']['image']
+
+                    task = EditTask(
+                        prompt=data['prompt'],
+                        image_path=str(image_path),
+                        task_id=f"{data['meta_data']['id']}_{line_num}",
+                        meta_data=data['meta_data']
+                    )
+                    all_tasks_raw.append(task)
                 except Exception as e:
-                    self.logger.error(f"Error loading line: {e}")
+                    self.logger.error(f"Error loading line {line_num}: {e}")
 
         # Only GPU 0 reads all checkpoint files and initializes shared progress
         if self.gpu_id == 0:
@@ -302,20 +312,33 @@ class QwenImageEditProcessor:
         # Wait for GPU 0 to initialize shared progress
         self.distributed_state.wait_for_everyone()
 
-        # Load tasks with checkpoint filtering (will skip already completed)
-        all_tasks = self.load_tasks(jsonl_path)
-
         # Get total from shared memory
         total_tasks = shared_progress['total']
 
-        # Split tasks between GPUs
-        with self.distributed_state.split_between_processes(all_tasks) as tasks_for_gpu:
+        # Split ALL tasks between GPUs first (before filtering)
+        with self.distributed_state.split_between_processes(all_tasks_raw) as tasks_for_this_gpu:
+            # Convert to list to work with
+            tasks_assigned = list(tasks_for_this_gpu)
+            total_assigned = len(tasks_assigned)
+
+            # Now filter out completed tasks for this GPU
+            tasks_to_process = []
+            completed_count = 0
+            for task in tasks_assigned:
+                if task.task_id in self.completed_tasks:
+                    self.logger.info(f"Skipping completed task: {task.task_id}")
+                    completed_count += 1
+                else:
+                    tasks_to_process.append(task)
+
+            self.logger.info(f"Assigned {total_assigned} tasks, {completed_count} already completed, {len(tasks_to_process)} to process")
+
             results = []
 
-            # Create per-GPU progress bar
-            with PerGPUProgressBar(len(tasks_for_gpu), self.gpu_id, self.num_processes) as progress_bar:
+            # Create per-GPU progress bar - total is all assigned tasks, initial is already completed
+            with PerGPUProgressBar(total_assigned, self.gpu_id, self.num_processes, initial=completed_count) as progress_bar:
                 # Process each task
-                for task in tasks_for_gpu:
+                for task in tasks_to_process:
                     result = self.process_single_task(task, progress_bar)
                     results.append(result)
                     

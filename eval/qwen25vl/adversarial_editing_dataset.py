@@ -29,10 +29,15 @@ def load_adversarial_editing_dataset(
         "data_source": "h5_tienkung_xsens_1rgb"
     }
 
+    Image Path Construction:
+        Final path = image_root/id/stage_to_estimate
+        Example: /path/to/images/h5_tienkung_xsens_1rgb/tool_liftn_box_place/2024-09-28-10-54-08/camera_top_0556.jpg
+
     Args:
         dataset_path: Path to JSONL file
         num_inferences: Number of times to replicate each sample (for multiple sampling)
         image_root: Root directory to prepend to image paths (e.g., "/path/to/images/")
+                   Images will be loaded from: image_root/id/stage_to_estimate
 
     Returns:
         List of dataset items (expanded if num_inferences > 1)
@@ -57,12 +62,14 @@ def load_adversarial_editing_dataset(
                     print(f"Warning: Line {line_num} missing fields {missing_fields}, skipping")
                     continue
 
-                # Prepend image_root to stage_to_estimate if provided
+                # Prepend image_root/id to stage_to_estimate if provided
+                # Path format: image_root/id/stage_to_estimate
                 if image_root:
                     # Store original path without prefix for metadata
                     item['stage_to_estimate_original'] = item['stage_to_estimate']
-                    # Add prefix for actual loading
-                    item['stage_to_estimate'] = os.path.join(image_root, item['stage_to_estimate'])
+                    # Add prefix for actual loading: image_root/id/image_file
+                    item_id = item['id']
+                    item['stage_to_estimate'] = os.path.join(image_root, item_id, item['stage_to_estimate'])
                 else:
                     item['stage_to_estimate_original'] = item['stage_to_estimate']
 

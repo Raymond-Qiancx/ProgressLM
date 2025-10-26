@@ -191,7 +191,7 @@ class QwenImageEditProcessor:
         
         return tasks
     
-    def process_single_task(self, task: EditTask, progress_bar: GlobalProgressBar) -> Dict:
+    def process_single_task(self, task: EditTask, progress_bar: PerGPUProgressBar) -> Dict:
         """Process single task with retries and immediate save"""
         for attempt in range(self.max_retries):
             try:

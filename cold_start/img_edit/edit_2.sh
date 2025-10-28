@@ -5,11 +5,11 @@
 # ================================================
 
 # Default values
-JSONL_FILE="/projects/p32958/chengxuan/data/image_edit/img_edit_1.jsonl"
+JSONL_FILE="/projects/p32958/chengxuan/data/image_edit/img_edit_2.jsonl"
 MODEL_PATH="/projects/p32958/chengxuan/models/Qwen-Image-Edit"
 IMAGE_DIR="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/images"
 SAVE_DIR="/projects/p32958/chengxuan/results/progresslm/negative/image"
-CHECKPOINT_DIR="/projects/p32958/chengxuan/results/progresslm/negative/ckpt/edit_1"
+CHECKPOINT_DIR="/projects/p32958/chengxuan/results/progresslm/negative/ckpt/edit_2"
 NUM_GPUS=4
 GPU_IDS="0,1,2,3"
 MAX_RETRIES=2

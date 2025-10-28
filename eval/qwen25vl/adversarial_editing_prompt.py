@@ -71,10 +71,8 @@ Editing Guidelines:
 Modify key objects or elements in the image using one of the following strategies:
 1. Color Change: Alter the color of critical objects (e.g., change a red apple to green)
 2. Object Replacement: Replace the target object with a different object (e.g., replace an egg with an orange)
-3. Quantity Modification: Change the number of objects (add or remove items)
-4. State Change: Modify the object's state (e.g., change from whole to broken)
-5. Occlusion/Removal: Hide or remove key objects from the scene
-6. Spatial Arrangement: Rearrange objects in a way that violates the instruction
+3. Occlusion/Removal: Hide or remove key objects from the scene
+
 
 
 Requirements:

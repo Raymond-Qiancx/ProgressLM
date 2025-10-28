@@ -5,13 +5,13 @@
 # ================================================
 
 # Default values
-JSONL_FILE="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/negative/sub_train/ad_3.jsonl"
+JSONL_FILE="/projects/p32958/chengxuan/data/image_edit/img_edit_4.jsonl"
 MODEL_PATH="/projects/p32958/chengxuan/models/Qwen-Image-Edit"
 IMAGE_DIR="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/images"
 SAVE_DIR="/projects/p32958/chengxuan/results/progresslm/negative/image"
-CHECKPOINT_DIR="/projects/p32958/chengxuan/results/progresslm/negative/ckpt"
+CHECKPOINT_DIR="/projects/p32958/chengxuan/results/progresslm/negative/ckpt/edit_4"
 NUM_GPUS=4
-GPU_IDS="0,1"
+GPU_IDS="0,1,2,3"
 MAX_RETRIES=2
 CHECKPOINT=true
 
@@ -82,6 +82,11 @@ export CUDA_VISIBLE_DEVICES=$GPU_IDS
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export OMP_NUM_THREADS=8
 export TOKENIZERS_PARALLELISM=false
+
+# Disable NCCL timeout for long-running tasks (each image takes ~2 minutes)
+# Default timeout is 10 minutes which may not be enough for slow GPUs
+export NCCL_ASYNC_ERROR_HANDLING=1
+export NCCL_TIMEOUT=0  # 0 = no timeout
 
 # Count tasks
 TASK_COUNT=$(wc -l < "$JSONL_FILE")

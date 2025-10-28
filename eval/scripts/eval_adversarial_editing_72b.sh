@@ -31,7 +31,8 @@
 MODEL_PATH="/projects/p32958/chengxuan/models/Qwen2.5-VL-72B-Instruct"  # UPDATE THIS
 
 # Dataset configuration
-DATASET_PATH="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/train/text_demo/text_robo_sft_all.jsonl"  # UPDATE THIS
+# DATASET_PATH="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/train/text_demo/text_robo_sft_all.jsonl"  # UPDATE THIS
+DATASET_PATH="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/train/text_demo/text_robo_5.jsonl"  # UPDATE THIS
 IMAGE_ROOT="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/images"  # UPDATE THIS - will be prepended to image paths
 
 # Output configuration
@@ -43,6 +44,7 @@ LOG_FILE="${OUTPUT_DIR}/adversarial_editing_72b_${TIMESTAMP}.log"
 # GPU configuration - Use all 4 GPUs for model parallelism
 GPU_IDS="0,1,2,3"  # All 4 GPUs will be used for model parallelism
 BATCH_SIZE=48  # Small batch size for 72B model (increase if memory allows)
+
 
 # Inference configuration
 NUM_INFERENCES=1  # Number of inferences per sample (data expansion factor)

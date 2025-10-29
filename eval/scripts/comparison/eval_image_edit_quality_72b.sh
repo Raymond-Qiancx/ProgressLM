@@ -40,8 +40,8 @@
 MODEL_PATH="/projects/p32958/chengxuan/models/Qwen2.5-VL-72B-Instruct"
 
 # Dataset configuration - edited images dataset
-DATASET_PATH="/projects/p32958/chengxuan/data/image_edit/edited_merged_all.jsonl"
-IMAGE_ROOT="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/edited_images"
+DATASET_PATH="/projects/p32958/chengxuan/data/image_edit/edited_all.jsonl"
+IMAGE_ROOT="/projects/p32958/chengxuan/results/progresslm/negative/image"
 
 # Output configuration
 OUTPUT_DIR="/projects/b1222/userdata/jianshu/chengxuan/saved/eval_results/image_edit_quality_72b"

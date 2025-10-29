@@ -84,7 +84,7 @@ Evaluation Criteria:
 Answer "yes" if the edit successfully creates a failure case (all criteria met, including safety).
 Answer "no" if the edit is poor, unrealistic, unsafe, or doesn't effectively violate the instruction.
 
-Your answer: (yes/no)"""
+**Output Format** Your output should be yes or no only"""
 
     # Build message format for Qwen2-VL
     # Format: [{'type': 'image', 'value': path}, {'type': 'text', 'value': prompt}]

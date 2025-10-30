@@ -22,24 +22,23 @@
 
 # ======================== Configuration ========================
 
-# Model configuration 
+# Model configuration
 # MODEL_PATH="/projects/b1222/userdata/jianshu/chengxuan/saved/models/Qwen2.5-VL-3B-Instruct"
-# MODEL_PATH="/projects/b1222/userdata/jianshu/chengxuan/saved/saved_results/progresslm/models/3b_sft_qwen25vl_4epoch"
 MODEL_PATH="/projects/p32958/chengxuan/models/merged_model/Qwen2.5VL_3B_RL"
 
 # Dataset configuration - using merged eval dataset
-DATASET_PATH="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/vlac_test/vlac_test.jsonl"
-IMAGE_ROOT="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/ref_codes/VLAC/evo_vlac/examples"
+DATASET_PATH="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/eval/visual/visual_eval_3k.jsonl"
+IMAGE_ROOT="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/images"
 
 # Output configuration
-OUTPUT_DIR="/projects/b1222/userdata/jianshu/chengxuan/saved/saved_results/progresslm/vlac_test"
+OUTPUT_DIR="/projects/b1222/userdata/jianshu/chengxuan/saved/eval_results/rl_visual"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 OUTPUT_FILE="${OUTPUT_DIR}/eval_sft3b_visual_${TIMESTAMP}.jsonl"
 LOG_FILE="${OUTPUT_DIR}/eval_visual_${TIMESTAMP}.log"
 
 # GPU configuration
-GPU_IDS="0"  # Comma-separated GPU IDs to use
-BATCH_SIZE=11  # Batch size per GPU (adjust based on VRAM and image count)
+GPU_IDS="0,1,2,3"  # Comma-separated GPU IDs to use
+BATCH_SIZE=10  # Batch size per GPU (adjust based on VRAM and image count)
 
 # Inference configuration
 NUM_INFERENCES=1  # Number of inferences per sample (data expansion factor)
@@ -101,7 +100,7 @@ export CUDA_VISIBLE_DEVICES=$GPU_IDS
 
 # Get the script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+PROJECT_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
 EVAL_DIR="$PROJECT_DIR/qwen25vl"
 
 # Change to eval directory

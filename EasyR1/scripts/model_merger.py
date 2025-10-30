@@ -12,10 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+python /projects/b1222/userdata/jianshu/chengxuan/ProgressLM/EasyR1/scripts/model_merger.py \
+  --local_dir /projects/p32958/chengxuan/models/easyr1_ckpt/35k_20251029-195831-copy/global_step_530/actor
+"""
+
 import argparse
 import os
 import re
 from concurrent.futures import ThreadPoolExecutor
+from typing import Dict, List, Tuple
 
 import numpy as np
 import torch
@@ -23,14 +29,14 @@ from torch.distributed._tensor import DTensor, Placement, Shard
 from transformers import (
     AutoConfig,
     AutoModelForCausalLM,
-    AutoModelForImageTextToText,
     AutoModelForTokenClassification,
+    AutoModelForVision2Seq,
     PretrainedConfig,
     PreTrainedModel,
 )
 
 
-def merge_by_placement(tensors: list[torch.Tensor], placement: Placement):
+def merge_by_placement(tensors: List[torch.Tensor], placement: Placement):
     if placement.is_replicate():
         return tensors[0]
     elif placement.is_partial():
@@ -112,8 +118,8 @@ if __name__ == "__main__":
         for rank in range(1, total_shards):
             executor.submit(process_one_shard, rank, model_state_dict_lst)
 
-    state_dict: dict[str, list[torch.Tensor]] = {}
-    param_placements: dict[str, list[Placement]] = {}
+    state_dict: Dict[str, List[torch.Tensor]] = {}
+    param_placements: Dict[str, List[Placement]] = {}
     keys = set(model_state_dict_lst[0].keys())
     for key in keys:
         state_dict[key] = []
@@ -146,7 +152,7 @@ if __name__ == "__main__":
 
         if key in param_placements:
             # merge shards
-            placements: tuple[Shard] = param_placements[key]
+            placements: Tuple[Shard] = param_placements[key]
             if len(mesh_shape) == 1:
                 # 1-D list, FSDP without TP
                 assert len(placements) == 1
@@ -161,14 +167,14 @@ if __name__ == "__main__":
     print("Merge completed.")
     hf_path = os.path.join(local_dir, "huggingface")
     config: PretrainedConfig = AutoConfig.from_pretrained(hf_path)
-    architectures: list[str] = getattr(config, "architectures", ["Unknown"])
+    architectures: List[str] = getattr(config, "architectures", ["Unknown"])
 
     if "ForTokenClassification" in architectures[0]:
         AutoClass = AutoModelForTokenClassification
-    elif "ForConditionalGeneration" in architectures[0]:
-        AutoClass = AutoModelForImageTextToText
     elif "ForCausalLM" in architectures[0]:
         AutoClass = AutoModelForCausalLM
+    elif "ForConditionalGeneration" in architectures[0]:
+        AutoClass = AutoModelForVision2Seq
     else:
         raise NotImplementedError(f"Unknown architecture {architectures}.")
 

@@ -22,7 +22,7 @@ TEXT_DEMO_INSTRUCTION_PART3 = """Your task:
 4. Estimate the progress numerically as a floating-point value between 0% and 100%.
 
 Your response must strictly follow this format:
-<ref_think>Your reasoning for choosing the most similar text_demo step(s) as the reference</ref_think>
+<ref_think>Your reasoning for choosing the most similar text_demo step as the reference</ref_think>
 <ref>which text demo is most semantically similar to the current state, and output only the number of that text demo</ref>
 <score_think>Your reasoning for comparing the current state image with the reference step(s)</score_think>
 <score>Your final estimated progress score here</score>"""

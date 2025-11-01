@@ -48,7 +48,7 @@ bf16: true
 fp16: false
 max_grad_norm: 1.0
 ddp_timeout: 180000000
-resume_from_checkpoint: null  # Set to checkpoint path if resuming
+resume_from_checkpoint: true  # Set to checkpoint path if resuming
 
 ### Evaluation (Optional)
 val_size: 0.0  # Set to 0.1 for 10% validation split

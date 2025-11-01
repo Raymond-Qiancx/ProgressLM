@@ -25,7 +25,8 @@
 # Model configuration 
 # MODEL_PATH="/projects/b1222/userdata/jianshu/chengxuan/saved/models/Qwen2.5-VL-3B-Instruct"
 # MODEL_PATH="/projects/b1222/userdata/jianshu/chengxuan/saved/saved_results/progresslm/models/3b_sft_qwen25vl_4epoch"
-MODEL_PATH="/projects/p32958/chengxuan/models/merged_model/Qwen2.5VL_3B_RL"
+# MODEL_PATH="/projects/b1222/userdata/jianshu/chengxuan/saved/saved_results/progresslm/models/qwen25vl_7b_sft"
+MODEL_PATH="/projects/b1222/userdata/jianshu/chengxuan/saved/saved_results/progresslm/models/qwen25vl_7b_sft"
 
 # Dataset configuration - using merged eval dataset
 DATASET_PATH="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/vlac_test/vlac_test.jsonl"

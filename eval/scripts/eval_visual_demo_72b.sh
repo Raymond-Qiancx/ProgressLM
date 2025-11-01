@@ -32,11 +32,11 @@
 MODEL_PATH="/projects/p32958/chengxuan/models/Qwen2.5-VL-72B-Instruct"
 
 # Dataset configuration - using merged eval dataset
-DATASET_PATH="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/eval/visual/visual_eval_3k.jsonl"
+DATASET_PATH="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/eval/visual/visual_eval_new.jsonl"
 IMAGE_ROOT="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/images"
 
 # Output configuration
-OUTPUT_DIR="/projects/b1222/userdata/jianshu/chengxuan/saved/eval_results/raw_72B_visual"
+OUTPUT_DIR="/projects/b1222/userdata/jianshu/chengxuan/saved/eval_new_results/72B_visual_new"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 OUTPUT_FILE="${OUTPUT_DIR}/eval_visual_72b_${TIMESTAMP}.jsonl"
 LOG_FILE="${OUTPUT_DIR}/eval_visual_72b_${TIMESTAMP}.log"

@@ -27,11 +27,11 @@
 MODEL_PATH="/projects/b1222/userdata/jianshu/chengxuan/saved/saved_results/progresslm/models/3b_sft_qwen25vl"
 
 # Dataset configuration - using merged eval dataset
-DATASET_PATH="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/eval/visual/visual_eval_3k.jsonl"
+DATASET_PATH="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/eval/visual/visual_eval_new.jsonl"
 IMAGE_ROOT="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/images"
 
 # Output configuration
-OUTPUT_DIR="/projects/b1222/userdata/jianshu/chengxuan/saved/eval_results/sft_3b_visual/tiny"
+OUTPUT_DIR="/projects/b1222/userdata/jianshu/chengxuan/saved/eval_results/sft_3b_visual/clean"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 OUTPUT_FILE="${OUTPUT_DIR}/eval_sft3b_visual_${TIMESTAMP}.jsonl"
 LOG_FILE="${OUTPUT_DIR}/eval_visual_${TIMESTAMP}.log"

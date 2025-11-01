@@ -732,7 +732,7 @@
     "folder": "python"
   },
   "frm_cold_all": {
-    "file_name": "/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/sft_data/sft_steps_3to7.jsonl",
+    "file_name": "/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/sft_data/sft_final.jsonl",
     "formatting": "sharegpt",
     "columns": {
       "messages": "messages",

@@ -14,7 +14,7 @@
 
 """
 python /projects/b1222/userdata/jianshu/chengxuan/ProgressLM/EasyR1/scripts/model_merger.py \
-  --local_dir /projects/p32958/chengxuan/models/easyr1_ckpt/35k_20251029-195831-copy/global_step_530/actor
+  --local_dir /projects/p32958/chengxuan/models/easyr1_ckpt/35k_20251029-195831/global_step_635/actor
 """
 
 import argparse

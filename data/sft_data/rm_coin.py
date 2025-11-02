@@ -244,25 +244,26 @@
 #         raise FileNotFoundError(f"找不到文件: {args.input}")
 
 #     clean_sft_file(args.input, args.output)
-import json
 
-file_path = "/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/sft_data/sft_final.jsonl"
+# import json
 
-count_total = 0
-count_len1 = 0
+# file_path = "/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/sft_data/sft_final.jsonl"
 
-with open(file_path, "r", encoding="utf-8") as f:
-    for line in f:
-        data = json.loads(line)
-        if "images" in data:
-            count_total += 1
-            if isinstance(data["images"], list) and len(data["images"]) == 1:
-                count_len1 += 1
+# count_total = 0
+# count_len1 = 0
 
-if count_total > 0:
-    ratio = count_len1 / count_total
-    print(f"总样本数: {count_total}")
-    print(f"images长度为1的样本数: {count_len1}")
-    print(f"比例: {ratio:.2%}")
-else:
-    print("未找到包含images字段的数据。")
+# with open(file_path, "r", encoding="utf-8") as f:
+#     for line in f:
+#         data = json.loads(line)
+#         if "images" in data:
+#             count_total += 1
+#             if isinstance(data["images"], list) and len(data["images"]) == 1:
+#                 count_len1 += 1
+
+# if count_total > 0:
+#     ratio = count_len1 / count_total
+#     print(f"总样本数: {count_total}")
+#     print(f"images长度为1的样本数: {count_len1}")
+#     print(f"比例: {ratio:.2%}")
+# else:
+#     print("未找到包含images字段的数据。")

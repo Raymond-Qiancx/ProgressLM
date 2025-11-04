@@ -5,7 +5,7 @@ import argparse
 import time
 import re
 from tqdm import tqdm
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Union
 import torch
 import traceback
 import multiprocessing as mp

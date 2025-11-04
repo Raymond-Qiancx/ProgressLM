@@ -125,7 +125,8 @@ def build_ground_truth_section(closest_idx: Union[int, str], progress_score: Uni
 
 **Ground-Truth Progress Result**
 Closest Reference Frame: {closest_idx_str}
-Final Progress Score to Justify: {progress_score_str}"""
+Final Progress Score to Justify: {progress_score_str}
+Indicating that we are now facing abnormal situation, your `<ref>` and `<score>` should both be "n/a"."""
 
     return ground_truth_text
 

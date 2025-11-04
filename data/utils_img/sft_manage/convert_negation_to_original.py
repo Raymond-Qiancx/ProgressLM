@@ -41,25 +41,26 @@ def convert_entry(entry):
     task_goal = entry.get('edited_goal', meta_data['task_goal'])
     text_demo = entry.get('edited_demo', meta_data['text_demo'])
 
-    # Build the converted entry with required fields only
+    # Handle stage_to_estimate: extract filename only
+    # Use stage_to_estimate_original if available, otherwise extract from path
+    if 'stage_to_estimate_original' in meta_data:
+        stage_to_estimate = meta_data['stage_to_estimate_original']
+    else:
+        # Extract filename from full path
+        stage_path = meta_data['stage_to_estimate']
+        stage_to_estimate = os.path.basename(stage_path)
+
+    # Build the converted entry with required fields in the exact order
     converted = {
         'id': meta_data['id'],
         'task_goal': task_goal,  # Use edited_goal
         'text_demo': text_demo,  # Use edited_demo
         'total_steps': str(meta_data['total_steps']),  # Convert int to string
-        'closest_idx': meta_data['closest_idx'],  # Keep as int
-        'progress_score': meta_data['progress_score'],
+        'stage_to_estimate': stage_to_estimate,  # Filename only
+        'closest_idx': "n/a",  # Set to n/a
+        'progress_score': "n/a",  # Set to n/a
         'data_source': meta_data['data_source']
     }
-
-    # Handle stage_to_estimate: extract filename only
-    # Use stage_to_estimate_original if available, otherwise extract from path
-    if 'stage_to_estimate_original' in meta_data:
-        converted['stage_to_estimate'] = meta_data['stage_to_estimate_original']
-    else:
-        # Extract filename from full path
-        stage_path = meta_data['stage_to_estimate']
-        converted['stage_to_estimate'] = os.path.basename(stage_path)
 
     return converted
 

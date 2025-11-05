@@ -3,80 +3,68 @@ from typing import Dict, Any, List, Union
 
 
 # System prompt for training mode (CoT generation with ground-truth)
-TEXT_DEMO_SYSTEM_PROMPT_TRAIN = """You are an expert AI analyst specializing in visual task-progress evaluations. Your objective is not to estimate from scratch. Instead, your task is to construct a perfect, human-like chain of thought that logically explains and justifies a known, ground-truth progress score. Your entire response must read as if you are deducing the conclusion independently from visual analysis alone."""
+VISUAL_DEMO_SYSTEM_PROMPT_TRAIN = """You are an expert AI analyst specializing in generating step-by-step reasoning for visual task-progress evaluations. Your objective is not to estimate from scratch. Instead, your task is to construct a perfect, human-like chain of thought that logically explains and justifies a known, ground-truth progress score. Your entire response must read as if you are deducing the conclusion independently from visual analysis alone."""
 
 
 # System prompt for normal inference mode
-TEXT_DEMO_SYSTEM_PROMPT_INFERENCE = """You are a progress estimator that evaluates the progress of an ongoing task based on a textual demonstration of its step-by-step progression.
-
-The demonstration consists of a sequence of text instructions (text_demo), each describing one step of the process.
-Each step explicitly states the corresponding progress value (ranging from 0% to 100%), showing how the task evolves from start to completion."""
+VISUAL_DEMO_SYSTEM_PROMPT_INFERENCE = """You are a progress estimator specializing in evaluating the progress of an ongoing task based on visual evidence. The demonstration consists of a sequence of video frames (images) showing how the task evolves from 0% (start) to 100% (completion). Your goal is to produce a human-like reasoning chain that logically supports the given progress score."""
 
 
-# Default system prompt (use inference mode)
-TEXT_DEMO_SYSTEM_PROMPT = TEXT_DEMO_SYSTEM_PROMPT_INFERENCE
+# Default system prompt (use training mode)
+VISUAL_DEMO_SYSTEM_PROMPT = VISUAL_DEMO_SYSTEM_PROMPT_TRAIN
 
 
-TEXT_DEMO_INSTRUCTION_PART1 = """Here is the demonstration:"""
+VISUAL_DEMO_INSTRUCTION_PART1 = """Here is the demonstration:"""
 
 
-TEXT_DEMO_INSTRUCTION_PART2 = """Here is the current state that you need to estimate:"""
+VISUAL_DEMO_INSTRUCTION_PART2 = """Here is the current state that you need to estimate:"""
 
 
-TEXT_DEMO_INSTRUCTION_PART3 = """**Abnormal Situation Handling:**
+VISUAL_DEMO_INSTRUCTION_PART3 = """**Abnormal Situation Handling:**
 If you detect any of the following abnormal situations:
-- The current state does not match the task goal or any demo steps
+- The current state does not match the task goal or any visual demon images
 - The operation appears to have failed or resulted in an error state
 - You must output "n/a" for both `<ref>` and `<score>`. In your reasoning sections, clearly explain why the situation is abnormal and why no valid progress estimation can be made.
 
 Your task:
-1. Analyze the text_demo to understand how the task visually and conceptually progresses from start to completion.
-2. Identify the step from the text_demo that are most visually and semantically similar to the current state image.
-3. Compare the current state image with the chosen reference step to determine whether it represents an earlier or later stage.
-4. Estimate the progress numerically as a floating-point value between 0% and 100%, or both `<ref>` and `<score>` be "n/a" while encontering abnormal situation.
+1. Analyze the demonstration images to understand how the task visually progresses from start to completion.
+2. Identify the frame (or frames) from the demonstration that are visually most similar to the current state image.
+3. Compare the current state to that reference frame and determine whether it shows more or less progress.
+4. Finally, provide a numeric progress estimation between 0% and 100%, or both `<ref>` and `<score>` be "n/a" while encontering abnormal situation.
 
 Your response must strictly follow this format:
-<ref_think>Your reasoning for choosing the most similar text_demo step as the reference, OR explanation of why the situation is abnormal and no reference can be identified</ref_think>
-<ref>which text demo is most semantically similar to the current state (output only the number), OR "n/a" if abnormal situation detected</ref>
-<score_think>Your reasoning for comparing the current state image with the reference step, OR explanation of why no valid progress score can be assigned</score_think>
+<ref_think>Your reasoning for choosing the closest demonstration frame as the reference, OR explanation of why the situation is abnormal and no reference can be identified</ref_think>
+<ref>The progress score of your chosen reference frame, OR "n/a" if abnormal situation detected</ref>
+<score_think>Your reasoning for comparing the current state image with the reference frame, OR explanation of why no valid progress score can be assigned</score_think>
 <score>Your final estimated progress score, OR "n/a" if abnormal situation detected</score>"""
 
 
-def format_text_demo_with_progress(text_demo_list: List[str], total_steps: int) -> str:
+def format_visual_demo_progress_shifts(total_steps: int) -> str:
     """
-    Format text_demo list into a structured string with step numbers and progress percentages.
+    Format progress shifts for visual demo images based on total_steps.
+
+    The progress shifts between images: 0% -> 25% -> 50% -> 75% -> 100% (for total_steps=4)
 
     Args:
-        text_demo_list: List of text demo steps (e.g., ["step1", "step2", "step3"])
-        total_steps: Total number of steps
+        total_steps: Total number of steps (not including the initial 0% state)
 
     Returns:
-        Formatted string like:
-            Step 1. reach for the power bank
-            The Progress for now is 33%.
-
-            Step 2. insert the battery into the power bank
-            The Progress for now is 66%.
-
-            Step 3. remove the battery from the power bank
-            The Progress for now is 100%.
+        Formatted string with <image> tags and progress scores
 
     Example:
-        >>> format_text_demo_with_progress(["reach", "insert", "remove"], 3)
-        'Step 1. reach\nThe Progress for now is 33%.\n\nStep 2. insert\nThe Progress for now is 66%.\n\nStep 3. remove\nThe Progress for now is 100%.'
+        >>> format_visual_demo_progress_shifts(4)
+        '<image> 0% <image> 25% <image> 50% <image> 75% <image> 100%'
     """
-    formatted_parts = []
+    # Number of images is total_steps + 1 (0% to 100%)
+    num_images = total_steps + 1
+    parts = []
 
-    for idx, step_text in enumerate(text_demo_list, start=1):
-        # Calculate progress percentage for this step (1-based)
-        progress_percentage = round((idx / total_steps) * 100)
+    for i in range(num_images):
+        # Calculate progress percentage for this image
+        progress_percentage = round((i / total_steps) * 100)
+        parts.append(f"<image> {progress_percentage}%")
 
-        # Format: "Step X. <text>\nThe Progress for now is Y%."
-        step_block = f"Step {idx}. {step_text}\nThe Progress for now is {progress_percentage}%."
-        formatted_parts.append(step_block)
-
-    # Join with double newline for separation
-    return "\n\n".join(formatted_parts)
+    return " ".join(parts)
 
 
 def build_ground_truth_section(closest_idx: Union[int, str], progress_score: Union[str, float]) -> str:
@@ -84,21 +72,21 @@ def build_ground_truth_section(closest_idx: Union[int, str], progress_score: Uni
     Build the ground-truth section for training mode (CoT generation).
 
     Args:
-        closest_idx: 1-based index of the closest text_demo step, or "n/a"
+        closest_idx: 1-based index of the closest visual_demo image, or "n/a"
         progress_score: Progress score (can be "33%", 0.33, or "n/a")
 
     Returns:
         Formatted ground-truth section string
 
     Example:
-        >>> build_ground_truth_section(1, "33%")
+        >>> build_ground_truth_section(1, "8%")
         '**Critical Rule** The correct final progress score will be provided to you...'
     """
     # Handle "n/a" for closest_idx
     if isinstance(closest_idx, str) and closest_idx.lower() == "n/a":
         closest_idx_str = "n/a (no valid reference found)"
     else:
-        closest_idx_str = f"The No. {closest_idx} text demo is the most relevant one"
+        closest_idx_str = f"The No. {closest_idx} demo image is the most relevant frame"
 
     # Handle "n/a" for progress_score
     if isinstance(progress_score, str) and progress_score.lower() == "n/a":
@@ -137,9 +125,9 @@ Indicating that we are now facing abnormal situation, your `<ref>` and `<score>`
     return ground_truth_text
 
 
-def build_text_demo_prompt(
+def build_visual_demo_prompt(
     task_goal: str,
-    text_demo_list: List[str],
+    visual_demo_paths: List[str],
     total_steps: int,
     stage_to_estimate_path: str,
     closest_idx: Union[int, str] = None,
@@ -149,23 +137,24 @@ def build_text_demo_prompt(
     use_ground_truth: bool = True
 ) -> List[Dict[str, Any]]:
     """
-    Build a multi-part prompt for Text Demo progress estimation task.
+    Build a multi-part prompt for Visual Demo progress estimation task.
 
     Prompt structure:
-    1. Text: "Our goal is {task_goal}"
+    1. Text: Task goal
     2. Text: "Here is the demonstration:"
-    3. Text: Formatted text_demo with step numbers and progress values
-    4. Text: "Here is the current state that you need to estimate:"
-    5. Image: stage_to_estimate
-    6. Text: Ground-truth section (if use_ground_truth=True)
-    7. Text: Task instructions
+    3. Images: visual_demo (N images, variable length)
+    4. Text: Progress shift information (e.g., "<image> 0% <image> 25% <image> 50% <image> 75% <image> 100%")
+    5. Text: "Here is the current state that you need to estimate:"
+    6. Image: stage_to_estimate (1 image)
+    7. Text: Ground-truth section (if use_ground_truth=True)
+    8. Text: Task instructions
 
     Args:
         task_goal: Task goal description
-        text_demo_list: List of text demo steps
-        total_steps: Total number of steps
+        visual_demo_paths: List of paths to demonstration images (variable length)
+        total_steps: Total number of steps (not including the initial 0% state)
         stage_to_estimate_path: Path to the current state image
-        closest_idx: 1-based index of closest text_demo (required if use_ground_truth=True)
+        closest_idx: 1-based index of closest visual_demo (required if use_ground_truth=True)
         progress_score: Ground truth progress score (required if use_ground_truth=True)
         min_pixels: Minimum pixels for image processing
         max_pixels: Maximum pixels for image processing
@@ -176,18 +165,24 @@ def build_text_demo_prompt(
     """
     msgs = []
 
-    # Part 1: Task goal
-    msgs.append({"type": "text", "value": f"Our goal is {task_goal}."})
+    # Part 1: Demonstration introduction
+    msgs.append({"type": "text", "value": VISUAL_DEMO_INSTRUCTION_PART1})
 
-    # Part 2: Demonstration introduction
-    msgs.append({"type": "text", "value": TEXT_DEMO_INSTRUCTION_PART1})
+    # Part 2: Visual demo images (variable length)
+    for demo_img_path in visual_demo_paths:
+        img_msg = {"type": "image", "value": demo_img_path}
+        if min_pixels is not None:
+            img_msg["min_pixels"] = min_pixels
+        if max_pixels is not None:
+            img_msg["max_pixels"] = max_pixels
+        msgs.append(img_msg)
 
-    # Part 3: Formatted text_demo content with progress values
-    formatted_demo = format_text_demo_with_progress(text_demo_list, total_steps)
-    msgs.append({"type": "text", "value": formatted_demo})
+    # Part 3: Progress shift information
+    progress_shifts = format_visual_demo_progress_shifts(total_steps)
+    msgs.append({"type": "text", "value": f"The progress shifts across all given visual demos is: {progress_shifts}"})
 
     # Part 4: Current state introduction
-    msgs.append({"type": "text", "value": TEXT_DEMO_INSTRUCTION_PART2})
+    msgs.append({"type": "text", "value": VISUAL_DEMO_INSTRUCTION_PART2})
 
     # Part 5: Current state image (single image)
     stage_img_msg = {"type": "image", "value": stage_to_estimate_path}
@@ -205,24 +200,24 @@ def build_text_demo_prompt(
         msgs.append({"type": "text", "value": ground_truth_section})
 
     # Part 7: Task instructions
-    msgs.append({"type": "text", "value": TEXT_DEMO_INSTRUCTION_PART3})
+    msgs.append({"type": "text", "value": VISUAL_DEMO_INSTRUCTION_PART3})
 
     return msgs
 
 
-def build_text_demo_prompt_from_item(
+def build_visual_demo_prompt_from_item(
     item: Dict[str, Any],
     min_pixels: int | None = None,
     max_pixels: int | None = None,
     use_ground_truth: bool = True
 ) -> List[Dict[str, Any]]:
     """
-    Standalone function to build Text Demo prompt from a dataset item.
+    Standalone function to build Visual Demo prompt from a dataset item.
 
     Args:
         item: Dataset item with required fields:
             - task_goal: str
-            - text_demo: List[str]
+            - visual_demo: List[str]
             - total_steps: int
             - stage_to_estimate: str
             - closest_idx: int (1-based, required if use_ground_truth=True)
@@ -234,9 +229,9 @@ def build_text_demo_prompt_from_item(
     Returns:
         List of message dicts for the model
     """
-    return build_text_demo_prompt(
+    return build_visual_demo_prompt(
         task_goal=item['task_goal'],
-        text_demo_list=item['text_demo'],
+        visual_demo_paths=item['visual_demo'],
         total_steps=item['total_steps'],
         stage_to_estimate_path=item['stage_to_estimate'],
         closest_idx=item.get('closest_idx'),

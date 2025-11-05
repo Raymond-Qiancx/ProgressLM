@@ -27,18 +27,18 @@
 MODEL_PATH="/projects/p32958/chengxuan/models/Qwen2.5-VL-72B-Instruct"
 
 # Dataset configuration
-DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/visual_demo/cons_visual_2.jsonl"
+DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/visual_demo/batch/cons_1.jsonl"
 IMAGE_ROOT="/projects/p32958/chengxuan/new_extracted_images/images"  # Optional: root directory for relative image paths
 
 # Output configuration
-OUTPUT_DIR="/projects/p32958/chengxuan/results/progresslm/cold_data/visual_3rgb_sft"
+OUTPUT_DIR="/projects/p32958/chengxuan/results/progresslm/nega_visual/cross_imgs"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 OUTPUT_FILE="${OUTPUT_DIR}/visual_demo_72b_results_${TIMESTAMP}.jsonl"
 LOG_FILE="${OUTPUT_DIR}/visual_demo_72b_${TIMESTAMP}.log"
 
 # GPU configuration
 GPU_IDS="0,1,2,3"  # Comma-separated GPU IDs to use (72B requires multiple GPUs for model parallelism)
-BATCH_SIZE=8  # Batch size (reduced to 1 for 72B model due to high memory requirements)
+BATCH_SIZE=6  # Batch size (reduced to 1 for 72B model due to high memory requirements)
 
 # Inference configuration
 NUM_INFERENCES=1  # Number of inferences per sample (data expansion factor)
@@ -108,7 +108,7 @@ FRM_DIR="$PROJECT_DIR/frm"
 cd "$FRM_DIR" || exit 1
 
 # Build command - using single process script for 72B
-CMD="python run_visual_demo_single.py \
+CMD="python run_visual_nega_72B.py \
     --model-path $MODEL_PATH \
     --dataset-path $DATASET_PATH \
     --output-file $OUTPUT_FILE \

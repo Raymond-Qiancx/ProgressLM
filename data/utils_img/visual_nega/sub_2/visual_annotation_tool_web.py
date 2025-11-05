@@ -16,10 +16,10 @@ import shutil
 class WebAnnotationTool:
     def __init__(self):
         # 配置文件路径
-        self.jsonl_path = "/gpfs/projects/p32958/chengxuan/ProgressLM/data/raw/edit_imgs/edited_raw_all.jsonl"
+        self.jsonl_path = "/projects/p32958/chengxuan/ProgressLM/data/raw/edit_imgs/sub_2.jsonl"
         self.image_base_path = "/gpfs/projects/p32958/chengxuan/results/progresslm/negative/image/"
-        self.output_path = "/gpfs/projects/p32958/chengxuan/ProgressLM/data/utils_img/visual_nega/annotated_output.jsonl"
-        self.progress_path = "/gpfs/projects/p32958/chengxuan/ProgressLM/data/utils_img/visual_nega/annotation_progress.json"
+        self.output_path = "/projects/p32958/chengxuan/ProgressLM/data/utils_img/visual_nega/sub_2/annotated_output.jsonl"
+        self.progress_path = "/projects/p32958/chengxuan/ProgressLM/data/utils_img/visual_nega/sub_2/annotation_progress.json"
 
         # 数据存储
         self.all_data = []
@@ -461,7 +461,7 @@ def main():
     # share=True 会生成一个公网链接（临时，72小时有效）
     app.launch(
         server_name="0.0.0.0",  # 允许外部访问
-        server_port=7860,
+        server_port=7866,
         share=True,  # 生成公网链接
         show_error=True,
         allowed_paths=[

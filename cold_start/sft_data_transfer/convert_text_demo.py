@@ -25,23 +25,28 @@ from utils import (
 
 # System prompt for inference mode
 TEXT_DEMO_SYSTEM_PROMPT = """You are a progress estimator that evaluates the progress of an ongoing task based on a textual demonstration of its step-by-step progression.
-
 The demonstration consists of a sequence of text instructions (text_demo), each describing one step of the process.
 Each step explicitly states the corresponding progress value (ranging from 0% to 100%), showing how the task evolves from start to completion."""
 
 
 # Task instruction text (from original prompt, excluding ground_truth section)
-TEXT_DEMO_INSTRUCTION = """Your task:
-1. Analyze the text_demo to understand how the task visually and conceptually progresses from start to completion.
-2. Identify the step from the text_demo that are most visually and semantically similar to the current state image.
-3. Compare the current state image with the chosen reference step to determine whether it represents an earlier or later stage.
-4. Estimate the progress numerically as a floating-point value between 0% and 100%.
+TEXT_DEMO_INSTRUCTION = """**Abnormal Situation Handling:**
+If you detect any of the following abnormal situations:
+- The current state does not match the task goal or any visual demon images
+- The operation appears to have failed or resulted in an error state
+- You must output "n/a" for both `<ref>` and `<score>`. In your reasoning sections, clearly explain why the situation is abnormal and why no valid progress estimation can be made.
+
+Your task:
+1. Analyze the demonstration images to understand how the task visually progresses from start to completion.
+2. Identify the frame (or frames) from the demonstration that are visually most similar to the current state image.
+3. Compare the current state to that reference frame and determine whether it shows more or less progress.
+4. Finally, provide a numeric progress estimation between 0% and 100%, or both `<ref>` and `<score>` be "n/a" while encontering abnormal situation.
 
 Your response must strictly follow this format:
-<ref_think>Your reasoning for choosing the most similar text_demo step(s) as the reference</ref_think>
-<ref>which text demo is most semantically similar to the current state, and output only the number of that text demo</ref>
-<score_think>Your reasoning for comparing the current state image with the reference step(s)</score_think>
-<score>Your final estimated progress score here</score>"""
+<ref_think>Your reasoning for choosing the closest demonstration frame as the reference, OR explanation of why the situation is abnormal and no reference can be identified</ref_think>
+<ref>The progress score of your chosen reference frame, OR "n/a" if abnormal situation detected</ref>
+<score_think>Your reasoning for comparing the current state image with the reference frame, OR explanation of why no valid progress score can be assigned</score_think>
+<score>Your final estimated progress score, OR "n/a" if abnormal situation detected</score>"""
 
 
 def build_user_message(item: Dict[str, Any]) -> str:

@@ -1,11 +1,15 @@
 #!/bin/bash
 ################################################################################
-# Batch convert Text Demo datasets to LLaMA-Factory format
+# Convert Text Demo datasets to LLaMA-Factory format
 #
-# This script converts multiple Text Demo datasets by merging original data
+# This script converts Text Demo datasets by merging original data
 # with CoT responses into ShareGPT format.
 #
 # Usage:
+#   # Single file mode:
+#   bash run_convert_text.sh <dataset_name> <original_file> <cot_file>
+#
+#   # Batch mode:
 #   bash run_convert_text.sh
 #
 # Configuration:
@@ -20,13 +24,13 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # ==================== Configuration ====================
 # Original data directory
-ORIGINAL_DIR="/Users/cxqian/Codes/ProgressLM/data/train/text_demo"
+ORIGINAL_DIR="/projects/p32958/chengxuan/ProgressLM/data/train/text_demo/new"
 
 # CoT responses directory (UPDATE THIS PATH!)
-COT_DIR="/Users/cxqian/Codes/ProgressLM/data/sft_data/text"
+COT_DIR="/projects/p32958/chengxuan/results/progresslm/cold_data/text_extend_sft"
 
 # Output directory
-OUTPUT_DIR="/Users/cxqian/Codes/ProgressLM/data/sft_data/text"
+OUTPUT_DIR="/projects/p32958/chengxuan/ProgressLM/data/sft_data/text"
 
 # Dataset configurations: "dataset_name|original_file|cot_file"
 DATASETS=(
@@ -35,6 +39,30 @@ DATASETS=(
     "text_h5_franka_3rgb|text_h5_franka_3rgb_sft.jsonl|text_franka_cold.jsonl"
     "text_h5_tienkung_xsens|text_h5_tienkung_xsens_sft.jsonl|text_tienkung_cold.jsonl"
 )
+
+# ==================== Parse Arguments ====================
+if [ $# -eq 3 ]; then
+    # Single file mode
+    SINGLE_MODE=true
+    SINGLE_DATASET_NAME="$1"
+    SINGLE_ORIGINAL_FILE="$2"
+    SINGLE_COT_FILE="$3"
+    echo "Running in SINGLE FILE mode"
+elif [ $# -eq 0 ]; then
+    # Batch mode
+    SINGLE_MODE=false
+    echo "Running in BATCH mode"
+else
+    echo "❌ Error: Invalid arguments"
+    echo ""
+    echo "Usage:"
+    echo "  Single file: bash run_convert_text.sh <dataset_name> <original_file> <cot_file>"
+    echo "  Batch mode:  bash run_convert_text.sh"
+    echo ""
+    echo "Example:"
+    echo "  bash run_convert_text.sh text_h5_agilex_3rgb text_h5_agilex_3rgb_sft.jsonl text_agilex_cold.jsonl"
+    exit 1
+fi
 
 # ==================== Validation ====================
 echo "========================================"
@@ -62,11 +90,21 @@ fi
 mkdir -p "$OUTPUT_DIR"
 
 # ==================== Process Datasets ====================
-TOTAL_DATASETS=${#DATASETS[@]}
 SUCCESS_COUNT=0
 FAILED_COUNT=0
 
-for dataset_config in "${DATASETS[@]}"; do
+# Build dataset list based on mode
+if [ "$SINGLE_MODE" = true ]; then
+    # Single file mode: create a one-element array
+    PROCESS_DATASETS=("${SINGLE_DATASET_NAME}|${SINGLE_ORIGINAL_FILE}|${SINGLE_COT_FILE}")
+else
+    # Batch mode: use the predefined DATASETS array
+    PROCESS_DATASETS=("${DATASETS[@]}")
+fi
+
+TOTAL_DATASETS=${#PROCESS_DATASETS[@]}
+
+for dataset_config in "${PROCESS_DATASETS[@]}"; do
     IFS='|' read -r dataset_name original_file cot_file <<< "$dataset_config"
 
     echo ""

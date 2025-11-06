@@ -15,7 +15,7 @@ set -e  # Exit on error
 
 # ==================== GPU Configuration ====================
 # Set which GPUs to use (0,1,2,3 means using 4 GPUs)
-export CUDA_VISIBLE_DEVICES=0,1
+export CUDA_VISIBLE_DEVICES=0,1,2,3
 
 # ==================== W&B Configuration ====================
 export WANDB_API_KEY=ac3c3d795e02ca8885235198ec9a222725622805

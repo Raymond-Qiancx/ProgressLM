@@ -59,8 +59,8 @@ worker:
       enable_cpu_offload: false
       enable_rank0_init: true
     offload:
-      offload_params: false
-      offload_optimizer: false
+      offload_params: true
+      offload_optimizer: true
 
   rollout:
     n: 4
@@ -101,10 +101,10 @@ trainer:
   n_gpus_per_node: 4
   max_try_make_batch: 20
   val_freq: -1
-  val_before_train: true
+  val_before_train: false
   val_only: false
   val_generations_to_log: 2
-  save_freq: 5
+  save_freq: 50
   save_limit: 2
   save_model_only: false
   save_checkpoint_path: null

@@ -27,7 +27,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ORIGINAL_DIR="/projects/p32958/chengxuan/ProgressLM/data/train/text_demo/new"
 
 # CoT responses directory (UPDATE THIS PATH!)
-COT_DIR="/projects/p32958/chengxuan/results/progresslm/cold_data/text_extend_sft"
+COT_DIR="/projects/p32958/chengxuan/results/progresslm/nega_text/think_72B"
 
 # Output directory
 OUTPUT_DIR="/projects/p32958/chengxuan/ProgressLM/data/sft_data/text"

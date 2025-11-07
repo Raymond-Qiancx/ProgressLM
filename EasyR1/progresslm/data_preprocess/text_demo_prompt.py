@@ -15,17 +15,24 @@ TEXT_DEMO_INSTRUCTION_PART1 = """Here is the demonstration:"""
 TEXT_DEMO_INSTRUCTION_PART2 = """Here is the current state that you need to estimate:"""
 
 
-TEXT_DEMO_INSTRUCTION_PART3 = """Your task:
+TEXT_DEMO_INSTRUCTION_PART3 = """**Abnormal Situation Handling:**
+If you detect any of the following abnormal situations:
+- The current state does not match the task goal or any demo steps
+- The operation appears to have failed or resulted in an error state
+- You must output "n/a" for both `<ref>` and `<score>`. In your reasoning sections, clearly explain why the situation is abnormal and why no valid progress estimation can be made.
+
+Your task:
 1. Analyze the text_demo to understand how the task visually and conceptually progresses from start to completion.
 2. Identify the step from the text_demo that are most visually and semantically similar to the current state image.
 3. Compare the current state image with the chosen reference step to determine whether it represents an earlier or later stage.
-4. Estimate the progress numerically as a floating-point value between 0% and 100%.
+4. Estimate the progress numerically as a floating-point value between 0% and 100%, or both `<ref>` and `<score>` be "n/a" while encontering abnormal situation.
 
 Your response must strictly follow this format:
-<ref_think>Your reasoning for choosing the most similar text_demo step(s) as the reference</ref_think>
-<ref>which text demo is most semantically similar to the current state, and output only the number of that text demo</ref>
-<score_think>Your reasoning for comparing the current state image with the reference step(s)</score_think>
-<score>Your final estimated progress score here</score>"""
+<ref_think>Your reasoning for choosing the most similar text_demo step as the reference, OR explanation of why the situation is abnormal and no reference can be identified</ref_think>
+<ref>which text demo is most semantically similar to the current state (output only the number), OR "n/a" if abnormal situation detected</ref>
+<score_think>Your reasoning for comparing the current state image with the reference step, OR explanation of why no valid progress score can be assigned</score_think>
+<score>Your final estimated progress score, OR "n/a" if abnormal situation detected</score>
+"""
 
 
 def format_text_demo_with_progress(text_demo_list: List[str], total_steps: int) -> str:

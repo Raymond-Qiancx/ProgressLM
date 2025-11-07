@@ -1,6 +1,6 @@
 data:
-  train_files: /projects/p32958/chengxuan/ProgressLM/data/train/rl/new/new_rl_35k_final.jsonl
-  val_files: /projects/p32958/chengxuan/ProgressLM/data/train/rl/new/new_rl_35k_final.jsonl
+  train_files: /projects/p32958/chengxuan/ProgressLM/data/train/rl/new/new_rl_35k_final_fixed.jsonl
+  val_files: /projects/p32958/chengxuan/ProgressLM/data/train/rl/new/new_rl_35k_final_fixed.jsonl
   prompt_key: user_prompt
   answer_key: answer
   image_key: images

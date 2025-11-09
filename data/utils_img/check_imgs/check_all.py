@@ -87,10 +87,18 @@ def check_images_exist(jsonl_path, image_root):
         print(f"\n⚠️  发现 {missing_count} 张图片缺失")
 
 
+# if __name__ == '__main__':
+#     # 设置路径
+#     JSONL_PATH = '/projects/p32958/chengxuan/ProgressLM/data/train/rl/new/new_rl_35k_final.jsonl'  # 替换为你的JSONL文件路径 clean
+#     IMAGE_ROOT = '/projects/p32958/chengxuan/new_extracted_images/images'  # 替换为你的图片根目录
+    
+#     # 运行检查
+#     check_images_exist(JSONL_PATH, IMAGE_ROOT)
+
 if __name__ == '__main__':
     # 设置路径
-    JSONL_PATH = '/projects/p32958/chengxuan/ProgressLM/data/train/rl/new/new_rl_35k_final.jsonl'  # 替换为你的JSONL文件路径 clean
-    IMAGE_ROOT = '/projects/p32958/chengxuan/new_extracted_images/images'  # 替换为你的图片根目录
+    JSONL_PATH = '/home/vcj9002/jianshu/chengxuan/ProgressLM/data/eval/visual/visual_franka_multi_view_3k.jsonl'  # 替换为你的JSONL文件路径 clean
+    IMAGE_ROOT = '/home/vcj9002/jianshu/chengxuan/Data/ProgressLM-data/images'  # 替换为你的图片根目录
     
     # 运行检查
     check_images_exist(JSONL_PATH, IMAGE_ROOT)

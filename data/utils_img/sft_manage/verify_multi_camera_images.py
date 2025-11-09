@@ -69,6 +69,9 @@ class MultiCameraVerifier:
         self.detailed_results: List[ImageCheckResult] = []
         self.sample_results: List[SampleCheckResult] = []  # 样本级别结果
 
+        # 保存原始样本数据（用于后续筛选完备样本）
+        self.samples_dict: Dict[str, Dict] = {}  # sample_id -> sample_data
+
     def parse_image_filename(self, filename: str) -> Tuple[str, str]:
         """
         解析图像文件名，提取相机类型和帧号
@@ -403,7 +406,7 @@ class MultiCameraVerifier:
 def main():
     """主函数"""
     # 配置路径
-    JSONL_PATH = "/home/vcj9002/jianshu/chengxuan/ProgressLM/data/train/visual_demo/visual_franka_3rgb_new_sft.jsonl"
+    JSONL_PATH = "/home/vcj9002/jianshu/chengxuan/ProgressLM/data/eval/visual/visual_franka_candidate.jsonl"
     BASE_IMAGE_DIR = "/home/vcj9002/jianshu/chengxuan/Data/robomind/data/3rgb"
     OUTPUT_DIR = Path("/home/vcj9002/jianshu/chengxuan/ProgressLM/data/utils_img/sft_manage")
 

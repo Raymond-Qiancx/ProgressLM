@@ -356,9 +356,9 @@ class ImageCopyTask:
 def main():
     """主函数"""
     # 配置路径
-    JSONL_PATH = "/home/vcj9002/jianshu/chengxuan/ProgressLM/data/train/visual_demo/visual_franka_cross_camera_augmented_sft.jsonl"
+    JSONL_PATH = "/home/vcj9002/jianshu/chengxuan/ProgressLM/data/eval/visual/visual_franka_multi_view_3k.jsonl"
     SOURCE_BASE_DIR = "/home/vcj9002/jianshu/chengxuan/Data/robomind/data/3rgb"
-    TARGET_BASE_DIR = "/home/vcj9002/jianshu/chengxuan/Data/robomind/data/ProgressLM/images"
+    TARGET_BASE_DIR = "/home/vcj9002/jianshu/chengxuan/Data/ProgressLM-data/images"
     REPORT_DIR = Path("/home/vcj9002/jianshu/chengxuan/ProgressLM/data/utils_img/sft_manage")
 
     # 配置参数

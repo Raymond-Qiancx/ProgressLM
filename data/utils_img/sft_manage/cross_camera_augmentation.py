@@ -319,8 +319,8 @@ class CrossCameraAugmenter:
 def main():
     """主函数"""
     # 配置路径
-    INPUT_JSONL = "/home/vcj9002/jianshu/chengxuan/ProgressLM/data/train/visual_demo/visual_franka_cross_camera_ref_sft.jsonl"
-    OUTPUT_JSONL = "/home/vcj9002/jianshu/chengxuan/ProgressLM/data/train/visual_demo/visual_franka_cross_camera_augmented_sft.jsonl"
+    INPUT_JSONL = "/home/vcj9002/jianshu/chengxuan/ProgressLM/data/eval/visual/visual_franka_complete.jsonl"
+    OUTPUT_JSONL = "/home/vcj9002/jianshu/chengxuan/ProgressLM/data/eval/visual/visual_franka_multi_view_test.jsonl"
     BASE_IMAGE_DIR = "/home/vcj9002/jianshu/chengxuan/Data/robomind/data/3rgb"
     REPORT_DIR = Path("/home/vcj9002/jianshu/chengxuan/ProgressLM/data/utils_img/sft_manage")
 

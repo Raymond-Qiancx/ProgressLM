@@ -1,0 +1,17 @@
+{
+  "summary": {
+    "jsonl_file": "/home/vcj9002/jianshu/chengxuan/ProgressLM/data/eval/visual/visual_franka_multi_view_3k.jsonl",
+    "source_dir": "/home/vcj9002/jianshu/chengxuan/Data/robomind/data/3rgb",
+    "target_dir": "/home/vcj9002/jianshu/chengxuan/Data/ProgressLM-data/images",
+    "total_unique_images": 5319,
+    "success_count": 2396,
+    "skip_count": 2923,
+    "failed_count": 0,
+    "success_rate": "100.00%",
+    "total_bytes_copied": 111473402,
+    "total_size_mb": "106.31",
+    "total_size_gb": "0.10"
+  },
+  "failed_records": [],
+  "timestamp": "2025-11-09T02:38:42.664539"
+}

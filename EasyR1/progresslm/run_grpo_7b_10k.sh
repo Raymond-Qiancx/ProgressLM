@@ -4,10 +4,11 @@ set -x
 
 # ===== 🟢 路径设置 =====
 MODEL_PATH="/projects/p32958/Results/full_model/qwen25vl_7b_sft"
-DATA_FILE="/projects/p32958/chengxuan/ProgressLM/data/train/rl/new/new_rl_10k_ready_for_training.jsonl"
+DATA_FILE="/projects/p32958/chengxuan/ProgressLM/data/train/rl/new/new_rl_sampled_10k_ready_for_training.jsonl"
 
 # 固定时间戳以便复现实验
-TIMESTAMP="20251108-001235"
+# TIMESTAMP=$(date +"%Y%m%d-%H%M%S")
+TIMESTAMP="20251109-1942"
 
 # ===== 🟢 wandb 设置 =====
 export WANDB_API_KEY="ac3c3d795e02ca8885235198ec9a222725622805"
@@ -67,7 +68,7 @@ echo "WANDB 环境变量："
 env | grep WANDB
 
 # ===== 🟢 训练配置 =====
-CHECKPOINT_DIR="/projects/p32958/Results/rl_ckpt/qwen25_vl_7b_rl/newest_10k_7b_${TIMESTAMP}"
+CHECKPOINT_DIR="/projects/p32958/Results/rl_ckpt/qwen25_vl_7b_rl/newest_sampled_10k_7b_${TIMESTAMP}"
 
 python3 -m verl.trainer.main \
   config=progresslm/configs/visual_demo_grpo.yaml \

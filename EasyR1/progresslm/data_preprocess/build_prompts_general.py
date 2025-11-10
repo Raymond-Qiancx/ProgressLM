@@ -569,6 +569,11 @@ def main() -> None:
     parser.add_argument("--min-pixels", type=int, default=None, help="Optional min pixel constraint")
     parser.add_argument("--max-pixels", type=int, default=None, help="Optional max pixel constraint")
     parser.add_argument("--limit", type=int, default=None, help="Process at most this many records")
+    parser.add_argument(
+        "--shuffle",
+        action="store_true",
+        help="Shuffle the dataset records before writing (uses fixed seed=42)"
+    )
 
     args = parser.parse_args()
 
@@ -587,6 +592,13 @@ def main() -> None:
         num_inferences=args.num_inferences,
         image_root=args.image_root,
     )
+
+    # Shuffle if requested (using fixed seed for reproducibility)
+    if args.shuffle:
+        import random
+        random.seed(42)
+        random.shuffle(dataset_records)
+        print(f"Shuffled dataset with seed=42")
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
 

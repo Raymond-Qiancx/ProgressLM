@@ -1,0 +1,157 @@
+================================================================================
+RL Training Data Sampling Report
+================================================================================
+
+Target Total: 10000 records
+
+File: visual_16k_normal_view_rl.jsonl
+  Original: 16068 records
+  Target: 4540 records
+  Sampled: 4662 records (29.0%)
+  Trajectories: 919 -> sampled from subset
+  Action types in sample: 107
+  Top 10 action types:
+    - plug_insertion_v2: 228 records
+    - wipe_panel: 210 records
+    - place_button: 150 records
+    - throw_battery: 138 records
+    - pick_bread_desk: 135 records
+    - 18_makebread: 132 records
+    - 35_putcarrot: 132 records
+    - gear_place: 132 records
+    - nut_place: 132 records
+    - 18_makebread_2: 129 records
+
+File: visual_franka_cross_camera_ref_rl.jsonl
+  Original: 7887 records
+  Target: 2230 records
+  Sampled: 2355 records (29.9%)
+  Trajectories: 601 -> sampled from subset
+  Action types in sample: 47
+  Top 10 action types:
+    - piled_on_stack_blue_block_on_pink_block: 105 records
+    - place_in_bread_in_bread_machine: 105 records
+    - pick_up_strawberry_from_bowl: 102 records
+    - pick_up_strawberry_in_bowl: 99 records
+    - place_in_purple_block_on_table: 93 records
+    - place_in_rectangular_prism: 93 records
+    - place_in_bread_on_plate_1: 87 records
+    - place_in_pick_up_and_throw_away_1: 87 records
+    - piled_on_yellow_block_on_purple_block: 84 records
+    - place_in_block_on_table: 84 records
+
+File: text_positive_6500_rl.jsonl
+  Original: 6301 records
+  Target: 1780 records
+  Sampled: 1849 records (29.3%)
+  Trajectories: 1059 -> sampled from subset
+  Action types in sample: 47
+  Top 10 action types:
+    - plug_insertion_v2: 100 records
+    - wipe_panel: 96 records
+    - place_button: 70 records
+    - gear_place: 59 records
+    - nut_place: 59 records
+    - 18_makebread: 57 records
+    - pick_bread_desk: 53 records
+    - place_in_bread_on_table_2: 52 records
+    - throw_battery: 52 records
+    - 35_putcarrot: 50 records
+
+File: visual_negative_trans_img_rl.jsonl
+  Original: 2460 records
+  Target: 690 records
+  Sampled: 126 records (5.1%)
+  Trajectories: 250 -> sampled from subset
+  Action types in sample: 192
+  Top 10 action types:
+    - close_cap_trash_can_1: 12 records
+    - place_in_toy: 12 records
+    - open_drawer: 9 records
+    - open_trash: 9 records
+    - place_in_bread_in_basket_1: 9 records
+    - place_in_pick_up_and_throw_away: 9 records
+    - pick_bread_desk: 8 records
+    - pick_up_strawberry_from_bowl: 8 records
+    - place_in_fruit_in_basket: 8 records
+    - place_in_purple_block_in_plate: 7 records
+
+File: text_nega_rl.jsonl
+  Original: 2129 records
+  Target: 600 records
+  Sampled: 433 records (20.3%)
+  Trajectories: 372 -> sampled from subset
+  Action types in sample: 121
+  Top 10 action types:
+    - 22_takepotato: 12 records
+    - 42_putkiwifruite: 12 records
+    - place_in_block_1: 12 records
+    - 48_putpotatogreenplatefromsteam_2: 10 records
+    - 5_eggoven_2: 10 records
+    - pick_bread_into_plate: 10 records
+    - 39_puttomato: 9 records
+    - 3_eggplantoven_2: 9 records
+    - 43_packplate: 9 records
+    - 6_applebowloven_2: 9 records
+
+File: edited_visual_transfer_raw_rl.jsonl
+  Original: 544 records
+  Target: 150 records
+  Sampled: 86 records (15.8%)
+  Trajectories: 239 -> sampled from subset
+  Action types in sample: 88
+  Top 10 action types:
+    - pick_shelf_insert_machine_press_switch_place_plate: 4 records
+    - 10_packplate_2: 3 records
+    - 18_makebread: 3 records
+    - 7_applegreenplate_2: 3 records
+    - 8_appleblueplate_2: 3 records
+    - place_in_block: 3 records
+    - place_in_block_in_plate_1: 3 records
+    - place_in_cylinder: 3 records
+    - place_in_fruit: 3 records
+    - place_in_purple_block_in_plate: 3 records
+
+================================================================================
+SUMMARY
+================================================================================
+Total Original: 35389 records
+Total Sampled: 9511 records
+Sampling Rate: 26.88%
+Target: 10000 records
+Difference: -489 records (-4.9%)
+
+================================================================================
+OVERALL ACTION TYPE DISTRIBUTION
+================================================================================
+Total unique action types: 146
+
+Top 20 action types:
+   1. plug_insertion_v2                                    328 ( 3.45%)
+   2. wipe_panel                                           306 ( 3.22%)
+   3. place_button                                         221 ( 2.32%)
+   4. pick_bread_desk                                      196 ( 2.06%)
+   5. 18_makebread                                         192 ( 2.02%)
+   6. gear_place                                           191 ( 2.01%)
+   7. nut_place                                            191 ( 2.01%)
+   8. throw_battery                                        190 ( 2.00%)
+   9. 35_putcarrot                                         182 ( 1.91%)
+  10. 18_makebread_2                                       178 ( 1.87%)
+  11. seal_stamping                                        170 ( 1.79%)
+  12. place_in_bread_on_table_2                            169 ( 1.78%)
+  13. battery_insertion_with_pullout                       165 ( 1.73%)
+  14. place_in_shape                                       164 ( 1.72%)
+  15. 8_appleblueplate_2                                   158 ( 1.66%)
+  16. place_in_toy                                         157 ( 1.65%)
+  17. 7_applegreenplate_2                                  153 ( 1.61%)
+  18. place_in_cylinder                                    153 ( 1.61%)
+  19. place_in_block_in_plate_1                            149 ( 1.57%)
+  20. 15_steamegg_2                                        147 ( 1.55%)
+
+================================================================================
+DATA SOURCE DISTRIBUTION
+================================================================================
+  h5_franka_3rgb                  4673 (49.13%)
+  h5_agilex_3rgb                  2296 (24.14%)
+  h5_tienkung_xsens_1rgb          2092 (22.00%)
+  h5_ur_1rgb                       450 ( 4.73%)

@@ -112,10 +112,10 @@ def compute_score(reward_inputs: List[Dict[str, Any]]) -> List[Dict[str, float]]
         if gt_ref_is_na:
             # Ground truth is n/a
             if pred_ref == "n/a":
-                ref_reward = 1.0  # Correct: predicted abnormal
+                ref_reward = 0.7  # Correct: predicted abnormal, but softer reward
                 ref_error = 0.0
             else:
-                ref_reward = 0.0  # Wrong: predicted value when should be n/a
+                ref_reward = -0.3  # Wrong: predicted value when should be n/a (false positive)
                 ref_error = 1.0
         else:
             # Ground truth is a valid number
@@ -128,16 +128,16 @@ def compute_score(reward_inputs: List[Dict[str, Any]]) -> List[Dict[str, float]]
             else:
                 max_offset = max(demo_count - 1, 1)
                 ref_error = min(abs(pred_ref - gt_ref) / max_offset, 1.0)
-                ref_reward = max(1.0 - ref_error**2, 0.0)
+                ref_reward = max(1.0 - ref_error, 0.0)
 
         # Compute score reward
         if gt_score_is_na:
             # Ground truth is n/a
             if pred_score == "n/a":
-                score_reward = 1.0  # Correct: predicted abnormal
+                score_reward = 0.7  # Correct: predicted abnormal, but softer reward
                 score_error = 0.0
             else:
-                score_reward = 0.0  # Wrong: predicted value when should be n/a
+                score_reward = -0.3  # Wrong: predicted value when should be n/a (false positive)
                 score_error = 1.0
         else:
             # Ground truth is a valid number

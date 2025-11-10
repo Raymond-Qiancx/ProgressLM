@@ -14,7 +14,7 @@ VISUAL_DEMO_INSTRUCTION_PART2 = """Here is the current state that you need to es
 
 VISUAL_DEMO_INSTRUCTION_PART3 = """**Abnormal Situation Handling:**
 If you detect any of the following abnormal situations:
-- The current state does not match the task goal or any visual demon images
+- The current state does not match the task goal or any visual demo images
 - The operation appears to have failed or resulted in an error state
 - You must output "n/a" for both `<ref>` and `<score>`. In your reasoning sections, clearly explain why the situation is abnormal and why no valid progress estimation can be made.
 

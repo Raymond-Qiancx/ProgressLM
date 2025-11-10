@@ -3,8 +3,8 @@ import os
 
 # === 请在这里配置 ===
 HF_TOKEN = "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"           # 👈 你的 Hugging Face 访问令牌
-REPO_ID = "Raymond-Qiancx/FRM_SFT_3B"     # 👈 目标仓库名（username/仓库名）
-MODEL_PATH = "/projects/b1222/userdata/jianshu/chengxuan/saved/saved_results/progresslm/models/3b_sft_qwen25vl_4epoch"                 # 👈 本地模型文件夹路径
+REPO_ID = "Raymond-Qiancx/FRM_7B_SFT"     # 👈 目标仓库名（username/仓库名）
+MODEL_PATH = "/projects/p32958/Results/full_model/qwen25vl_7b_sft"                 # 👈 本地模型文件夹路径
 
 # === 初始化 API ===
 api = HfApi(token=HF_TOKEN)

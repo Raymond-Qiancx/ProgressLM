@@ -7,7 +7,7 @@ data:
   video_key: videos
   image_dir: null
   video_fps: 2.0
-  max_prompt_length: 20000
+  max_prompt_length: 10000
   max_response_length: 8192
   rollout_batch_size: 64
   mini_rollout_batch_size: null
@@ -66,7 +66,7 @@ worker:
     n: 4
     temperature: 0.6
     top_p: 0.9
-    limit_images: 20
+    limit_images: 50
     gpu_memory_utilization: 0.80
     enforce_eager: false
     enable_chunked_prefill: false
@@ -104,7 +104,7 @@ trainer:
   val_before_train: false
   val_only: false
   val_generations_to_log: 2
-  save_freq: 20
+  save_freq: 2
   save_limit: 3
   save_model_only: false
   save_checkpoint_path: null

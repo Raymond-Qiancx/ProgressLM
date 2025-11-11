@@ -31,10 +31,10 @@ DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/visual/visual
 IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
 
 # Output configuration
-BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/pro_bench/visual_multi_view/sft_35k_3b"
+BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/pro_bench/visual_multi_view/sft_7b"
 
 
-PROJECT_NAME="visual_multi_view_rl_3B"
+PROJECT_NAME="visual_multi_view_sft_7B"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 OUTPUT_DIR="${BASE_OUTPUT_DIR}/${PROJECT_NAME}_${TIMESTAMP}"
 OUTPUT_FILE="${OUTPUT_DIR}/results.jsonl"
@@ -42,7 +42,7 @@ LOG_FILE="${OUTPUT_DIR}/run.log"
 
 # GPU configuration
 GPU_IDS="0,1,2,3"  # Comma-separated GPU IDs to use
-BATCH_SIZE=20  # Batch size per GPU (adjust based on VRAM and image count)
+BATCH_SIZE=10  # Batch size per GPU (adjust based on VRAM and image count)
 
 # Inference configuration
 NUM_INFERENCES=1  # Number of inferences per sample (data expansion factor)

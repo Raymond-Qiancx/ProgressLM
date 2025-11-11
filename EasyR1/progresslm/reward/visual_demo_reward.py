@@ -115,7 +115,7 @@ def compute_score(reward_inputs: List[Dict[str, Any]]) -> List[Dict[str, float]]
                 ref_reward = 0.7  # Correct: predicted abnormal, but softer reward
                 ref_error = 0.0
             else:
-                ref_reward = -0.3  # Wrong: predicted value when should be n/a (false positive)
+                ref_reward = -1.0  # Wrong: predicted value when should be n/a (false positive)
                 ref_error = 1.0
         else:
             # Ground truth is a valid number
@@ -137,15 +137,15 @@ def compute_score(reward_inputs: List[Dict[str, Any]]) -> List[Dict[str, float]]
                 score_reward = 0.7  # Correct: predicted abnormal, but softer reward
                 score_error = 0.0
             else:
-                score_reward = -0.3  # Wrong: predicted value when should be n/a (false positive)
+                score_reward = -1.0  # Wrong: predicted value when should be n/a (false positive)
                 score_error = 1.0
         else:
             # Ground truth is a valid number
             if pred_score == "n/a":
-                score_reward = 0.0  # Wrong: predicted n/a when should be value
+                score_reward = -1.0  # Wrong: predicted n/a when should be value
                 score_error = 1.0
             elif pred_score is None:
-                score_reward = 0.0  # Failed to extract
+                score_reward = -1.0  # Failed to extract
                 score_error = 1.0
             else:
                 score_error = min(abs(pred_score - gt_score_percent) / 100.0, 1.0)

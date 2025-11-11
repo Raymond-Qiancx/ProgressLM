@@ -6,21 +6,21 @@ set -x
 # ===== 🟢 路径设置 =====
 # 修改为你新的模型路径
 MODEL_PATH="/projects/p32958/Results/full_model/qwen25vl_3b_sft"
-DATA_FILE="/projects/p32958/chengxuan/ProgressLM/data/train/rl/new/new_rl_5k_ready_for_training.jsonl"
+DATA_FILE="/projects/p32958/chengxuan/ProgressLM/data/train/rl/new/positive_rl_data_5k_ready_for_training.jsonl"
 
 # 自动生成时间戳
 TIMESTAMP=$(date +"%Y%m%d-%H%M%S")
 
 # ===== 🟢 wandb 设置 =====
 export WANDB_API_KEY="ac3c3d795e02ca8885235198ec9a222725622805"
-export WANDB_PROJECT="progresslm_grpo"
+export WANDB_PROJECT="progresslm_grpo_new"
 export WANDB_RUN_GROUP="qwen2_5_vl_3b_progresslm"
-export WANDB_NAME="visual_demo_qwen2p5vl3b_5k_${TIMESTAMP}"
+export WANDB_NAME="visual_demo_qwen25vl3b_10k_${TIMESTAMP}"
 export WANDB_MODE="online"
-export WANDB_DIR="/projects/p32958/Results/wandb_logs"
+export WANDB_DIR="/projects/p32876/Results/wandb_logs"
 
 # ===== 🔴 统一缓存目录设置（避免磁盘配额超限） =====
-CACHE_ROOT="/gpfs/projects/p32958/chengxuan/.cache"
+CACHE_ROOT="/gpfs/projects/p32876/chengxuan/.cache"
 
 # HuggingFace 缓存
 export HF_HOME="$CACHE_ROOT/huggingface"
@@ -37,9 +37,9 @@ export TORCHINDUCTOR_CACHE_DIR="$CACHE_ROOT/torch/inductor"
 export TRITON_CACHE_DIR="$CACHE_ROOT/triton"
 
 # Ray 缓存和临时文件（使用超短路径避免 Unix socket 107 字节限制）
-export RAY_TMPDIR="/gpfs/projects/p32958/.r/tmp"
-export RAY_SESSION_DIR="/gpfs/projects/p32958/.r/session"
-export RAY_LOG_DIR="/gpfs/projects/p32958/.r/logs"
+export RAY_TMPDIR="/gpfs/projects/p32876/.r/tmp"
+export RAY_SESSION_DIR="/gpfs/projects/p32876/.r/session"
+export RAY_LOG_DIR="/gpfs/projects/p32876/.r/logs"
 
 # 创建Ray目录
 mkdir -p "$RAY_TMPDIR" "$RAY_SESSION_DIR" "$RAY_LOG_DIR"
@@ -70,7 +70,7 @@ echo "WANDB 环境变量："
 env | grep WANDB
 
 # ===== 🟢 训练配置 =====
-CHECKPOINT_DIR="/projects/p32958/Results/rl_ckpt/qwen25_vl_3b_rl_5k_${TIMESTAMP}"
+CHECKPOINT_DIR="/projects/p32958/Results/rl_ckpt/qwen25_vl_3b_rl_positive_5k_${TIMESTAMP}"
 
 python3 -m verl.trainer.main \
   config=progresslm/configs/visual_demo_grpo.yaml \

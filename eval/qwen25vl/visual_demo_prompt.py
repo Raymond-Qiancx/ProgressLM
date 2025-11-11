@@ -16,7 +16,7 @@ VISUAL_DEMO_INSTRUCTION_PART3 = """**Abnormal Situation Handling:**
 If you detect any of the following abnormal situations:
 - The current state does not match the task goal or any visual demo images
 - The operation appears to have failed or resulted in an error state
-- You must output "n/a" for both `<ref>` and `<score>`. In your reasoning sections, clearly explain why the situation is abnormal and why no valid progress estimation can be made.
+- Once detected, your output should be "n/a" for both `<ref>` and `<score>`. In your reasoning sections, clearly explain why the situation is abnormal and why no valid progress estimation can be made.
 
 Your task:
 1. Analyze the demonstration images to understand how the task visually progresses from start to completion.

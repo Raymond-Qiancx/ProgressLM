@@ -3,14 +3,11 @@ from typing import Dict, Any, List, Union
 
 
 # System prompt for training mode (CoT generation with ground-truth)
-TEXT_DEMO_SYSTEM_PROMPT_TRAIN = """You are an expert AI analyst specializing in visual task-progress evaluations. Your objective is not to estimate from scratch. Instead, your task is to construct a perfect, human-like chain of thought that logically explains and justifies a known, ground-truth progress score. Your entire response must read as if you are deducing the conclusion independently from visual analysis alone."""
+TEXT_DEMO_SYSTEM_PROMPT_TRAIN = """Given the below Task and the Ground-truth Partial Response, you only need to fill the content within <ref_think></ref_think> and <score_think></score_think> to complete the response and should not change the Ground-truth Partial Response's content within <ref></ref> and <score></score>. Note that you need to pretend you do not know the ground-truth answer and provide a coherent reasoning chain based on what is given.\n\nThe Task is:\n"""
 
 
 # System prompt for normal inference mode
-TEXT_DEMO_SYSTEM_PROMPT_INFERENCE = """You are a progress estimator that evaluates the progress of an ongoing task based on a textual demonstration of its step-by-step progression.
-
-The demonstration consists of a sequence of text instructions (text_demo), each describing one step of the process.
-Each step explicitly states the corresponding progress value (ranging from 0% to 100%), showing how the task evolves from start to completion."""
+TEXT_DEMO_SYSTEM_PROMPT_INFERENCE = """You are a progress estimator that evaluates the progress of the current state during an ongoing task based on a textual demonstration. The demonstration consists of a sequence of text-based steps and their corresponding progress value (ranging from 0% to 100%), showing how the task evolves from start to completion."""
 
 
 # Default system prompt (use inference mode)
@@ -20,26 +17,22 @@ TEXT_DEMO_SYSTEM_PROMPT = TEXT_DEMO_SYSTEM_PROMPT_INFERENCE
 TEXT_DEMO_INSTRUCTION_PART1 = """Here is the demonstration:"""
 
 
-TEXT_DEMO_INSTRUCTION_PART2 = """Here is the current state that you need to estimate:"""
+TEXT_DEMO_INSTRUCTION_PART2 = """Here is the image of the current state that you need to estimate:"""
 
 
-TEXT_DEMO_INSTRUCTION_PART3 = """**Abnormal Situation Handling:**
-If you detect any of the following abnormal situations:
-- The current state does not match the task goal or any demo steps
-- The operation appears to have failed or resulted in an error state
-- You must output "n/a" for both `<ref>` and `<score>`. In your reasoning sections, clearly explain why the situation is abnormal and why no valid progress estimation can be made.
+TEXT_DEMO_INSTRUCTION_PART3 = """Your task:
+1. Check the current state image carefully.
+2. Analyze the textual demonstration to understand how the task progresses from start to completion.
+3. Identify the reference step from the textual demonstration that are most related to the current state image.
+4. Compare the current state image with the chosen reference step, determining whether the image is behind or after the reference step.
+5. Estimate the progress numerically as a floating-point value between 0% and 100%.
+6. If you really cannot match the current state image to any of the steps from demonstration, you need to explain the reason within `<ref_think></ref_think>` and output "n/a" within `<ref></ref>`, `<score_think></score_think>`, and `<score></score>`.
 
-Your task:
-1. Analyze the text_demo to understand how the task visually and conceptually progresses from start to completion.
-2. Identify the step from the text_demo that are most visually and semantically similar to the current state image.
-3. Compare the current state image with the chosen reference step to determine whether it represents an earlier or later stage.
-4. Estimate the progress numerically as a floating-point value between 0% and 100%, or both `<ref>` and `<score>` be "n/a" while encontering abnormal situation.
-
-Your response must strictly follow this format:
-<ref_think>Your reasoning for choosing the most similar text_demo step as the reference, OR explanation of why the situation is abnormal and no reference can be identified</ref_think>
-<ref>which text demo is most semantically similar to the current state (output only the number), OR "n/a" if abnormal situation detected</ref>
-<score_think>Your reasoning for comparing the current state image with the reference step, OR explanation of why no valid progress score can be assigned</score_think>
-<score>Your final estimated progress score, OR "n/a" if abnormal situation detected</score>"""
+Your response **must** strictly follow this format:
+<ref_think>Reason for choosing the most related step from the demonstration as the reference or explanation of why the current state image does not match the task goal or any steps from demonstration</ref_think>
+<ref>which step from the textual demonstration is most related to the current state (output only the number of the step) or "n/a"</ref>
+<score_think>Reason for comparing the current state image with the reference step or "n/a"</score_think>
+<score>Your final estimated progress score or "n/a"</score>"""
 
 
 def format_text_demo_with_progress(text_demo_list: List[str], total_steps: int) -> str:
@@ -127,12 +120,13 @@ def build_ground_truth_section(closest_idx: Union[int, str], progress_score: Uni
         else:
             progress_score_str = str(progress_score)
 
-    ground_truth_text = f"""**Critical Rule** The correct final progress score will be provided to you. However, you must **never** reveal or imply that you already know the answer. Your reasoning must appear as a fully original, independent visual analysis derived from the images.
-
-**Ground-Truth Progress Result**
-Closest Reference Frame: {closest_idx_str}
-Final Progress Score to Justify: {progress_score_str}
-Indicating that we are now facing abnormal situation, your `<ref>` and `<score>` should both be "n/a"."""
+    ground_truth_text = f"""\n\nGround-truth Partial Response:\n
+    <ref_think></ref_think>
+    <ref>{closest_idx_str}</ref>
+    <score_think></score_think>
+    <score>{progress_score_str}</score>\n\n
+    You **must** only add content within <ref_think></ref_think> and <score_think></score_think> to the Ground-truth Partial Response and must not change what we already provided in the Ground-truth Partial Response. Then respond with the completed Ground-truth Response.
+"""
 
     return ground_truth_text
 
@@ -176,8 +170,13 @@ def build_text_demo_prompt(
     """
     msgs = []
 
-    # Part 1: Task goal
-    msgs.append({"type": "text", "value": f"Our goal is {task_goal}."})
+    # Part 1: System prompts (Train + Inference) + Task goal
+    combined_prompt = (
+        TEXT_DEMO_SYSTEM_PROMPT_TRAIN +
+        TEXT_DEMO_SYSTEM_PROMPT_INFERENCE +
+        f"\n\nOur goal is {task_goal}."
+    )
+    msgs.append({"type": "text", "value": combined_prompt})
 
     # Part 2: Demonstration introduction
     msgs.append({"type": "text", "value": TEXT_DEMO_INSTRUCTION_PART1})
@@ -197,15 +196,15 @@ def build_text_demo_prompt(
         stage_img_msg["max_pixels"] = max_pixels
     msgs.append(stage_img_msg)
 
-    # Part 6: Ground-truth section (optional, for training mode)
+    # Part 6: Task instructions
+    msgs.append({"type": "text", "value": TEXT_DEMO_INSTRUCTION_PART3})
+
+    # Part 7: Ground-truth section (optional, for training mode) - placed at the end
     if use_ground_truth:
         if closest_idx is None or progress_score is None:
             raise ValueError("closest_idx and progress_score are required when use_ground_truth=True")
         ground_truth_section = build_ground_truth_section(closest_idx, progress_score)
         msgs.append({"type": "text", "value": ground_truth_section})
-
-    # Part 7: Task instructions
-    msgs.append({"type": "text", "value": TEXT_DEMO_INSTRUCTION_PART3})
 
     return msgs
 

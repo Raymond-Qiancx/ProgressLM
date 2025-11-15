@@ -3,11 +3,10 @@ from typing import Dict, Any, List, Union
 
 
 # System prompt for training mode (CoT generation with ground-truth)
-VISUAL_DEMO_SYSTEM_PROMPT_TRAIN = """You are an expert AI analyst specializing in generating step-by-step reasoning for visual task-progress evaluations. Your objective is not to estimate from scratch. Instead, your task is to construct a perfect, human-like chain of thought that logically explains and justifies a known, ground-truth progress score. Your entire response must read as if you are deducing the conclusion independently from visual analysis alone."""
-
+VISUAL_DEMO_SYSTEM_PROMPT_TRAIN = """Given the below Task and the Ground-truth Partial Response, you only need to fill the content within <ref_think></ref_think> and <score_think></score_think> to complete the response and should not change the Ground-truth Partial Response's content within <ref></ref> and <score></score>. Note that you need to pretend you do not know the ground-truth answer and provide a coherent reasoning chain based on what is given.\n\nThe Task is:\n"""
 
 # System prompt for normal inference mode
-VISUAL_DEMO_SYSTEM_PROMPT_INFERENCE = """You are a progress estimator specializing in evaluating the progress of an ongoing task based on visual evidence. The demonstration consists of a sequence of video frames (images) showing how the task evolves from 0% (start) to 100% (completion). Your goal is to produce a human-like reasoning chain that logically supports the given progress score."""
+VISUAL_DEMO_SYSTEM_PROMPT_INFERENCE = """You are a progress estimator that evaluates the progress of the current state during an ongoing task based on a visual demonstration. The demonstration consists of a sequence of vision-based states and their corresponding progress value (ranging from 0% to 100%), showing how the task evolves from start to completion."""
 
 
 # Default system prompt (use training mode)
@@ -21,17 +20,18 @@ VISUAL_DEMO_INSTRUCTION_PART2 = """Here is the current state that you need to es
 
 
 VISUAL_DEMO_INSTRUCTION_PART3 = """Your task:
-1. Analyze the demonstration images to understand how the task visually progresses from start to completion.
-2. Identify which frame in the provided visual demos is visually most similar to the current state image.
-3. Compare the current state to that reference frame and determine whether it shows more or less progress.
-4. Finally, provide a numeric progress estimation between 0% and 100%.
+1. Check the current state image carefully.
+2. Analyze the visual demonstration to understand how the task progresses from start to completion.
+3. Identify the reference states from the visual demonstration that are most related to the current state image.
+4. Compare the current state image with the chosen reference state, determining whether the image is behind or after the reference state.
+5. Estimate the progress numerically as a floating-point value between 0% and 100%.
+6. If you really cannot match the current state image to any of the states from demonstration, you need to explain the reason within `<ref_think></ref_think>` and output "n/a" within `<ref></ref>`, `<score_think></score_think>`, and `<score></score>`.
 
-**Output Format**
-Your response must strictly follow this format:
-<ref_think>Your reasoning for choosing the closest demonstration frame as the reference</ref_think>
-<ref>identify which image is most visually similar to the current state, and output only the number of that image</ref>
-<score_think>Your reasoning for comparing the current state image with the reference frame(s)</score_think>
-<score>Your final estimated progress score here</score>"""
+Your response **must** strictly follow this format:
+<ref_think>Reason for choosing the most related state from the demonstration as the reference or explanation of why the current state image does not match the task goal or any steps from demonstration</ref_think>
+<ref>which state from the visual demonstration is most related to the current state (output only the number of the state) or "n/a"</ref>
+<score_think>Reason for comparing the current state image with the reference state or "n/a"</score_think>
+<score>Your final estimated progress score or "n/a"</score>"""
 
 
 def format_visual_demo_progress_shifts(total_steps: int) -> str:
@@ -110,11 +110,13 @@ def build_ground_truth_section(closest_idx: Union[int, str], progress_score: Uni
         else:
             progress_score_str = str(progress_score)
 
-    ground_truth_text = f"""**Critical Rule** The correct final progress score will be provided to you. However, you must **never** reveal or imply that you already know the answer. Your reasoning must appear as a fully original, independent visual analysis derived from the images.
-
-**Ground-Truth Progress Result**
-Closest Reference Frame: {closest_idx_str}
-Final Progress Score to Justify: {progress_score_str}"""
+    ground_truth_text = f"""\n\nGround-truth Partial Response:\n
+    <ref_think></ref_think>
+    <ref>{closest_idx_str}</ref>
+    <score_think></score_think>
+    <score>{progress_score_str}</score>\n\n
+    You **must** only add content within <ref_think></ref_think> and <score_think></score_think> to the Ground-truth Partial Response and must not change what we already provided in the Ground-truth Partial Response. Then respond with the completed Ground-truth Response.
+"""
 
     return ground_truth_text
 
@@ -159,10 +161,18 @@ def build_visual_demo_prompt(
     """
     msgs = []
 
-    # Part 1: Demonstration introduction
+    # Part 1: System prompts (Train + Inference) + Task goal
+    combined_prompt = (
+        VISUAL_DEMO_SYSTEM_PROMPT_TRAIN +
+        VISUAL_DEMO_SYSTEM_PROMPT_INFERENCE +
+        f"\n\nOur goal is {task_goal}."
+    )
+    msgs.append({"type": "text", "value": combined_prompt})
+
+    # Part 2: Demonstration introduction
     msgs.append({"type": "text", "value": VISUAL_DEMO_INSTRUCTION_PART1})
 
-    # Part 2: Visual demo images (variable length)
+    # Part 3: Visual demo images (variable length)
     for demo_img_path in visual_demo_paths:
         img_msg = {"type": "image", "value": demo_img_path}
         if min_pixels is not None:
@@ -171,14 +181,14 @@ def build_visual_demo_prompt(
             img_msg["max_pixels"] = max_pixels
         msgs.append(img_msg)
 
-    # Part 3: Progress shift information
+    # Part 4: Progress shift information
     progress_shifts = format_visual_demo_progress_shifts(total_steps)
     msgs.append({"type": "text", "value": f"The progress shifts across all given visual demos is: {progress_shifts}"})
 
-    # Part 4: Current state introduction
+    # Part 5: Current state introduction
     msgs.append({"type": "text", "value": VISUAL_DEMO_INSTRUCTION_PART2})
 
-    # Part 5: Current state image (single image)
+    # Part 6: Current state image (single image)
     stage_img_msg = {"type": "image", "value": stage_to_estimate_path}
     if min_pixels is not None:
         stage_img_msg["min_pixels"] = min_pixels
@@ -186,15 +196,15 @@ def build_visual_demo_prompt(
         stage_img_msg["max_pixels"] = max_pixels
     msgs.append(stage_img_msg)
 
-    # Part 6: Ground-truth section (optional, for training mode)
+    # Part 7: Task instructions
+    msgs.append({"type": "text", "value": VISUAL_DEMO_INSTRUCTION_PART3})
+
+    # Part 8: Ground-truth section (optional, for training mode) - placed at the end
     if use_ground_truth:
         if closest_idx is None or progress_score is None:
             raise ValueError("closest_idx and progress_score are required when use_ground_truth=True")
         ground_truth_section = build_ground_truth_section(closest_idx, progress_score)
         msgs.append({"type": "text", "value": ground_truth_section})
-
-    # Part 7: Task instructions
-    msgs.append({"type": "text", "value": VISUAL_DEMO_INSTRUCTION_PART3})
 
     return msgs
 

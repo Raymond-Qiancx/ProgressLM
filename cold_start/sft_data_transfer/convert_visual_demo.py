@@ -48,6 +48,32 @@ Your response must strictly follow this format:
 <score>Your final estimated progress score, OR "n/a" if abnormal situation detected</score>"""
 
 
+def normalize_stage_filename(stage_path: str) -> str:
+    """
+    Normalize stage_to_estimate filename for matching.
+
+    Extracts the filename and removes '_edit' suffix before extension.
+    Example: 'camera_top_0536_edit.jpg' -> 'camera_top_0536.jpg'
+
+    Args:
+        stage_path: Full path or filename of stage_to_estimate
+
+    Returns:
+        Normalized filename without _edit suffix
+    """
+    if isinstance(stage_path, list):
+        stage_path = stage_path[0] if stage_path else ''
+
+    # Extract filename from path
+    filename = os.path.basename(stage_path) if stage_path else ''
+
+    # Remove _edit suffix before extension
+    if '_edit.' in filename:
+        filename = filename.replace('_edit.', '.')
+
+    return filename
+
+
 def build_user_message(item: Dict[str, Any]) -> str:
     """
     Build user message content for Visual Demo task.
@@ -139,7 +165,7 @@ def convert_visual_demo_item(
     return converted
 
 
-def load_cot_responses(cot_path: str) -> Dict[str, Dict[str, Any]]:
+def load_cot_responses(cot_path: str) -> Dict[str, List[Dict[str, Any]]]:
     """
     Load CoT responses and build a lookup dictionary.
 
@@ -147,26 +173,34 @@ def load_cot_responses(cot_path: str) -> Dict[str, Dict[str, Any]]:
         cot_path: Path to CoT responses JSONL file
 
     Returns:
-        Dictionary mapping match_key to CoT response
+        Dictionary mapping (id, normalized_stage_filename) to list of CoT responses
     """
     cot_data = load_jsonl(cot_path)
     cot_lookup = {}
 
     for cot_item in cot_data:
-        # Extract id from meta_data
+        # Extract id and stage_to_estimate from meta_data
         meta = cot_item.get('meta_data', {})
         id = meta.get('id')
+        stage_path = meta.get('stage_to_estimate', '')
 
         if not id:
             print(f"Warning: CoT response missing 'id' in meta_data, skipping")
             continue
 
-        # Store by id (we'll match more precisely during conversion)
-        if id not in cot_lookup:
-            cot_lookup[id] = []
-        cot_lookup[id].append(cot_item)
+        # Normalize stage filename for matching
+        stage_filename = normalize_stage_filename(stage_path)
 
-    print(f"Loaded {len(cot_data)} CoT responses covering {len(cot_lookup)} unique IDs")
+        # Build match key: (id, normalized_stage_filename)
+        match_key = f"{id}|{stage_filename}"
+
+        # Store as list to support multiple CoT responses per key
+        if match_key not in cot_lookup:
+            cot_lookup[match_key] = []
+        cot_lookup[match_key].append(cot_item)
+
+    total_responses = sum(len(v) for v in cot_lookup.values())
+    print(f"Loaded {len(cot_data)} CoT responses with {len(cot_lookup)} unique keys ({total_responses} total)")
     return cot_lookup
 
 
@@ -197,28 +231,12 @@ def convert_visual_demo_dataset(
     print(f"\nLoading CoT responses from: {cot_responses_path}")
     cot_lookup = load_cot_responses(cot_responses_path)
 
-    # Build a more precise lookup by (id, progress_score) or (id, closest_idx)
-    cot_by_id_score = {}
-    for id, cot_list in cot_lookup.items():
-        for cot_item in cot_list:
-            # Use ground_truth_score or closest_idx for matching
-            score = cot_item.get('ground_truth_score', '')
-            closest_idx = cot_item.get('closest_idx', '')
-
-            # Try multiple keys for flexible matching
-            key1 = f"{id}|{score}"
-            key2 = f"{id}|{closest_idx}"
-
-            cot_by_id_score[key1] = cot_item
-            if key2 != key1:
-                cot_by_id_score[key2] = cot_item
-
     # Convert samples
     converted_samples = []
     stats = {
         'dataset_name': os.path.basename(original_data_path).replace('.jsonl', ''),
         'total_original': len(original_data),
-        'total_cot': sum(len(v) for v in cot_lookup.values()),
+        'total_cot': len(cot_lookup),
         'matched': 0,
         'success': 0,
         'failed_status': 0,
@@ -233,76 +251,61 @@ def convert_visual_demo_dataset(
     for idx, orig_item in enumerate(original_data):
         try:
             id = orig_item['id']
-            progress_score = orig_item.get('progress_score', '')
-            closest_idx = orig_item.get('closest_idx', '')
+            stage_path = orig_item.get('stage_to_estimate', '')
 
-            # Try to find matching CoT response
-            # Method 1: Match by id + progress_score
-            match_key = f"{id}|{progress_score}"
-            cot_item = cot_by_id_score.get(match_key)
+            # Normalize stage filename for matching
+            stage_filename = normalize_stage_filename(stage_path)
 
-            # Method 2: Match by id + closest_idx
-            if not cot_item:
-                match_key = f"{id}|{closest_idx}"
-                cot_item = cot_by_id_score.get(match_key)
+            # Build match key: (id, normalized_stage_filename)
+            match_key = f"{id}|{stage_filename}"
+            cot_items = cot_lookup.get(match_key)
 
-            # Method 3: Try any CoT for this ID
-            if not cot_item and id in cot_lookup and len(cot_lookup[id]) > 0:
-                # If only one CoT for this ID, use it
-                if len(cot_lookup[id]) == 1:
-                    cot_item = cot_lookup[id][0]
-                else:
-                    # Try to match by closest_idx
-                    for cot in cot_lookup[id]:
-                        if str(cot.get('closest_idx', '')) == str(closest_idx):
-                            cot_item = cot
-                            break
-
-            if not cot_item:
+            if not cot_items:
                 stats['unmatched'] += 1
                 if verbose and idx < 10:  # Show first few warnings
-                    stage = normalize_stage_to_estimate(orig_item['stage_to_estimate'])
-                    print(f"  Warning: No CoT match for {id} | {stage}")
+                    print(f"  Warning: No CoT match for {id} | {stage_filename}")
                 continue
 
-            stats['matched'] += 1
+            # Process each CoT response for this original sample
+            for cot_item in cot_items:
+                stats['matched'] += 1
 
-            # Check status
-            meta = cot_item.get('meta_data', {})
-            status = meta.get('status', 'unknown')
+                # Check status
+                meta = cot_item.get('meta_data', {})
+                status = meta.get('status', 'unknown')
 
-            if filter_success and status != 'success':
-                stats['failed_status'] += 1
-                if verbose and stats['failed_status'] <= 5:
-                    print(f"  Skipping (status={status}): {id}")
-                continue
+                if filter_success and status != 'success':
+                    stats['failed_status'] += 1
+                    if verbose and stats['failed_status'] <= 5:
+                        print(f"  Skipping (status={status}): {id}")
+                    continue
 
-            stats['success'] += 1
+                stats['success'] += 1
 
-            # Convert item
-            converted = convert_visual_demo_item(orig_item, cot_item)
+                # Convert item
+                converted = convert_visual_demo_item(orig_item, cot_item)
 
-            # Validate: number of <image> tags should equal number of images
-            # messages[0] = system, messages[1] = user, messages[2] = assistant
-            user_content = converted['messages'][1]['content']
-            images = converted['images']
+                # Validate: number of <image> tags should equal number of images
+                # messages[0] = system, messages[1] = user, messages[2] = assistant
+                user_content = converted['messages'][1]['content']
+                images = converted['images']
 
-            image_tag_count = count_image_tags(user_content)
-            if image_tag_count != len(images):
-                print(f"  Warning: Image tag count mismatch for {id}: "
-                      f"tags={image_tag_count}, images={len(images)}")
-                continue
+                image_tag_count = count_image_tags(user_content)
+                if image_tag_count != len(images):
+                    print(f"  Warning: Image tag count mismatch for {id}: "
+                          f"tags={image_tag_count}, images={len(images)}")
+                    continue
 
-            stats['validation_passed'] += 1
+                stats['validation_passed'] += 1
 
-            # Validate assistant response
-            assistant_content = converted['messages'][2]['content']
-            if not validate_xml_tags(assistant_content):
-                print(f"  Warning: Invalid XML tags in assistant response for {id}")
-                continue
+                # Validate assistant response
+                assistant_content = converted['messages'][2]['content']
+                if not validate_xml_tags(assistant_content):
+                    print(f"  Warning: Invalid XML tags in assistant response for {id}")
+                    continue
 
-            converted_samples.append(converted)
-            stats['output_samples'] += 1
+                converted_samples.append(converted)
+                stats['output_samples'] += 1
 
         except Exception as e:
             print(f"  Error processing item {idx}: {e}")

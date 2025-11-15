@@ -33,6 +33,12 @@ COT_DIR="/projects/p32958/chengxuan/results/progresslm/cold_data/visual_edited_n
 OUTPUT_DIR="/projects/p32958/chengxuan/ProgressLM/data/sft_data/visual"
 
 # Dataset configurations: "dataset_name|original_file|cot_file"
+# DATASETS=(
+#     "visual_h5_agilex_3rgb|visual_h5_agilex_3rgb_sft.jsonl|visual_agilex_cold.jsonl"
+#     "visual_h5_franka_3rgb|visual_h5_franka_3rgb_sft.jsonl|visual_franka_cold.jsonl"
+#     "visual_h5_tienkung_xsens|visual_h5_tienkung_xsens_sft.jsonl|visual_h5_tienkung_cold.jsonl"
+#     "visual_h5_ur_1rgb|visual_h5_ur_1rgb_sft.jsonl|visual_hr_cold.jsonl"
+# )
 DATASETS=(
     "visual_h5_agilex_3rgb|visual_h5_agilex_3rgb_sft.jsonl|visual_agilex_cold.jsonl"
     "visual_h5_franka_3rgb|visual_h5_franka_3rgb_sft.jsonl|visual_franka_cold.jsonl"

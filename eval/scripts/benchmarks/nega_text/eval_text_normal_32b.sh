@@ -25,7 +25,7 @@
 MODEL_PATH="/projects/p32958/chengxuan/models/Qwen2.5-VL-32B-Instruct"
 
 # Dataset configuration - using merged eval dataset
-DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/rl/final/raw/text_nega_rl.jsonl"
+DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/sft_data/text_nega_new/new_text_nega_raw.jsonl"
 IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
 
 # Output configuration

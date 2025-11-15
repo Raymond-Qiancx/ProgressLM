@@ -22,41 +22,46 @@
 # ======================== Configuration ========================
 
 # Model configuration
-MODEL_PATH="/projects/p32958/chengxuan/models/Qwen2.5-VL-32B-Instruct"
+# Support environment variable override: export MODEL_PATH=/custom/path
+MODEL_PATH="${MODEL_PATH:-/projects/p32958/chengxuan/models/Qwen2.5-VL-32B-Instruct}"
 
 # Dataset configuration
+# Support environment variable override: export DATASET_PATH=/custom/dataset.jsonl
 # DATASET_PATH="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/train/text_demo/text_h5_tienkung_xsens_sft.jsonl"
 
-DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/text_demo/new/edited_nega_text_sft.jsonl"
+DATASET_PATH="${DATASET_PATH:-/projects/p32958/chengxuan/ProgressLM/data/train/text_demo/new/edited_nega_text_sft.jsonl}"
 
-IMAGE_ROOT="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/images"
+IMAGE_ROOT="${IMAGE_ROOT:-/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/images}"
 
 # Output configuration
-OUTPUT_DIR="/projects/p32958/chengxuan/results/progresslm/nega_text/think"
+# Support environment variable override: export OUTPUT_DIR=/custom/output
+OUTPUT_DIR="${OUTPUT_DIR:-/projects/p32958/chengxuan/results/progresslm/nega_text/think}"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-OUTPUT_FILE="${OUTPUT_DIR}/text_nega_think_${TIMESTAMP}.jsonl"
-LOG_FILE="${OUTPUT_DIR}/text_demo_${TIMESTAMP}.log"
+TIMESTAMPED_DIR="${OUTPUT_DIR}/text_demo-${TIMESTAMP}"
+OUTPUT_FILE="${TIMESTAMPED_DIR}/text_nega_think_${TIMESTAMP}.jsonl"
+LOG_FILE="${TIMESTAMPED_DIR}/text_demo_${TIMESTAMP}.log"
 
 # GPU configuration
-GPU_IDS="0,1,2,3"  # Comma-separated GPU IDs to use
-BATCH_SIZE=5  # Batch size per GPU (can be higher since only 1 image per sample)
+# Support environment variable override: export GPU_IDS="0,1" BATCH_SIZE=10
+GPU_IDS="${GPU_IDS:-0,1,2,3}"  # Comma-separated GPU IDs to use
+BATCH_SIZE="${BATCH_SIZE:-5}"  # Batch size per GPU (can be higher since only 1 image per sample)
 
 # Inference configuration
-NUM_INFERENCES=1  # Number of inferences per sample (data expansion factor)
+NUM_INFERENCES="${NUM_INFERENCES:-1}"  # Number of inferences per sample (data expansion factor)
 
 # Model parameters
-TEMPERATURE=0.6  # Higher temperature for diversity across multiple inferences
-TOP_P=0.9
-TOP_K=50
-MAX_NEW_TOKENS=40000  # Increased from 30000 to 40000 for longer CoT reasoning chains
-MIN_PIXELS=$((1280*28*28))
-MAX_PIXELS=$((5120*28*28))
+TEMPERATURE="${TEMPERATURE:-0.6}"  # Higher temperature for diversity across multiple inferences
+TOP_P="${TOP_P:-0.9}"
+TOP_K="${TOP_K:-50}"
+MAX_NEW_TOKENS="${MAX_NEW_TOKENS:-40000}"  # Increased from 30000 to 40000 for longer CoT reasoning chains
+MIN_PIXELS="${MIN_PIXELS:-$((1280*28*28))}"
+MAX_PIXELS="${MAX_PIXELS:-$((5120*28*28))}"
 
 # Processing parameters
-LIMIT=-1  # Limit samples to process after expansion (-1 for all)
+LIMIT="${LIMIT:--1}"  # Limit samples to process after expansion (-1 for all)
 
 # Misc
-VERBOSE=false  # Set to true for detailed output
+VERBOSE="${VERBOSE:-false}"  # Set to true for detailed output
 
 # ======================== Auto Configuration ========================
 
@@ -92,7 +97,7 @@ if [ ! -d "$MODEL_PATH" ]; then
 fi
 
 # Create output directory
-mkdir -p "$OUTPUT_DIR"
+mkdir -p "$TIMESTAMPED_DIR"
 
 # ======================== Run Inference ========================
 

@@ -238,7 +238,7 @@ def run_visual_demo_inference_single(args):
         top_k=args.top_k,
         max_new_tokens=args.max_new_tokens,
         use_custom_prompt=False,
-        system_prompt=VISUAL_DEMO_SYSTEM_PROMPT,
+        system_prompt=None,
         min_pixels=args.min_pixels,
         max_pixels=args.max_pixels,
         verbose=args.verbose

@@ -30,9 +30,9 @@ TEXT_DEMO_INSTRUCTION_PART3 = """Your task:
 
 Your response **must** strictly follow this format:
 <ref_think>Reason for choosing the most related step from the demonstration as the reference or explanation of why the current state image does not match the task goal or any steps from demonstration</ref_think>
-<ref>which step from the textual demonstration is most related to the current state (output only the number of the step) or "n/a"</ref>
-<score_think>Reason for comparing the current state image with the reference step or "n/a"</score_think>
-<score>Your final estimated progress score or "n/a"</score>"""
+<ref>n/a</ref>
+<score_think>n/a</score_think>
+<score>n/a</score>"""
 
 
 def format_text_demo_with_progress(text_demo_list: List[str], total_steps: int) -> str:
@@ -72,19 +72,20 @@ def format_text_demo_with_progress(text_demo_list: List[str], total_steps: int) 
     return "\n\n".join(formatted_parts)
 
 
-def build_ground_truth_section(closest_idx: Union[int, str], progress_score: Union[str, float]) -> str:
+def build_ground_truth_section(closest_idx: Union[int, str], progress_score: Union[str, float], original_step: str = "") -> str:
     """
     Build the ground-truth section for training mode (CoT generation).
 
     Args:
         closest_idx: 1-based index of the closest text_demo step, or "n/a"
         progress_score: Progress score (can be "33%", 0.33, or "n/a")
+        original_step: The original step description from raw_text_demo (for negative samples)
 
     Returns:
         Formatted ground-truth section string
 
     Example:
-        >>> build_ground_truth_section(1, "33%")
+        >>> build_ground_truth_section(1, "33%", "placing plates")
         '**Critical Rule** The correct final progress score will be provided to you...'
     """
     # Handle "n/a" for closest_idx
@@ -123,10 +124,11 @@ def build_ground_truth_section(closest_idx: Union[int, str], progress_score: Uni
     ground_truth_text = f"""\n\nGround-truth Partial Response:\n
     <ref_think></ref_think>
     <ref>{closest_idx_str}</ref>
-    <score_think></score_think>
+    <score_think>n/a</score_think>
     <score>{progress_score_str}</score>\n\n
-    Additional Hint: The current state image shows the step of {original_step}, which obviously does not match the task goal or any steps from the demonstration.\n\n
-    You **must** only add content within <ref_think></ref_think> and <score_think></score_think> to the Ground-truth Partial Response and must not change what we already provided in the Ground-truth Partial Response. Then respond with the completed Ground-truth Response.
+    Additional Hint: The current state image shows the step of "{original_step}", which obviously does not match the current task goal or any steps from the demonstration.\n
+    You **must** only add content within <ref_think></ref_think> and <score_think></score_think> to the Ground-truth Partial Response and must not change what we already provided in the Ground-truth Partial Response. Then respond with the completed Ground-truth Response. Do not modify anything else already provided in the Ground-truth Partial Response.
+    The visual state depicts a situation that does not align with the current task goal or with any of the demonstration steps. When filling in <ref_think>, base your reasoning on what you can independently observe and infer from the state, rather than referencing this description as given information. Your reasoning should appear as your own discovery, not as something taken from an external hint.
 """
 
     return ground_truth_text
@@ -139,6 +141,7 @@ def build_text_demo_prompt(
     stage_to_estimate_path: str,
     closest_idx: Union[int, str] = None,
     progress_score: Union[str, float] = None,
+    original_step: str = "",
     min_pixels: int | None = None,
     max_pixels: int | None = None,
     use_ground_truth: bool = True
@@ -162,6 +165,7 @@ def build_text_demo_prompt(
         stage_to_estimate_path: Path to the current state image
         closest_idx: 1-based index of closest text_demo (required if use_ground_truth=True)
         progress_score: Ground truth progress score (required if use_ground_truth=True)
+        original_step: The original step description from raw_text_demo (for negative samples)
         min_pixels: Minimum pixels for image processing
         max_pixels: Maximum pixels for image processing
         use_ground_truth: Whether to include ground-truth section (default: True)
@@ -201,7 +205,7 @@ def build_text_demo_prompt(
     if use_ground_truth:
         if closest_idx is None or progress_score is None:
             raise ValueError("closest_idx and progress_score are required when use_ground_truth=True")
-        ground_truth_section = build_ground_truth_section(closest_idx, progress_score)
+        ground_truth_section = build_ground_truth_section(closest_idx, progress_score, original_step)
         msgs.append({"type": "text", "value": ground_truth_section})
 
     # Part 7: Task instructions
@@ -227,6 +231,7 @@ def build_text_demo_prompt_from_item(
             - stage_to_estimate: str
             - closest_idx: int (1-based, required if use_ground_truth=True)
             - progress_score: str or float (required if use_ground_truth=True)
+            - original_step: str (optional, for negative samples)
         min_pixels: Minimum pixels for image processing
         max_pixels: Maximum pixels for image processing
         use_ground_truth: Whether to include ground-truth section (default: True)
@@ -241,6 +246,7 @@ def build_text_demo_prompt_from_item(
         stage_to_estimate_path=item['stage_to_estimate'],
         closest_idx=item.get('closest_idx'),
         progress_score=item.get('progress_score'),
+        original_step=item.get('original_step', ''),
         min_pixels=min_pixels,
         max_pixels=max_pixels,
         use_ground_truth=use_ground_truth

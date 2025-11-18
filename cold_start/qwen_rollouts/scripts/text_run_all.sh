@@ -85,14 +85,14 @@ run_task() {
 #   run_task "Task Description" "think_text_demo_72b.sh"
 #####################################################################
 
-# Task 1: Example - Text demo with 72B model on dataset 1
+# Task 1: Text Nega 72B - Negative Samples with Rank
 
-export DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/sft_data/text_nega_new/new_text_nega_raw.jsonl"
+export DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/sft_data/text_nega_new/new_text_nega_merged_with_rank.jsonl"
 export IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
 export OUTPUT_DIR="/projects/p32958/chengxuan/results/new_begins/text_nega_think"
 export GPU_IDS="0,1,2,3"
 export BATCH_SIZE=40
-run_task "Text Demo 72B - Dataset 1" "think_text_demo_72b.sh"
+run_task "Text Nega 72B - Negative Samples" "think_text_nega_72b.sh"
 
 # Task 2: Example - Text demo with 72B model on dataset 2
 
@@ -106,10 +106,12 @@ run_task "Text Demo 72B - Dataset 1" "think_text_demo_72b.sh"
 # Task 3: Example - Text demo with 32B model
 # Uncomment and modify as needed:
 # export MODEL_PATH="/projects/p32958/chengxuan/models/Qwen2.5-VL-32B-Instruct"
-# export DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/text_demo/new/edited_nega_text_sft.jsonl"
+# export DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/sft_data/text_nega_new/new_text_nega_raw.jsonl"
 # export OUTPUT_DIR="/projects/p32958/chengxuan/results/text_32b_batch1"
 # export BATCH_SIZE=10
 # run_task "Text Demo 32B - Dataset 3" "think_text_demo.sh"
+
+# export DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/text_demo/new/edited_nega_text_sft.jsonl"
 
 # Add more tasks as needed...
 

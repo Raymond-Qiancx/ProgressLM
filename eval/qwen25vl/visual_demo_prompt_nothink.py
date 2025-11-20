@@ -13,12 +13,13 @@ VISUAL_DEMO_INSTRUCTION_PART2 = """Here is the current state that you need to es
 
 
 VISUAL_DEMO_INSTRUCTION_PART3 = """Your task:
-1. Analyze the demonstration images to understand how the task visually progresses from start to completion.
-2. Identify which frame in the provided visual demos is visually most similar to the current state image.
-3. Compare the current state to that reference frame and determine whether it shows more or less progress.
-4. Finally, provide a numeric progress estimation between 0% and 100%.
+1. Check the current state image carefully.
+2. Analyze the overall task goal and visual demonstration to understand how the task progresses from start to completion.
+3. Identify the reference states from the visual demonstration that are most related to the current state image.
+4. Compare the current state image with the chosen reference state, determining whether the image is behind or after the reference state.
+5. Estimate the progress numerically as a floating-point value between 0% and 100%, or directly output the "n/a" if you really cannot match the current state image to any of the states from demonstration.
 
-Your answer only needs to output the final progress score you estimated."""
+Your answer only needs to output the final progress score you estimated, no other words needed."""
 
 
 def format_visual_demo_progress_shifts(total_steps: int) -> str:

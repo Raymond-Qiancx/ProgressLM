@@ -745,5 +745,33 @@
       "assistant_tag": "assistant",
       "system_tag": "system"
     }
+  },
+  "progresslm_think": {
+    "file_name": "/projects/p32958/chengxuan/ProgressLM/data/sft_data/merged/new_sft_all.jsonl",
+    "formatting": "sharegpt",
+    "columns": {
+      "messages": "messages",
+      "images": "images"
+    },
+    "tags": {
+      "role_tag": "role",
+      "content_tag": "content",
+      "user_tag": "user",
+      "assistant_tag": "assistant"
+    }
+  },
+    "progresslm_nothink": {
+    "file_name": "/projects/p32958/chengxuan/ProgressLM/data/sft_data/simple/all_simple_combined.jsonl",
+    "formatting": "sharegpt",
+    "columns": {
+      "messages": "messages",
+      "images": "images"
+    },
+    "tags": {
+      "role_tag": "role",
+      "content_tag": "content",
+      "user_tag": "user",
+      "assistant_tag": "assistant"
+    }
   }
 }

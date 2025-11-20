@@ -40,7 +40,7 @@ DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/visual/visual
 IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
 
 # Output configuration
-BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/pro_bench/visual_multi_view/nothink_72B"
+BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/new_pro_bench/visual_multi_view/nothink_72B"
 PROJECT_NAME="visual_multi_view_72B_nothink"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 OUTPUT_DIR="${BASE_OUTPUT_DIR}/${PROJECT_NAME}_${TIMESTAMP}"

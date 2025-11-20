@@ -32,7 +32,7 @@ DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/visual/visual
 IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
 
 # Output configuration
-BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/pro_bench/visual_multi_view/think_32B"
+BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/new_pro_bench/visual_multi_view/think_32B"
 
 
 PROJECT_NAME="visual_multi_view_32B"

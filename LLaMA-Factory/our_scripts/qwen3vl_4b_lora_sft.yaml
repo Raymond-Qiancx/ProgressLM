@@ -15,19 +15,19 @@ lora_dropout: 0.05
 
 ### Dataset Configuration
 # Using frm_cold_all dataset (18,580 samples: 7,572 text + 11,008 visual)
-dataset: frm_cold_all
+dataset: progresslm_think
 template: qwen3_vl_nothink  # Important: Use qwen3_vl_nothink template for Qwen3-VL
 cutoff_len: 30000  # Increased to handle longer sequences with images
 max_samples: null # Use all 18,580 samples
 overwrite_cache: true
 preprocessing_num_workers: 48
 dataloader_num_workers: 16
-media_dir: /projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/images  # Directory containing images
+media_dir: /projects/p32958/chengxuan/data/images  # Directory containing images
 
 ### Output Configuration
-output_dir: /projects/p32958/chengxuan/models/sft_ckpt/qwen3vl_4b # Updated for Qwen3-VL-4B
+output_dir: /projects/p32958/Results/new_begin/qwen3vl_4b # Updated for Qwen3-VL-4B
 logging_steps: 1
-save_steps: 50
+save_steps: 20
 save_total_limit: 2  # Keep only the last 3 checkpoints
 plot_loss: true
 overwrite_output_dir: true
@@ -36,9 +36,9 @@ report_to: wandb  # Options: none, wandb, tensorboard, swanlab, mlflow
 
 ### Training Hyperparameters
 per_device_train_batch_size: 2
-gradient_accumulation_steps: 32
+gradient_accumulation_steps: 8
 learning_rate: 1.0e-4
-num_train_epochs: 2.0
+num_train_epochs: 3.0
 lr_scheduler_type: cosine
 warmup_ratio: 0.1
 warmup_steps: 0

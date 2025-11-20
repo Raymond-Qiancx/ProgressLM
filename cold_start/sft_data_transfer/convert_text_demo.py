@@ -24,30 +24,23 @@ from utils import (
 
 
 # System prompt for inference mode
-TEXT_DEMO_SYSTEM_PROMPT = """You are a progress estimator that evaluates the progress of an ongoing task based on a textual demonstration of its step-by-step progression.
-The demonstration consists of a sequence of text instructions (text_demo), each describing one step of the process.
-Each step explicitly states the corresponding progress value (ranging from 0% to 100%), showing how the task evolves from start to completion."""
+TEXT_DEMO_SYSTEM_PROMPT = """You are a progress estimator that evaluates the progress of the current state during an ongoing task based on a textual demonstration. The demonstration consists of a sequence of text-based steps and their corresponding progress value (ranging from 0% to 100%), showing how the task evolves from start to completion."""
 
 
 # Task instruction text (from original prompt, excluding ground_truth section)
-TEXT_DEMO_INSTRUCTION = """**Abnormal Situation Handling:**
-If you detect any of the following abnormal situations:
-- The current state does not match the task goal or any demo steps
-- The operation appears to have failed or resulted in an error state
-- You must output "n/a" for both `<ref>` and `<score>`. In your reasoning sections, clearly explain why the situation is abnormal and why no valid progress estimation can be made.
-
-Your task:
-1. Analyze the text_demo to understand how the task visually and conceptually progresses from start to completion.
-2. Identify the step from the text_demo that are most visually and semantically similar to the current state image.
-3. Compare the current state image with the chosen reference step to determine whether it represents an earlier or later stage.
-4. Estimate the progress numerically as a floating-point value between 0% and 100%, or both `<ref>` and `<score>` be "n/a" while encontering abnormal situation.
+TEXT_DEMO_INSTRUCTION = """Your task:
+1. Check the current state image carefully.
+2. Analyze the textual demonstration to understand how the task progresses from start to completion.
+3. Identify the reference step from the textual demonstration that are most related to the current state image.
+4. Compare the current state image with the chosen reference step, determining whether the image is behind or after the reference step.
+5. Estimate the progress numerically as a floating-point value between 0% and 100%, or directly output n/a if you really cannot match the current state image to any of the steps from demonstration.
 
 
 Your response must strictly follow this format:
-<ref_think>Your reasoning for choosing the most similar text_demo step as the reference, OR explanation of why the situation is abnormal and no reference can be identified</ref_think>
-<ref>which text demo is most semantically similar to the current state (output only the number), OR "n/a" if abnormal situation detected</ref>
-<score_think>Your reasoning for comparing the current state image with the reference step, OR explanation of why no valid progress score can be assigned</score_think>
-<score>Your final estimated progress score, OR "n/a" if abnormal situation detected</score>"""
+<ref_think>Your reasoning for choosing the most similar text_demo step as the reference</ref_think>
+<ref>which text demo is most semantically similar to the current state, and output only the number of that text demo</ref>
+<score_think>Your reasoning for comparing the current state image with the reference step(s)</score_think>
+<score>Your final estimated progress score here</score>"""
 
 
 def build_user_message(item: Dict[str, Any]) -> str:
@@ -62,8 +55,11 @@ def build_user_message(item: Dict[str, Any]) -> str:
     """
     parts = []
 
+    # 0. System prompt at the beginning of user message
+    parts.append(TEXT_DEMO_SYSTEM_PROMPT)
+
     # 1. Task goal
-    parts.append(f"Our goal is {item['task_goal']}.")
+    parts.append(f"\n\nOur goal is {item['task_goal']}.")
 
     # 2. Demonstration introduction
     parts.append("\n\nHere is the demonstration:")
@@ -107,13 +103,9 @@ def convert_text_demo_item(
     stage_filename = normalize_stage_to_estimate(original_item['stage_to_estimate'])
     image_path = build_image_path(original_item['id'], stage_filename)
 
-    # Construct ShareGPT format with system prompt
+    # Construct ShareGPT format (system prompt now in user message)
     converted = {
         "messages": [
-            {
-                "role": "system",
-                "content": TEXT_DEMO_SYSTEM_PROMPT
-            },
             {
                 "role": "user",
                 "content": user_content
@@ -273,8 +265,8 @@ def convert_text_demo_dataset(
             converted = convert_text_demo_item(orig_item, cot_item)
 
             # Validate
-            # messages[0] = system, messages[1] = user, messages[2] = assistant
-            user_content = converted['messages'][1]['content']
+            # messages[0] = user, messages[1] = assistant
+            user_content = converted['messages'][0]['content']
             images = converted['images']
             if validate_image_tag_count(user_content, images):
                 stats['validation_passed'] += 1
@@ -283,7 +275,7 @@ def convert_text_demo_dataset(
                 continue
 
             # Validate assistant response
-            assistant_content = converted['messages'][2]['content']
+            assistant_content = converted['messages'][1]['content']
             if not validate_xml_tags(assistant_content):
                 print(f"  Warning: Invalid XML tags in assistant response for {id}")
                 continue

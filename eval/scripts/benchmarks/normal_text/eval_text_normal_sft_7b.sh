@@ -44,7 +44,7 @@ BATCH_SIZE=20  # Batch size per GPU (can be higher since only 1 image per sample
 NUM_INFERENCES=1  # Number of inferences per sample (data expansion factor)
 
 # Model parameters
-TEMPERATURE=0.6  # Higher temperature for diversity across multiple inferences
+TEMPERATURE=0.7  # Higher temperature for diversity across multiple inferences
 TOP_P=0.9
 TOP_K=50
 MAX_NEW_TOKENS=40000  # Increased for longer CoT reasoning chains

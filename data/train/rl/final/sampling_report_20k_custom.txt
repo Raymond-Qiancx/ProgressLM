@@ -1,0 +1,70 @@
+================================================================================
+Custom RL Training Data Sampling Report - 20K
+================================================================================
+
+Sampling Strategy:
+  - Visual positive (2 files): sample 5k each
+  - Text datasets (2 files): take all
+  - Visual negative (2 files): duplicate 2x
+
+File: visual_16k_normal_view_rl.jsonl
+  Original: 16068 records
+  Target: 5000 records
+  Strategy: sample
+  Sampled: 5037 records
+  Action types: 107
+    - plug_insertion_v2: 228
+    - wipe_panel: 210
+    - place_button: 174
+    - throw_battery: 138
+    - pick_bread_desk: 135
+
+File: visual_franka_cross_camera_ref_rl.jsonl
+  Original: 7887 records
+  Target: 5000 records
+  Strategy: sample
+  Sampled: 5172 records
+  Action types: 47
+    - pick_up_strawberry_from_bowl: 234
+    - pick_up_strawberry_in_bowl: 219
+    - place_in_bread_in_bread_machine: 219
+    - piled_on_stack_blue_block_on_pink_block: 210
+    - piled_on_yellow_block_on_purple_block: 204
+
+File: text_positive_6500_rl.jsonl
+  Original: 6301 records
+  Target: 6301 records
+  Strategy: all
+  Sampled: 6301 records
+
+File: text_nega_rl.jsonl
+  Original: 2129 records
+  Target: 2129 records
+  Strategy: all
+  Sampled: 1692 records
+
+File: edited_visual_transfer_raw_rl.jsonl
+  Original: 544 records
+  Target: 1088 records
+  Strategy: double
+  Sampled: 1088 records
+
+File: edited_visual_nega_raw_2.jsonl
+  Original: 570 records
+  Target: 1140 records
+  Strategy: double
+  Sampled: 1140 records
+
+================================================================================
+SUMMARY
+================================================================================
+Total Original: 33499 records
+Total Sampled: 20430 records
+
+================================================================================
+DATA SOURCE DISTRIBUTION
+================================================================================
+  h5_franka_3rgb                 10043 (49.16%)
+  h5_agilex_3rgb                  5133 (25.12%)
+  h5_tienkung_xsens_1rgb          4750 (23.25%)
+  h5_ur_1rgb                       504 ( 2.47%)

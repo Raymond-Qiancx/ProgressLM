@@ -1,6 +1,6 @@
 data:
-  train_files: /projects/p32958/chengxuan/ProgressLM/data/train/rl/new/new_rl_35k_ready_for_training.jsonl
-  val_files: /projects/p32958/chengxuan/ProgressLM/data/train/rl/new/new_rl_35k_ready_for_training.jsonl
+  train_files: /projects/p32958/chengxuan/ProgressLM/data/train/rl/new/final_20k_ready.jsonl
+  val_files: /projects/p32958/chengxuan/ProgressLM/data/train/rl/new/final_20k_ready.jsonl
   prompt_key: user_prompt
   answer_key: answer
   image_key: images
@@ -94,8 +94,8 @@ worker:
 trainer:
   total_epochs: 2
   max_steps: null
-  project_name: progresslm_grpo
-  experiment_name: visual_demo_qwen2p5vl3b
+  project_name: progresslm_rl_3b_20k
+  experiment_name: qwen2p5vl3b
   logger: ["console", "wandb"]
   nnodes: 1
   n_gpus_per_node: 4

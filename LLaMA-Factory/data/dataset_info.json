@@ -747,7 +747,7 @@
     }
   },
   "progresslm_think": {
-    "file_name": "/projects/p32958/chengxuan/ProgressLM/data/sft_data/merged/new_sft_all.jsonl",
+    "file_name": "/projects/p32958/chengxuan/ProgressLM/data/sft_data/merged/all_sft.jsonl",
     "formatting": "sharegpt",
     "columns": {
       "messages": "messages",

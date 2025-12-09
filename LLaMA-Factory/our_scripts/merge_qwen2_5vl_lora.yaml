@@ -3,7 +3,7 @@
 
 ### model
 model_name_or_path: /projects/b1222/userdata/jianshu/chengxuan/saved/models/Qwen2.5-VL-3B-Instruct
-adapter_name_or_path: /projects/p32958/Results/new_begin/qwen25vl_3b_nothink/checkpoint-921
+adapter_name_or_path: /projects/p32958/Results/sft_ckpt/qwen25vl_3b_think/checkpoint-1137
 template: qwen2_vl
 trust_remote_code: true
 
@@ -13,7 +13,7 @@ finetuning_type: lora
 lora_target: all
 
 ### export
-export_dir: /projects/p32958/Results/sft_model/qwen25vl_3b_nothink_sft
+export_dir: /projects/p32958/Results/sft_model/qwen25vl_3b_think_sft
 export_size: 5
 export_device: cpu  # choices: [cpu, auto]
 export_legacy_format: false

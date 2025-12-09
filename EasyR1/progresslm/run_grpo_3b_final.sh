@@ -5,11 +5,11 @@ set -x
 
 # ===== 🟢 路径设置 =====
 # 修改为你新的模型路径
-MODEL_PATH="/projects/p32958/Results/full_model/qwen25vl_3b_sft"
+MODEL_PATH="/projects/p32958/Results/sft_model/qwen25vl_3b_think_sft"
 
 # 自动生成时间戳
-# TIMESTAMP=$(date +"%Y%m%d-%H%M%S")
-TIMESTAMP="20251106-221655"
+TIMESTAMP=$(date +"%Y%m%d-%H%M%S")
+# TIMESTAMP="20251106-221655"
 
 # ===== 🟢 wandb 设置 =====
 export WANDB_API_KEY="ac3c3d795e02ca8885235198ec9a222725622805"

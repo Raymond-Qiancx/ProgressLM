@@ -7,8 +7,8 @@ data:
   video_key: videos
   image_dir: null
   video_fps: 2.0
-  max_prompt_length: 10000
-  max_response_length: 4096
+  max_prompt_length: 20000
+  max_response_length: 6144
   rollout_batch_size: 64
   mini_rollout_batch_size: null
   val_batch_size: 16

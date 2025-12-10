@@ -1,42 +1,36 @@
 #!/bin/bash
 
 #####################################################################
-# Visual Demo Progress Estimation Evaluation Script
+# Text Demo Progress Estimation Evaluation Script
 #
-# This script runs progress estimation evaluation on Visual Demo dataset
+# This script runs progress estimation evaluation on Text Demo dataset
 # using Qwen2-VL model with distributed GPU support.
 #
 # Expected JSONL format:
 # {
-#   "id": "h5_tienkung_xsens_1rgb/brick_piled_then_press_thrice/2024-10-17-10-53-16",
-#   "task_goal": "Put the blue block next to the purple block in front.",
-#   "visual_demo": ["camera_top_0000.jpg", "camera_top_0041.jpg", "camera_top_0068.jpg", "camera_top_0191.jpg", "camera_top_0394.jpg"],
-#   "total_steps": "4",
-#   "stage_to_estimate": ["camera_top_0013.jpg"],
-#   "closest_idx": "1",
-#   "delta": "+7%",
-#   "progress_score": "8%",
-#   "data_source": "robomind_h5_tienkung_xsens_1rgb"
+#   "id": "h5_tienkung_xsens_1rgb/battery_insertion_with_pullout/2024-09-19-10-35-18",
+#   "task_goal": "inserting a battery into a power bank and then removing it",
+#   "text_demo": ["reach for the power bank", "insert the battery into the power bank", "remove the battery from the power bank"],
+#   "total_steps": 3,
+#   "stage_to_estimate": "camera_top_0474.jpg",
+#   "closest_idx": 1,  # 1-based index (1 means first text_demo)
+#   "progress_score": "33%",
+#   "data_source": "h5_tienkung_xsens_1rgb"
 # }
 #####################################################################
 
 # ======================== Configuration ========================
 
 # Model configuration
-# MODEL_PATH="/projects/b1222/userdata/jianshu/chengxuan/saved/models/Qwen2.5-VL-3B-Instruct"
-# MODEL_PATH="/projects/b1222/userdata/jianshu/chengxuan/saved/saved_results/progresslm/models/progresslm_sft_epoch2_model"
-# MODEL_PATH="/projects/p32958/Results/full_model/qwen25_vl_3b_rl_35k"
 MODEL_PATH="/projects/p32958/Results/full_model/global_step_46/actor/qwen25_vl_3b_rl_step46"
 
 # Dataset configuration - using merged eval dataset
-DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/visual/visual_franka_multi_view_3k.jsonl"
-IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
+DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/text/text_eval_one_view.jsonl"
+IMAGE_ROOT="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/images"
 
 # Output configuration
-BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/new_pro_bench/visual_multi_view/rl_3B"
-
-
-PROJECT_NAME="visual_multi_view_rl_3B"
+BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/new_pro_bench/text_normal/rl_3b"
+PROJECT_NAME="text_normal_rl_3b"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 OUTPUT_DIR="${BASE_OUTPUT_DIR}/${PROJECT_NAME}_${TIMESTAMP}"
 OUTPUT_FILE="${OUTPUT_DIR}/results.jsonl"
@@ -44,7 +38,7 @@ LOG_FILE="${OUTPUT_DIR}/run.log"
 
 # GPU configuration
 GPU_IDS="0,1,2,3"  # Comma-separated GPU IDs to use
-BATCH_SIZE=20  # Batch size per GPU (adjust based on VRAM and image count)
+BATCH_SIZE=100  # Batch size per GPU (can be higher since only 1 image per sample)
 
 # Inference configuration
 NUM_INFERENCES=1  # Number of inferences per sample (data expansion factor)
@@ -66,7 +60,7 @@ VERBOSE=false  # Set to true for detailed output
 # ======================== Auto Configuration ========================
 
 echo "======================================================================"
-echo "Visual Demo Progress Estimation - Evaluation"
+echo "Text Demo Progress Estimation - Evaluation"
 echo "======================================================================"
 echo "Dataset: $DATASET_PATH"
 echo "Output: $OUTPUT_FILE"
@@ -80,7 +74,7 @@ echo "======================================================================"
 # Check if dataset path is provided
 if [ -z "$DATASET_PATH" ]; then
     echo "Error: DATASET_PATH is not set!"
-    echo "Please set DATASET_PATH to your Visual Demo dataset JSONL file."
+    echo "Please set DATASET_PATH to your Text Demo dataset JSONL file."
     exit 1
 fi
 
@@ -113,7 +107,7 @@ EVAL_DIR="$PROJECT_DIR/qwen25vl"
 cd "$EVAL_DIR" || exit 1
 
 # Build command
-CMD="python run_visual_demo.py \
+CMD="python run_text_demo.py \
     --model-path $MODEL_PATH \
     --dataset-path $DATASET_PATH \
     --output-file $OUTPUT_FILE \

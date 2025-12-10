@@ -6,7 +6,7 @@ from typing import Dict, Any, List
 TEXT_DEMO_SYSTEM_PROMPT = """You are a progress estimator that evaluates the progress of the current state during an ongoing task based on a textual demonstration. The demonstration consists of a sequence of text-based steps and their corresponding progress value (ranging from 0% to 100%), showing how the task evolves from start to completion."""
 
 
-TEXT_DEMO_INSTRUCTION_PART1 = """Here is the demonstration:"""
+TEXT_DEMO_INSTRUCTION_PART1 = """Here is the demonstration ():"""
 
 
 TEXT_DEMO_INSTRUCTION_PART2 = """Here is the current state that you need to estimate:"""

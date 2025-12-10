@@ -7,7 +7,7 @@ data:
   video_key: videos
   image_dir: null
   video_fps: 2.0
-  max_prompt_length: 10000
+  max_prompt_length: 20000
   max_response_length: 8192
   rollout_batch_size: 64
   mini_rollout_batch_size: null
@@ -16,8 +16,8 @@ data:
   override_chat_template: null
   shuffle: true
   seed: 1
-  min_pixels: 262144
-  max_pixels: 1003520
+  min_pixels: 3136
+  max_pixels: 12845056
   filter_overlong_prompts: false
   filter_overlong_prompts_workers: 128
 
@@ -104,8 +104,8 @@ trainer:
   val_before_train: false
   val_only: false
   val_generations_to_log: 2
-  save_freq: 2
-  save_limit: 3
+  save_freq: 10
+  save_limit: 10
   save_model_only: false
   save_checkpoint_path: null
   load_checkpoint_path: null

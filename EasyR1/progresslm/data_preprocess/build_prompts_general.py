@@ -86,7 +86,7 @@ def collect_visual_prompt_segments(
     max_pixels: int | None = None,
 ) -> Tuple[str, List[str], List[Dict[str, Any]]]:
     """Build the user prompt and segments for a visual demo sample."""
-    from visual_demo_prompt import VISUAL_DEMO_INSTRUCTION_PART3
+    from visual_demo_prompt import VISUAL_DEMO_SYSTEM_PROMPT, VISUAL_DEMO_INSTRUCTION_PART3
 
     task_goal: str = item["task_goal"]
     visual_demo: List[str] = item["visual_demo"]
@@ -107,7 +107,8 @@ def collect_visual_prompt_segments(
     )
 
     prompt_sections = [
-        f"Our goal is {task_goal}.",
+        VISUAL_DEMO_SYSTEM_PROMPT,
+        f"The overall task goal is {task_goal}.",
         f"Here is the demonstration:\n{demo_sequence}",
         "Here is the current state that you need to estimate:\n<image>",
         VISUAL_DEMO_INSTRUCTION_PART3,
@@ -117,7 +118,8 @@ def collect_visual_prompt_segments(
     image_paths: List[str] = list(visual_demo) + [stage_to_estimate]
 
     segments: List[Dict[str, Any]] = [
-        {"type": "text", "value": prompt_sections[0]},
+        {"type": "text", "value": VISUAL_DEMO_SYSTEM_PROMPT},
+        {"type": "text", "value": f"The overall task goal is {task_goal}."},
         {"type": "text", "value": "Here is the demonstration:"},
     ]
     for path, percentage in zip(visual_demo, demo_percentages):
@@ -151,6 +153,7 @@ def collect_text_prompt_segments(
 ) -> Tuple[str, List[str], List[Dict[str, Any]]]:
     """Build the user prompt and segments for a text demo sample."""
     from text_demo_prompt import (
+        TEXT_DEMO_SYSTEM_PROMPT,
         TEXT_DEMO_INSTRUCTION_PART1,
         TEXT_DEMO_INSTRUCTION_PART2,
         TEXT_DEMO_INSTRUCTION_PART3,
@@ -176,7 +179,8 @@ def collect_text_prompt_segments(
     )
 
     prompt_sections = [
-        f"Our goal is {task_goal}.",
+        TEXT_DEMO_SYSTEM_PROMPT,
+        f"The overall task goal is {task_goal}.",
         f"{TEXT_DEMO_INSTRUCTION_PART1}\n{demo_sequence}",
         f"{TEXT_DEMO_INSTRUCTION_PART2}\n<image>",
         TEXT_DEMO_INSTRUCTION_PART3,
@@ -606,16 +610,12 @@ def main() -> None:
     with args.output.open("w", encoding="utf-8") as fout:
         for record_type, item in dataset_records:
             if record_type == "visual":
-                from visual_demo_prompt import VISUAL_DEMO_SYSTEM_PROMPT as system_prompt
-
                 prompt, image_paths, segments = collect_visual_prompt_segments(
                     item,
                     min_pixels=args.min_pixels,
                     max_pixels=args.max_pixels,
                 )
             else:
-                from text_demo_prompt import TEXT_DEMO_SYSTEM_PROMPT as system_prompt
-
                 prompt, image_paths, segments = collect_text_prompt_segments(
                     item,
                     min_pixels=args.min_pixels,
@@ -670,7 +670,7 @@ def main() -> None:
             record = {
                 "id": item["id"],
                 "task_goal": item["task_goal"],
-                "system_prompt": system_prompt,
+                "system_prompt": "",
                 "user_prompt": prompt,
                 "answer": answer,
                 "images": resolved_image_paths,

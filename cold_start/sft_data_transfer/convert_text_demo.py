@@ -29,18 +29,32 @@ TEXT_DEMO_SYSTEM_PROMPT = """You are a progress estimator that evaluates the pro
 
 # Task instruction text (from original prompt, excluding ground_truth section)
 TEXT_DEMO_INSTRUCTION = """Your task:
-1. Check the current state image carefully.
+1. Read the task goal to understand the task objective and the entity being operated on.
 2. Analyze the textual demonstration to understand how the task progresses from start to completion.
-3. Identify the reference step from the textual demonstration that are most related to the current state image.
-4. Compare the current state image with the chosen reference step, determining whether the image is behind or after the reference step.
-5. Estimate the progress numerically as a floating-point value between 0% and 100%, or directly output n/a if you really cannot match the current state image to any of the steps from demonstration.
+3. Examine the current state image carefully. If the target is incorrect (different from the object metioned in task goal) or you really cannot match the current image to any step in the demonstration, you must explain the reason within <ref_think></ref_think> and output “n/a” within <ref></ref>, <score_think></score_think>, and <score></score>.
+4. If a match is possible, examine all steps in the textual demonstration, where each step represents an independent action. Identify the single step whose action is most closely related to the current state image. Then compare the current image with that reference step to determine whether it corresponds to an earlier or later stage, and finally estimate the overall progress as a floating-point value between 0% and 100%.
 
+Your response **must** strictly follow this format:
+<ref_think>
+Explain the reason for selecting the most relevant step from the demonstration.
+If the task target is incorrect, or the current state image cannot be matched to any demonstration step, explain why here.
+</ref_think>
 
-Your response must strictly follow this format:
-<ref_think>Your reasoning for choosing the most similar text_demo step as the reference</ref_think>
-<ref>which text demo is most semantically similar to the current state, and output only the number of that text demo</ref>
-<score_think>Your reasoning for comparing the current state image with the reference step(s)</score_think>
-<score>Your final estimated progress score here</score>"""
+<ref>
+If a valid matching step exists, output only the step number.
+If the task target is incorrect or no step matches the current image, output only "n/a".
+</ref>
+
+<score_think>
+If <ref> is already determined to be "n/a", output only "n/a".
+If a valid matching step exists, explain how you compare the current image with that step to judge progress.
+</score_think>
+
+<score>
+If <ref> is already determined to be "n/a", output only "n/a".
+If a valid matching step exists, output the estimated progress (0%–100%).
+</score>
+"""
 
 
 def build_user_message(item: Dict[str, Any]) -> str:

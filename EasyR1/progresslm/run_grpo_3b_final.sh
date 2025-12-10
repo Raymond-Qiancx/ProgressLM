@@ -8,8 +8,8 @@ set -x
 MODEL_PATH="/projects/p32958/Results/sft_model/qwen25vl_3b_think_sft"
 
 # 自动生成时间戳
-TIMESTAMP=$(date +"%Y%m%d-%H%M%S")
-# TIMESTAMP="20251106-221655"
+# TIMESTAMP=$(date +"%Y%m%d-%H%M%S")
+TIMESTAMP="20251209-154236"
 
 # ===== 🟢 wandb 设置 =====
 export WANDB_API_KEY="ac3c3d795e02ca8885235198ec9a222725622805"
@@ -70,7 +70,8 @@ echo "WANDB 环境变量："
 env | grep WANDB
 
 # ===== 🟢 训练配置 =====
-CHECKPOINT_DIR="/projects/p32958/Results/rl_ckpt/qwen25_vl_3b_rl_${TIMESTAMP}"
+# CHECKPOINT_DIR="/projects/p32958/Results/rl_ckpt/qwen25_vl_3b_rl_${TIMESTAMP}"
+CHECKPOINT_DIR="/projects/p32958/Results/rl_ckpt/qwen25_vl_3b_rl_20251209-154236"
 
 python3 -m verl.trainer.main \
   config=progresslm/configs/visual_demo_grpo.yaml \

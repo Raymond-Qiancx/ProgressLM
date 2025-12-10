@@ -458,24 +458,38 @@ class FSDPWorker(Worker):
                 data.non_tensor_batch["uid"], data.non_tensor_batch["multi_modal_data"]
             ):  # process multi modal data per sample
                 if index not in multi_modal_inputs_cache:
-                    images, videos = [], []
-                    if "images" in multi_modal_data:
-                        for image in multi_modal_data["images"]:
-                            images.append(process_image(image, min_pixels, max_pixels))
+                    # Use pre-computed pixel_values and image_grid_thw if available
+                    if "pixel_values" in multi_modal_data and multi_modal_data["pixel_values"] is not None:
+                        multi_modal_inputs = {
+                            "pixel_values": multi_modal_data["pixel_values"],
+                            "image_grid_thw": multi_modal_data["image_grid_thw"],
+                        }
+                    elif "video_pixel_values" in multi_modal_data and multi_modal_data["video_pixel_values"] is not None:
+                        multi_modal_inputs = {
+                            "pixel_values_videos": multi_modal_data["video_pixel_values"],
+                            "video_grid_thw": multi_modal_data["video_grid_thw"],
+                        }
+                    elif "images" in multi_modal_data or "videos" in multi_modal_data:
+                        # Fallback: should not happen if dataset.py saves pre-computed values
+                        print(f"[WARNING] Using fallback image processing. multi_modal_data keys: {list(multi_modal_data.keys())}")
+                        print(f"[WARNING] pixel_values present: {'pixel_values' in multi_modal_data}, is None: {multi_modal_data.get('pixel_values') is None}")
+                        images, videos = [], []
+                        if "images" in multi_modal_data:
+                            for image in multi_modal_data["images"]:
+                                images.append(process_image(image, min_pixels, max_pixels))
 
-                    if "videos" in multi_modal_data:
-                        for video in multi_modal_data["videos"]:
-                            videos.append(process_video(video, min_pixels, max_pixels, video_fps))
+                        if "videos" in multi_modal_data:
+                            for video in multi_modal_data["videos"]:
+                                videos.append(process_video(video, min_pixels, max_pixels, video_fps))
 
-                    if len(images) != 0:
-                        # it's necessary to add `dict` to properly convert batch features to dict
-                        # otherwise the batch features will be converted to dict keys
-                        # see https://github.com/hiyouga/EasyR1/pull/339
-                        multi_modal_inputs = dict(self.processor.image_processor(images=images, return_tensors="pt"))
-                    elif len(videos) != 0:
-                        multi_modal_inputs = dict(
-                            self.processor.image_processor(images=None, videos=videos, return_tensors="pt")
-                        )
+                        if len(images) != 0:
+                            multi_modal_inputs = dict(self.processor.image_processor(images=images, return_tensors="pt"))
+                        elif len(videos) != 0:
+                            multi_modal_inputs = dict(
+                                self.processor.image_processor(images=None, videos=videos, return_tensors="pt")
+                            )
+                        else:
+                            multi_modal_inputs = {}
                     else:
                         multi_modal_inputs = {}
 

@@ -12,23 +12,19 @@ VISUAL_DEMO_INSTRUCTION_PART1 = """Here is the demonstration:"""
 VISUAL_DEMO_INSTRUCTION_PART2 = """Here is the current state that you need to estimate:"""
 
 
-VISUAL_DEMO_INSTRUCTION_PART3 = """**Abnormal Situation Handling:**
-If you detect any of the following abnormal situations:
-- The current state does not match the task goal or any visual demon images
-- The operation appears to have failed or resulted in an error state
-- You must output "n/a" for both `<ref>` and `<score>`. In your reasoning sections, clearly explain why the situation is abnormal and why no valid progress estimation can be made.
+VISUAL_DEMO_INSTRUCTION_PART3 = """Your task:
+1. Check the current state image carefully.
+2. Analyze the overall task goal and visual demonstration to understand how the task progresses from start to completion.
+3. Identify the reference states from the visual demonstration that are most related to the current state image.
+4. Compare the current state image with the chosen reference state, determining whether the image is behind or after the reference state.
+5. Estimate the progress numerically as a floating-point value between 0% and 100%.
+6. If you really cannot match the current state image to any of the states from demonstration, you need to explain the reason within `<ref_think></ref_think>` and output "n/a" within `<ref></ref>`, `<score_think></score_think>`, and `<score></score>`.
 
-Your task:
-1. Analyze the demonstration images to understand how the task visually progresses from start to completion.
-2. Identify the frame (or frames) from the demonstration that are visually most similar to the current state image.
-3. Compare the current state to that reference frame and determine whether it shows more or less progress.
-4. Finally, provide a numeric progress estimation between 0% and 100%, or both `<ref>` and `<score>` be "n/a" while encontering abnormal situation.
-
-Your response must strictly follow this format:
-<ref_think>Your reasoning for choosing the closest demonstration frame as the reference, OR explanation of why the situation is abnormal and no reference can be identified</ref_think>
-<ref>The progress score of your chosen reference frame, OR "n/a" if abnormal situation detected</ref>
-<score_think>Your reasoning for comparing the current state image with the reference frame, OR explanation of why no valid progress score can be assigned</score_think>
-<score>Your final estimated progress score, OR "n/a" if abnormal situation detected</score>"""
+Your response **must** strictly follow this format:
+<ref_think>Reason for choosing the most related state from the demonstration as the reference or explanation of why the current state image does not match the task goal or any steps from demonstration</ref_think>
+<ref>which state from the visual demonstration is most related to the current state (output only the number of the state) or "n/a"</ref>
+<score_think>Reason for comparing the current state image with the reference state or "n/a"</score_think>
+<score>Your final estimated progress score or "n/a"</score>"""
 
 
 def format_visual_demo_progress_shifts(total_steps: int) -> str:
@@ -92,7 +88,13 @@ def build_visual_demo_prompt(
     """
     msgs = []
 
-    # Part 1: Demonstration introduction
+    # Part 0: System prompt (included in user prompt)
+    msgs.append({"type": "text", "value": VISUAL_DEMO_SYSTEM_PROMPT})
+
+    # Part 1: Task goal
+    msgs.append({"type": "text", "value": f"The overall task goal is {task_goal}"})
+
+    # Part 2: Demonstration introduction
     msgs.append({"type": "text", "value": VISUAL_DEMO_INSTRUCTION_PART1})
 
     # Part 2: Visual demo images (variable length)

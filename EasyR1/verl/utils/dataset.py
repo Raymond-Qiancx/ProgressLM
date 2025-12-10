@@ -239,9 +239,17 @@ class RLHFDataset(Dataset):
                 processed_images.append(process_image(image, self.min_pixels, self.max_pixels))
 
             model_inputs = self.processor(processed_images, [prompt], add_special_tokens=False, return_tensors="pt")
+            # Save pixel_values and image_grid_thw BEFORE popping to ensure we have them
+            pixel_values = model_inputs.get("pixel_values")
+            image_grid_thw = model_inputs.get("image_grid_thw")
             input_ids = model_inputs.pop("input_ids")[0]
             attention_mask = model_inputs.pop("attention_mask")[0]
-            example["multi_modal_data"] = {"images": images}
+            # Save processed pixel_values and image_grid_thw to ensure consistency
+            example["multi_modal_data"] = {
+                "images": images,
+                "pixel_values": pixel_values,
+                "image_grid_thw": image_grid_thw,
+            }
         elif self.video_key in example:
             prompt = self.processor.apply_chat_template(messages, add_generation_prompt=True, tokenize=False)
             videos = example.pop(self.video_key)

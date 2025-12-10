@@ -27,7 +27,7 @@ media_dir: /projects/p32958/chengxuan/data/images  # Directory containing images
 ### Output Configuration
 output_dir: /projects/p32958/Results/sft_ckpt/qwen25vl_7b_think_3  # Updated for 3B model and FRM dataset
 logging_steps: 1
-save_steps: 150
+save_steps: 30
 save_total_limit: 3  # Keep only the last 3 checkpoints
 plot_loss: true
 overwrite_output_dir: true

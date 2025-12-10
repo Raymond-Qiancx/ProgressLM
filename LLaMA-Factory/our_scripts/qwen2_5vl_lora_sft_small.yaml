@@ -27,16 +27,16 @@ media_dir: /projects/p32958/chengxuan/data/images # Directory containing images
 ### Output Configuration
 output_dir: /projects/p32958/Results/sft_ckpt/qwen25vl_3b_think  # Updated for 3B model and FRM dataset
 logging_steps: 1
-save_steps: 20
-save_total_limit: 3  # Keep only the last 3 checkpoints
+save_steps: 100
+save_total_limit: 5  # Keep only the last 3 checkpoints
 plot_loss: true
 overwrite_output_dir: true
 save_only_model: false
 report_to: wandb  # Options: none, wandb, tensorboard, swanlab, mlflow
 
 ### Training Hyperparameters
-per_device_train_batch_size: 2
-gradient_accumulation_steps: 8
+per_device_train_batch_size: 4
+gradient_accumulation_steps: 4
 learning_rate: 1.0e-4
 num_train_epochs: 3.0
 lr_scheduler_type: cosine

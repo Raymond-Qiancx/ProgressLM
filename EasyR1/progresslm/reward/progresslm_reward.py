@@ -17,6 +17,7 @@ FORMAT_PATTERN = re.compile(
 )
 REF_PATTERN = re.compile(r"<ref>\s*([^<]+)\s*</ref>", re.IGNORECASE)
 SCORE_PATTERN = re.compile(r"<score>\s*([^<]+)\s*</score>", re.IGNORECASE)
+SCORE_THINK_PATTERN = re.compile(r"<score_think>(.*?)</score_think>", re.DOTALL | re.IGNORECASE)
 
 
 def _load_ground_truth(raw: Any) -> Dict[str, Any]:

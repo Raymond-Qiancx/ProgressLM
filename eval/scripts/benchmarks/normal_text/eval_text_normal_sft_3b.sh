@@ -26,7 +26,7 @@ MODEL_PATH="/projects/p32958/Results/sft_model/qwen25vl_3b_think_sft"
 
 # Dataset configuration - using merged eval dataset
 DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/text/text_eval_one_view.jsonl"
-IMAGE_ROOT="/projects/b1222/userdata/jianshu/chengxuan/ProgressLM/data/images"
+IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
 
 # Output configuration
 BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/new_pro_bench/text_normal/sft_3b"

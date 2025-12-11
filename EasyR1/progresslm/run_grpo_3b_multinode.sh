@@ -14,6 +14,7 @@ set -x
 #   bash /projects/p32958/chengxuan/ProgressLM/EasyR1/progresslm/run_grpo_3b_multinode.sh head
 #
 #   # On node qgpu02 (worker): 
+#   source /projects/p32958/miniconda3/bin/activate
 #   bash /projects/p32958/chengxuan/ProgressLM/EasyR1/progresslm/run_grpo_3b_multinode.sh worker 10.0.0.1
 #   bash /projects/p32958/chengxuan/ProgressLM/EasyR1/progresslm/run_grpo_3b_multinode.sh worker 172.20.213.15
 ################################################################################
@@ -38,6 +39,11 @@ fi
 
 # ===== Model path =====
 MODEL_PATH="/projects/p32958/Results/sft_model/qwen25vl_3b_think_sft"
+
+# ===== Cluster config =====
+NNODES=4
+N_GPUS_PER_NODE=4
+REQUIRED_GPUS=$((NNODES * N_GPUS_PER_NODE))
 
 # Timestamp
 TIMESTAMP=$(date +"%Y%m%d-%H%M%S")
@@ -97,6 +103,9 @@ export NCCL_NET_GDR_LEVEL=2
 # Uncomment and modify if needed:
 # export NCCL_SOCKET_IFNAME=ib0  # or eth0, depending on your cluster network
 
+# ===== DataLoader: disable multiprocessing for multi-node =====
+export DATALOADER_NUM_WORKERS=0
+
 # ===== W&B: new run, no resume =====
 unset WANDB_RUN_ID
 unset WANDB_RESUME
@@ -111,7 +120,8 @@ fi
 echo "=========================================="
 
 # ===== Training config =====
-CHECKPOINT_DIR="/projects/p32958/Results/rl_ckpt/qwen25_vl_3b_rl_multinode_${TIMESTAMP}"
+# CHECKPOINT_DIR="/projects/p32958/Results/rl_ckpt/qwen25_vl_3b_rl_multinode_${TIMESTAMP}"
+CHECKPOINT_DIR="/projects/p32958/Results/rl_ckpt/qwen25_vl_3b_rl_multinode_20251211-064818"
 
 # Get current node IP
 CURRENT_IP=$(hostname -I | awk '{print $1}')
@@ -134,9 +144,34 @@ if [ "$MODE" = "head" ]; then
     echo "  bash run_grpo_3b_multinode.sh worker ${CURRENT_IP}"
     echo "=========================================="
 
-    # Wait for worker to join
-    echo "Waiting 30 seconds for worker node to join..."
-    sleep 30
+    # Wait for all workers to join (dynamic wait)
+    MAX_WAIT=300      # 5 minutes max wait
+    WAIT_INTERVAL=10  # Check every 10 seconds
+    WAITED=0
+
+    echo "Waiting for $REQUIRED_GPUS GPUs to join the cluster..."
+    while [ $WAITED -lt $MAX_WAIT ]; do
+        # Get available GPU count using Python Ray API (more reliable)
+        AVAILABLE_GPUS=$(python3 -c "import ray; ray.init(address='auto', ignore_reinit_error=True); print(int(ray.cluster_resources().get('GPU', 0)))" 2>/dev/null)
+        AVAILABLE_GPUS=${AVAILABLE_GPUS:-0}
+
+        echo "[${WAITED}s] Available GPUs: ${AVAILABLE_GPUS}/${REQUIRED_GPUS}"
+
+        if [ "$AVAILABLE_GPUS" -ge "$REQUIRED_GPUS" ]; then
+            echo "All GPUs ready!"
+            break
+        fi
+
+        sleep $WAIT_INTERVAL
+        WAITED=$((WAITED + WAIT_INTERVAL))
+    done
+
+    if [ "$AVAILABLE_GPUS" -lt "$REQUIRED_GPUS" ]; then
+        echo "ERROR: Only $AVAILABLE_GPUS GPUs available after ${MAX_WAIT}s wait."
+        echo "Expected $REQUIRED_GPUS GPUs. Aborting."
+        ray status
+        exit 1
+    fi
 
     # Check Ray cluster status
     ray status
@@ -144,13 +179,13 @@ if [ "$MODE" = "head" ]; then
     # Start training
     echo "Starting training..."
     python3 -m verl.trainer.main \
-        config=progresslm/configs/visual_demo_grpo.yaml \
+        config=progresslm/configs/multinodes.yaml \
         worker.actor.model.model_path="${MODEL_PATH}" \
         worker.actor.model.tokenizer_path="${MODEL_PATH}" \
         trainer.save_checkpoint_path="${CHECKPOINT_DIR}" \
         trainer.experiment_name="qwen2_5vl3b_grpo_multinode_${TIMESTAMP}" \
-        trainer.nnodes=2 \
-        trainer.n_gpus_per_node=4
+        trainer.nnodes=${NNODES} \
+        trainer.n_gpus_per_node=${N_GPUS_PER_NODE}
 
 elif [ "$MODE" = "worker" ]; then
     echo "Starting Ray worker node..."

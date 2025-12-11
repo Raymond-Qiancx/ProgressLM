@@ -25,12 +25,12 @@
 MODEL_PATH="/projects/p32958/Results/rl_ckpt/qwen25_vl_3b_rl_multinode_20251210-120015/global_step_170/actor/qwen25vl_3b_rl_step170"
 
 # Dataset configuration - using merged eval dataset
-DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/text/text_eval_one_view.jsonl"
+DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/text/text_nega_test.jsonl"
 IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
 
 # Output configuration
-BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/new_pro_bench/text_normal/rl_3b"
-PROJECT_NAME="text_normal_rl_3b"
+BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/new_pro_bench/text_nega/rl_3b"
+PROJECT_NAME="text_nega_sft_3b"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 OUTPUT_DIR="${BASE_OUTPUT_DIR}/${PROJECT_NAME}_${TIMESTAMP}"
 OUTPUT_FILE="${OUTPUT_DIR}/results.jsonl"
@@ -38,13 +38,13 @@ LOG_FILE="${OUTPUT_DIR}/run.log"
 
 # GPU configuration
 GPU_IDS="0,1,2,3"  # Comma-separated GPU IDs to use
-BATCH_SIZE=80  # Batch size per GPU (can be higher since only 1 image per sample)
+BATCH_SIZE=100  # Batch size per GPU (can be higher since only 1 image per sample)
 
 # Inference configuration
 NUM_INFERENCES=1  # Number of inferences per sample (data expansion factor)
 
 # Model parameters
-TEMPERATURE=0.6  # Higher temperature for diversity across multiple inferences
+TEMPERATURE=0.7  # Higher temperature for diversity across multiple inferences
 TOP_P=0.9
 TOP_K=50
 MAX_NEW_TOKENS=40000  # Increased for longer CoT reasoning chains

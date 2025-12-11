@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 from typing import Optional
 
 import torch
@@ -55,11 +56,14 @@ def create_dataloader(config: DataConfig, tokenizer: PreTrainedTokenizer, proces
     else:
         train_batch_size = config.rollout_batch_size
 
+    # Use env var for multi-node compatibility (set DATALOADER_NUM_WORKERS=0 for multi-node)
+    num_workers = int(os.environ.get("DATALOADER_NUM_WORKERS", "8"))
+
     train_dataloader = StatefulDataLoader(
         dataset=train_dataset,
         batch_size=train_batch_size,
         sampler=sampler,
-        num_workers=8,
+        num_workers=num_workers,
         collate_fn=collate_fn,
         pin_memory=False,
         drop_last=True,
@@ -92,7 +96,7 @@ def create_dataloader(config: DataConfig, tokenizer: PreTrainedTokenizer, proces
         dataset=val_dataset,
         batch_size=val_batch_size,
         shuffle=False,
-        num_workers=8,
+        num_workers=num_workers,
         collate_fn=collate_fn,
         pin_memory=False,
         drop_last=False,

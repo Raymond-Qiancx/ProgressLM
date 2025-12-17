@@ -26,7 +26,8 @@
 # MODEL_PATH="/projects/b1222/userdata/jianshu/chengxuan/saved/models/Qwen2.5-VL-3B-Instruct"
 # MODEL_PATH="/projects/b1222/userdata/jianshu/chengxuan/saved/saved_results/progresslm/models/progresslm_sft_epoch2_model"
 # MODEL_PATH="/projects/p32958/Results/full_model/qwen25_vl_3b_rl_35k"
-MODEL_PATH="/projects/p32958/Results/full_model/global_step_638/actor/qwen25vl_3b_rl_final"
+# MODEL_PATH="/projects/p32958/Results/full_model/global_step_638/actor/qwen25vl_3b_rl_final"
+MODEL_PATH="/projects/p32958/Results/full_model/global_step_485/actor/qwen25vl_3b_rl_scale"
 
 # Dataset configuration - using merged eval dataset
 DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/visual/visual_franka_multi_view_3k.jsonl"

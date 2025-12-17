@@ -22,7 +22,7 @@
 # ======================== Configuration ========================
 
 # Model configuration
-MODEL_PATH="/projects/p32958/Results/full_model/global_step_638/actor/qwen25vl_3b_rl_final"
+MODEL_PATH="/projects/p32958/Results/full_model/global_step_485/actor/qwen25vl_3b_rl_scale"
 
 # Dataset configuration - using merged eval dataset
 DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/text/text_eval_one_view.jsonl"

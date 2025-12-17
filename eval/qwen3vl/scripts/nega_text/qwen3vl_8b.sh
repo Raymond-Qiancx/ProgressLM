@@ -4,7 +4,7 @@
 #####################################################################
 
 MODEL_PATH="/projects/p32958/jianshu/weight/Qwen/Qwen3-VL-8B-Instruct"
-DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/text/text_nega_test.jsonl"
+DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/tiny-bench/text-neg-mini.jsonl"
 IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
 
 BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/qwen3vl/nega_text"

@@ -135,40 +135,52 @@ class InternVLChat(InternVLPromptMixin, BaseModel):
     def _load_model(self):
         """Load the InternVL model and tokenizer."""
         from transformers import AutoModel, AutoTokenizer
+        import transformers
+
+        # Suppress "Setting `pad_token_id` to `eos_token_id`" warning
+        transformers.logging.set_verbosity_error()
 
         rank, world_size = get_rank_and_world_size()
-        gpu_mems = get_gpu_memory()
-        max_gpu_mem = max(gpu_mems) if gpu_mems else -1
+
+        # Check if CUDA is available and initialized
+        cuda_available = torch.cuda.is_available() and torch.cuda.device_count() > 0
+        if self.verbose:
+            print(f"CUDA available: {cuda_available}, device_count: {torch.cuda.device_count() if cuda_available else 0}")
 
         # Determine loading strategy based on model size
-        is_large_model = any(x in self.model_path.lower() for x in ['72b', '40b', '26b', '25b'])
+        is_large_model = any(x in self.model_path.lower() for x in ['72b', '40b', '26b', '25b', '38b', '14b'])
 
-        if is_large_model or auto_split_flag():
-            # Use auto device map for large models or when AUTO_SPLIT is set
-            if self.verbose:
-                print(f"Loading large model with device_map='auto'")
-            self.model = AutoModel.from_pretrained(
+        # Try loading with flash attention first, fallback if it fails
+        def load_model_with_config(use_flash_attn, device_map):
+            return AutoModel.from_pretrained(
                 self.model_path,
                 torch_dtype=torch.bfloat16,
                 load_in_8bit=False,
                 low_cpu_mem_usage=True,
-                use_flash_attn=True,
+                use_flash_attn=use_flash_attn,
                 trust_remote_code=True,
-                device_map='auto',
+                device_map=device_map,
             ).eval()
+
+        device_map = 'auto' if (is_large_model or auto_split_flag()) else 'cuda'
+        if self.verbose:
+            print(f"Loading model with device_map='{device_map}'")
+
+        # Try with flash attention first if CUDA is available
+        if cuda_available:
+            try:
+                self.model = load_model_with_config(use_flash_attn=True, device_map=device_map)
+                if self.verbose:
+                    print("Model loaded with flash attention")
+            except Exception as e:
+                if self.verbose:
+                    print(f"Flash attention failed ({e}), falling back to standard attention")
+                self.model = load_model_with_config(use_flash_attn=False, device_map=device_map)
         else:
-            # Load on CPU first, then move to GPU for smaller models
+            # No CUDA, load without flash attention
             if self.verbose:
-                print(f"Loading model to single GPU")
-            self.model = AutoModel.from_pretrained(
-                self.model_path,
-                torch_dtype=torch.bfloat16,
-                load_in_8bit=False,
-                low_cpu_mem_usage=True,
-                use_flash_attn=True,
-                trust_remote_code=True,
-                device_map='cuda',
-            ).eval()
+                print("CUDA not available, loading without flash attention")
+            self.model = load_model_with_config(use_flash_attn=False, device_map='cpu')
 
         self.tokenizer = AutoTokenizer.from_pretrained(
             self.model_path,
@@ -377,3 +389,75 @@ class InternVLChat(InternVLPromptMixin, BaseModel):
             )
 
         return response
+
+    def batch_generate(
+        self,
+        batch_items: List[tuple],  # List of (image_paths, prompt)
+        system_prompt: Optional[str] = None
+    ) -> List[str]:
+        """
+        Batch inference for multiple samples using model.batch_chat().
+
+        Args:
+            batch_items: List of (image_paths, prompt) tuples
+            system_prompt: Optional system prompt override
+
+        Returns:
+            List of generated response strings
+        """
+        if len(batch_items) == 0:
+            return []
+
+        # 1. Prepare all images and prompts
+        all_pixel_values = []
+        all_num_patches = []
+        questions = []
+
+        sys_prompt = system_prompt if system_prompt else self.system_prompt
+
+        for image_paths, prompt in batch_items:
+            if len(image_paths) > 0:
+                pixel_values, num_patches_list = self._prepare_images(image_paths)
+                all_pixel_values.append(pixel_values)
+                # Total patches for this sample
+                all_num_patches.append(pixel_values.size(0))
+
+                # Build InternVL multi-image prompt
+                full_prompt = self.build_internvl_multi_image_prompt(len(image_paths), prompt)
+            else:
+                all_num_patches.append(0)
+                full_prompt = prompt
+
+            if sys_prompt:
+                full_prompt = f"{sys_prompt}\n\n{full_prompt}"
+            questions.append(full_prompt)
+
+        # 2. Combine all pixel values
+        if all_pixel_values:
+            combined_pixels = torch.cat(all_pixel_values, dim=0)
+        else:
+            combined_pixels = None
+
+        # 3. Call batch_chat
+        generation_config = dict(**self.generate_kwargs)
+
+        try:
+            responses = self.model.batch_chat(
+                self.tokenizer,
+                combined_pixels,
+                num_patches_list=all_num_patches,
+                questions=questions,
+                generation_config=generation_config,
+            )
+            if self.verbose:
+                print(f"[InternVL] Batch inference completed for {len(batch_items)} samples")
+        except Exception as e:
+            # Fallback to sequential processing
+            if self.verbose:
+                print(f"[InternVL] batch_chat failed: {e}, falling back to sequential")
+            responses = []
+            for image_paths, prompt in batch_items:
+                resp = self.generate_from_item(image_paths, prompt, system_prompt)
+                responses.append(resp)
+
+        return responses

@@ -44,6 +44,16 @@ def parse_text_demo_response(response: str) -> Dict[str, Any]:
                     result['ref'] = int(ref_num.group())
                 else:
                     result['ref'] = ref_str
+        else:
+            # Fallback: look for number between </ref_think> and <score_think>
+            ref_fallback = re.search(r'</ref_think>\s*(\d+)\s*<score_think>', response, re.DOTALL)
+            if ref_fallback:
+                result['ref'] = int(ref_fallback.group(1))
+            else:
+                # Also try: number right after </ref_think>
+                ref_fallback2 = re.search(r'</ref_think>\s*(\d+)', response, re.DOTALL)
+                if ref_fallback2:
+                    result['ref'] = int(ref_fallback2.group(1))
 
         score_think_match = re.search(r'<score_think>(.*?)</score_think>', response, re.DOTALL)
         if score_think_match:
@@ -132,11 +142,21 @@ def calculate_voc_metrics(results):
 
 
 def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, result_queue: Queue):
-    """Worker process for one GPU."""
+    """Worker process for one GPU with batch inference support."""
+    # Must set CUDA_VISIBLE_DEVICES before any CUDA operations
     os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu_id)
     gpu_output_file = args.output_file.replace('.jsonl', f'_gpu{gpu_id}.jsonl')
 
     try:
+        # Import torch locally to ensure CUDA_VISIBLE_DEVICES is set before CUDA init
+        import torch as torch_local
+
+        # Force CUDA initialization
+        if torch_local.cuda.is_available():
+            torch_local.cuda.set_device(0)
+            _ = torch_local.zeros(1).cuda()
+            print(f"GPU {gpu_id} worker: CUDA initialized")
+
         model = InternVLChat(
             model_path=args.model_path,
             max_num_tiles=args.max_num_tiles,
@@ -149,9 +169,17 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
         )
 
         results = []
+        batch_size = args.batch_size
 
-        for item in data_slice:
-            try:
+        # Process in batches
+        for batch_start in range(0, len(data_slice), batch_size):
+            batch_items = data_slice[batch_start:batch_start + batch_size]
+
+            # 1. Validate and prepare batch
+            valid_items = []
+            valid_data = []
+
+            for item in batch_items:
                 is_valid, error_msg = validate_image_path(item)
                 if not is_valid:
                     gt_score = item.get('progress_score')
@@ -166,58 +194,85 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
                     }
                     results.append(result)
                     progress_queue.put((1, float('inf'), float('inf'), 0, 0, 1))
-                    continue
-
-                image_paths, prompt_text = build_text_demo_prompt_from_item(item)
-                response = model.generate_from_item(image_paths, prompt_text)
-
-                parsed = parse_text_demo_response(response)
-                predicted_score = parsed['score']
-                predicted_ref = parsed['ref']
-                has_error = parsed['parse_error']
-
-                gt_score = item['progress_score']
-                gt_ref = item['closest_idx']
-
-                ref_fp, score_fp = calculate_false_positives(predicted_ref, predicted_score, gt_ref, gt_score)
-
-                if gt_score is not None and isinstance(predicted_score, (int, float)):
-                    evaluation_score = calculate_evaluation_score(predicted_score, gt_score)
                 else:
-                    evaluation_score = float('inf')
+                    image_paths, prompt_text = build_text_demo_prompt_from_item(item)
+                    valid_items.append(item)
+                    valid_data.append((image_paths, prompt_text))
 
-                ref_error = calculate_ref_error(predicted_ref, gt_ref) if gt_ref and isinstance(predicted_ref, int) else float('inf')
+            if not valid_data:
+                continue
 
-                result = {
-                    "ref": "n/a" if predicted_ref == "n/a" else str(predicted_ref) if isinstance(predicted_ref, int) else None,
-                    "score": "n/a" if predicted_score == "n/a" else f"{int(predicted_score * 100)}%" if isinstance(predicted_score, (int, float)) else None,
-                    "closest_idx": str(gt_ref) if gt_ref else "n/a",
-                    "ground_truth_score": f"{int(gt_score * 100)}%" if gt_score else "n/a",
-                    "ref_score": evaluation_score,
-                    "pred_score": ref_error,
-                    "ref_false_positive": ref_fp,
-                    "score_false_positive": score_fp,
-                    "response": response,
-                    "meta_data": {**item, "status": "failed" if has_error else "success"}
-                }
-                results.append(result)
-                progress_queue.put((1, evaluation_score, ref_error, 1 if ref_fp else 0, 1 if score_fp else 0, 1 if has_error else 0))
+            # 2. Batch inference
+            try:
+                responses = model.batch_generate(valid_data)
+
+                # 3. Process responses
+                for item, response in zip(valid_items, responses):
+                    try:
+                        parsed = parse_text_demo_response(response)
+                        predicted_score = parsed['score']
+                        predicted_ref = parsed['ref']
+                        has_error = parsed['parse_error']
+
+                        gt_score = item['progress_score']
+                        gt_ref = item['closest_idx']
+
+                        ref_fp, score_fp = calculate_false_positives(predicted_ref, predicted_score, gt_ref, gt_score)
+
+                        if gt_score is not None and isinstance(predicted_score, (int, float)):
+                            evaluation_score = calculate_evaluation_score(predicted_score, gt_score)
+                        else:
+                            evaluation_score = float('inf')
+
+                        ref_error = calculate_ref_error(predicted_ref, gt_ref) if gt_ref and isinstance(predicted_ref, int) else float('inf')
+
+                        result = {
+                            "ref": "n/a" if predicted_ref == "n/a" else str(predicted_ref) if isinstance(predicted_ref, int) else None,
+                            "score": "n/a" if predicted_score == "n/a" else f"{int(predicted_score * 100)}%" if isinstance(predicted_score, (int, float)) else None,
+                            "closest_idx": str(gt_ref) if gt_ref else "n/a",
+                            "ground_truth_score": f"{int(gt_score * 100)}%" if gt_score else "n/a",
+                            "ref_score": evaluation_score,
+                            "pred_score": ref_error,
+                            "ref_false_positive": ref_fp,
+                            "score_false_positive": score_fp,
+                            "response": response,
+                            "meta_data": {**item, "status": "failed" if has_error else "success"}
+                        }
+                        results.append(result)
+                        progress_queue.put((1, evaluation_score, ref_error, 1 if ref_fp else 0, 1 if score_fp else 0, 1 if has_error else 0))
+
+                    except Exception as e:
+                        gt_score = item.get('progress_score')
+                        gt_ref = item.get('closest_idx')
+                        result = {
+                            "ref": None, "score": None,
+                            "closest_idx": str(gt_ref) if gt_ref else "n/a",
+                            "ground_truth_score": f"{int(gt_score * 100)}%" if gt_score else "n/a",
+                            "ref_score": float('inf'), "pred_score": float('inf'),
+                            "response": f"Error: {str(e)}",
+                            "meta_data": {**item, "status": "failed"}
+                        }
+                        results.append(result)
+                        progress_queue.put((1, float('inf'), float('inf'), 0, 0, 1))
 
             except Exception as e:
-                gt_score = item.get('progress_score')
-                gt_ref = item.get('closest_idx')
-                result = {
-                    "ref": None, "score": None,
-                    "closest_idx": str(gt_ref) if gt_ref else "n/a",
-                    "ground_truth_score": f"{int(gt_score * 100)}%" if gt_score else "n/a",
-                    "ref_score": float('inf'), "pred_score": float('inf'),
-                    "response": f"Error: {str(e)}",
-                    "meta_data": {**item, "status": "failed"}
-                }
-                results.append(result)
-                progress_queue.put((1, float('inf'), float('inf'), 0, 0, 1))
+                # Batch failed, mark all items as error
+                for item in valid_items:
+                    gt_score = item.get('progress_score')
+                    gt_ref = item.get('closest_idx')
+                    result = {
+                        "ref": None, "score": None,
+                        "closest_idx": str(gt_ref) if gt_ref else "n/a",
+                        "ground_truth_score": f"{int(gt_score * 100)}%" if gt_score else "n/a",
+                        "ref_score": float('inf'), "pred_score": float('inf'),
+                        "response": f"Batch error: {str(e)}",
+                        "meta_data": {**item, "status": "failed"}
+                    }
+                    results.append(result)
+                    progress_queue.put((1, float('inf'), float('inf'), 0, 0, 1))
 
-            if len(results) % 10 == 0:
+            # Save periodically
+            if len(results) % 50 == 0:
                 with open(gpu_output_file, 'w', encoding='utf-8') as f:
                     for res in results:
                         f.write(json.dumps(res, ensure_ascii=False) + '\n')
@@ -341,6 +396,7 @@ def main():
     parser.add_argument("--top-p", type=float, default=0.9)
     parser.add_argument("--max-new-tokens", type=int, default=4096)
     parser.add_argument("--limit", type=int, default=-1)
+    parser.add_argument("--batch-size", type=int, default=4, help="Batch size per GPU")
     parser.add_argument("--verbose", action="store_true")
 
     args = parser.parse_args()

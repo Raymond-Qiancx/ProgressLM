@@ -36,7 +36,7 @@ TOP_P=0.9
 MAX_NEW_TOKENS=512
 
 # InternVL specific parameters
-MAX_NUM_TILES=12
+MAX_NUM_TILES=4
 INPUT_SIZE=448
 
 # Processing parameters

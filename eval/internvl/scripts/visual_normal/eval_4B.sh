@@ -13,7 +13,7 @@
 MODEL_PATH="/projects/p32958/jianshu/weight/OpenGVLab/InternVL3_5-4B"
 
 # Dataset configuration
-DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/visual/visual_eval_one_view.jsonl"
+DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/tiny-bench/visual_single_mini.jsonl"
 IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
 
 # Output configuration
@@ -26,7 +26,7 @@ LOG_FILE="${OUTPUT_DIR}/run.log"
 
 # GPU configuration
 GPU_IDS="0,1,2,3"
-BATCH_SIZE=4
+BATCH_SIZE=10
 
 # Inference configuration
 NUM_INFERENCES=1
@@ -37,7 +37,7 @@ TOP_P=0.9
 MAX_NEW_TOKENS=40000
 
 # InternVL specific parameters
-MAX_NUM_TILES=12
+MAX_NUM_TILES=4
 INPUT_SIZE=448
 
 # Processing parameters

@@ -1,24 +1,24 @@
 #!/bin/bash
 
 #####################################################################
-# Text Demo Progress Estimation Evaluation Script - InternVL 8B
+# Visual Demo Progress Estimation Evaluation Script - InternVL 38B
 #
-# This script runs progress estimation evaluation on Text Demo dataset
-# using InternVL 8B model with single-process model parallelism.
+# This script runs progress estimation evaluation on Visual Demo dataset
+# using InternVL 38B model with single-process model parallelism.
 #####################################################################
 
 # ======================== Configuration ========================
 
 # Model configuration
-MODEL_PATH="/projects/p32958/jianshu/weight/OpenGVLab/InternVL3_5-8B"
+MODEL_PATH="/projects/p32958/jianshu/weight/OpenGVLab/InternVL3_5-38B"
 
 # Dataset configuration
-DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/text/text_eval_one_view.jsonl"
+DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/tiny-bench/visual_single_mini.jsonl"
 IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
 
 # Output configuration
-BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/internvl/text_normal"
-PROJECT_NAME="internvl_8B_text"
+BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/internvl/visual_normal"
+PROJECT_NAME="internvl_38B"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 OUTPUT_DIR="${BASE_OUTPUT_DIR}/${PROJECT_NAME}_${TIMESTAMP}"
 OUTPUT_FILE="${OUTPUT_DIR}/results.jsonl"
@@ -31,16 +31,17 @@ GPU_IDS="0,1,2,3"
 NUM_INFERENCES=1
 
 # Model parameters
-TEMPERATURE=0.6
+TEMPERATURE=0.4
 TOP_P=0.9
 MAX_NEW_TOKENS=40000
 
 # InternVL specific parameters
-MAX_NUM_TILES=12
+MAX_NUM_TILES=4
 INPUT_SIZE=448
 
 # Processing parameters
 LIMIT=-1
+BATCH_SIZE=4
 
 # Misc
 VERBOSE=false
@@ -48,7 +49,7 @@ VERBOSE=false
 # ======================== Auto Configuration ========================
 
 echo "======================================================================"
-echo "Text Demo Progress Estimation - InternVL 8B Evaluation"
+echo "Visual Demo Progress Estimation - InternVL 38B Evaluation"
 echo "======================================================================"
 echo "Dataset: $DATASET_PATH"
 echo "Output: $OUTPUT_FILE"
@@ -86,7 +87,7 @@ CODES_DIR="$INTERNVL_DIR/codes"
 cd "$CODES_DIR" || exit 1
 
 # Use single-process script for large models
-CMD="python run_text_demo_single.py \
+CMD="python run_visual_demo_single.py \
     --model-path $MODEL_PATH \
     --dataset-path $DATASET_PATH \
     --output-file $OUTPUT_FILE \
@@ -95,7 +96,8 @@ CMD="python run_text_demo_single.py \
     --top-p $TOP_P \
     --max-new-tokens $MAX_NEW_TOKENS \
     --max-num-tiles $MAX_NUM_TILES \
-    --input-size $INPUT_SIZE"
+    --input-size $INPUT_SIZE \
+    --batch-size $BATCH_SIZE"
 
 if [ -n "$IMAGE_ROOT" ]; then
     CMD="$CMD --image-root $IMAGE_ROOT"

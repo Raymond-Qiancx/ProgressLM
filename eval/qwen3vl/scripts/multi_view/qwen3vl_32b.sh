@@ -4,7 +4,7 @@
 #####################################################################
 
 MODEL_PATH="/projects/p32958/jianshu/weight/Qwen/Qwen3-VL-32B-Instruct"
-DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/visual/visual_franka_multi_view_3k.jsonl"
+DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/tiny-bench/visual_multi_mini.jsonl"
 IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
 
 BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/qwen3vl/multi_view"
@@ -17,7 +17,7 @@ LOG_FILE="${OUTPUT_DIR}/run.log"
 GPU_IDS="0,1,2,3"
 BATCH_SIZE=2
 NUM_INFERENCES=1
-TEMPERATURE=0.4
+TEMPERATURE=0.7
 TOP_P=0.9
 TOP_K=50
 MAX_NEW_TOKENS=40000

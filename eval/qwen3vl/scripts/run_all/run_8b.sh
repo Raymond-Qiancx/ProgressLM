@@ -39,25 +39,25 @@ run_benchmark() {
 }
 
 # Run all 8B benchmarks (thinking version)
-echo ""
-echo "======================================================================"
-echo "Running 8B Thinking Benchmarks"
-echo "======================================================================"
-run_benchmark "normal_view" "qwen3vl_8b.sh"
-run_benchmark "multi_view" "qwen3vl_8b.sh"
-run_benchmark "normal_text" "qwen3vl_8b.sh"
-run_benchmark "nega_text" "qwen3vl_8b.sh"
-run_benchmark "edit_nega" "qwen3vl_8b.sh"
-
-# Run all 8B benchmarks (nothink version)
 # echo ""
 # echo "======================================================================"
-# echo "Running 8B NoThink Benchmarks"
+# echo "Running 8B Thinking Benchmarks"
 # echo "======================================================================"
-# run_benchmark "normal_view" "qwen3vl_8b_nothink.sh"
-# run_benchmark "multi_view" "qwen3vl_8b_nothink.sh"
-# run_benchmark "normal_text" "qwen3vl_8b_nothink.sh"
-# run_benchmark "nega_text" "qwen3vl_8b_nothink.sh"
+# run_benchmark "normal_view" "qwen3vl_8b.sh"
+# run_benchmark "multi_view" "qwen3vl_8b.sh"
+# run_benchmark "normal_text" "qwen3vl_8b.sh"
+# run_benchmark "nega_text" "qwen3vl_8b.sh"
+# run_benchmark "edit_nega" "qwen3vl_8b.sh"
+
+# Run all 8B benchmarks (nothink version)
+echo ""
+echo "======================================================================"
+echo "Running 8B NoThink Benchmarks"
+echo "======================================================================"
+run_benchmark "normal_view" "qwen3vl_8b_nothink.sh"
+run_benchmark "multi_view" "qwen3vl_8b_nothink.sh"
+run_benchmark "normal_text" "qwen3vl_8b_nothink.sh"
+run_benchmark "nega_text" "qwen3vl_8b_nothink.sh"
 # run_benchmark "edit_nega" "qwen3vl_8b_nothink.sh"
 
 # Summary

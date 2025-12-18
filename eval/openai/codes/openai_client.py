@@ -178,11 +178,29 @@ class OpenAIVisionClient:
                 max_completion_tokens=self.max_completion_tokens
             )
 
+            # Get finish reason for debugging
+            finish_reason = response.choices[0].finish_reason if response.choices else None
+            message = response.choices[0].message
+
+            # Check for refusal or other fields
+            content = message.content
+            refusal = getattr(message, 'refusal', None)
+
+            # If content is None but refusal exists, use refusal as response
+            if content is None and refusal:
+                content = f"[REFUSAL] {refusal}"
+
+            # Handle None content
+            if content is None:
+                content = ""
+
             return {
-                "response": response.choices[0].message.content,
+                "response": content,
                 "tokens_used": response.usage.total_tokens,
                 "input_tokens": response.usage.prompt_tokens,
                 "output_tokens": response.usage.completion_tokens,
+                "finish_reason": finish_reason,
+                "refusal": refusal,
                 "status": "success",
                 "error": None
             }
@@ -193,6 +211,8 @@ class OpenAIVisionClient:
                 "tokens_used": 0,
                 "input_tokens": 0,
                 "output_tokens": 0,
+                "finish_reason": None,
+                "refusal": None,
                 "status": "error",
                 "error": str(e)
             }
@@ -234,6 +254,8 @@ class OpenAIVisionClient:
             "tokens_used": 0,
             "input_tokens": 0,
             "output_tokens": 0,
+            "finish_reason": None,
+            "refusal": None,
             "status": "error",
             "error": f"Failed after {max_retries} retries. Last error: {last_error}"
         }

@@ -76,6 +76,12 @@ def build_text_demo_prompt(
     """
     Build a prompt for Text Demo progress estimation task (InternVL format).
 
+    Uses InternVL's required format:
+    - Image-1: <image> prefix at the start
+    - Then task description and instructions
+
+    System prompt is NOT included here - it should be added by model.py.
+
     Args:
         task_goal: Task goal description
         text_demo_list: List of text demo steps
@@ -91,28 +97,28 @@ def build_text_demo_prompt(
     # Build text prompt
     prompt_parts = []
 
-    # System prompt
-    prompt_parts.append(TEXT_DEMO_SYSTEM_PROMPT)
+    # 1. Image prefix at the start (InternVL required format)
+    prompt_parts.append("Image-1: <image>")
     prompt_parts.append("")
 
-    # Task goal
+    # 2. Task goal
     prompt_parts.append(f"The overall task goal is {task_goal}.")
     prompt_parts.append("")
 
-    # Demonstration introduction
+    # 3. Demonstration introduction
     prompt_parts.append(TEXT_DEMO_INSTRUCTION_PART1)
     prompt_parts.append("")
 
-    # Formatted text_demo content with progress values
+    # 4. Formatted text_demo content with progress values
     formatted_demo = format_text_demo_with_progress(text_demo_list, total_steps)
     prompt_parts.append(formatted_demo)
     prompt_parts.append("")
 
-    # Current state introduction
-    prompt_parts.append(TEXT_DEMO_INSTRUCTION_PART2)
+    # 5. Current state reference (use Image-1 notation)
+    prompt_parts.append(f"{TEXT_DEMO_INSTRUCTION_PART2} Image-1")
     prompt_parts.append("")
 
-    # Task instructions
+    # 6. Task instructions
     prompt_parts.append(TEXT_DEMO_INSTRUCTION_PART3)
 
     prompt_text = "\n".join(prompt_parts)

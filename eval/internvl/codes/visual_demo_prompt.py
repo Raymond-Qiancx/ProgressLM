@@ -31,28 +31,42 @@ Your response **must** strictly follow this format:
 <score>Your final estimated progress score or "n/a"</score>"""
 
 
-def format_visual_demo_progress_shifts(total_steps: int) -> str:
+def build_image_prefix(num_images: int) -> str:
     """
-    Format progress shifts for visual demo images based on total_steps.
+    Build InternVL image prefix in required format: Image-N: <image>
 
-    The progress shifts between images: 0% -> 25% -> 50% -> 75% -> 100% (for total_steps=4)
+    Args:
+        num_images: Total number of images
+
+    Returns:
+        Formatted string with Image-N: <image> for each image
+
+    Example:
+        >>> build_image_prefix(3)
+        'Image-1: <image>\nImage-2: <image>\nImage-3: <image>'
+    """
+    parts = [f"Image-{i + 1}: <image>" for i in range(num_images)]
+    return "\n".join(parts)
+
+
+def format_progress_description(total_steps: int) -> str:
+    """
+    Format progress description for demonstration images.
 
     Args:
         total_steps: Total number of steps (not including the initial 0% state)
 
     Returns:
-        Formatted string with image references and progress scores
+        Formatted string describing progress of each image
 
     Example:
-        >>> format_visual_demo_progress_shifts(4)
+        >>> format_progress_description(4)
         'Image-1 (0%) -> Image-2 (25%) -> Image-3 (50%) -> Image-4 (75%) -> Image-5 (100%)'
     """
-    # Number of images is total_steps + 1 (0% to 100%)
     num_images = total_steps + 1
     parts = []
 
     for i in range(num_images):
-        # Calculate progress percentage for this image
         progress_percentage = round((i / total_steps) * 100)
         parts.append(f"Image-{i + 1} ({progress_percentage}%)")
 
@@ -68,6 +82,12 @@ def build_visual_demo_prompt(
     """
     Build a prompt for Visual Demo progress estimation task (InternVL format).
 
+    Uses InternVL's required format:
+    - All Image-N: <image> prefixes at the start
+    - Then task description and instructions
+
+    System prompt is NOT included here - it should be added by model.py.
+
     Args:
         task_goal: Task goal description
         visual_demo_paths: List of paths to demonstration images
@@ -79,32 +99,31 @@ def build_visual_demo_prompt(
     """
     # Collect all image paths: demo images + current state image
     all_image_paths = visual_demo_paths + [stage_to_estimate_path]
+    num_total_images = len(all_image_paths)
+    current_image_idx = num_total_images  # Last image is current state
 
     # Build text prompt
     prompt_parts = []
 
-    # System prompt
-    prompt_parts.append(VISUAL_DEMO_SYSTEM_PROMPT)
+    # 1. Image prefix at the start (InternVL required format)
+    prompt_parts.append(build_image_prefix(num_total_images))
     prompt_parts.append("")
 
-    # Task goal
+    # 2. Task goal
     prompt_parts.append(f"The overall task goal is {task_goal}")
     prompt_parts.append("")
 
-    # Demonstration introduction
+    # 3. Demonstration with progress description
     prompt_parts.append(VISUAL_DEMO_INSTRUCTION_PART1)
-
-    # Progress shift information (referencing images by number)
-    progress_shifts = format_visual_demo_progress_shifts(total_steps)
-    prompt_parts.append(f"The progress shifts across all given visual demos is: {progress_shifts}")
+    progress_desc = format_progress_description(total_steps)
+    prompt_parts.append(f"The progress shifts across the demonstration images: {progress_desc}")
     prompt_parts.append("")
 
-    # Current state introduction
-    prompt_parts.append(VISUAL_DEMO_INSTRUCTION_PART2)
-    prompt_parts.append(f"(This is Image-{len(visual_demo_paths) + 1})")
+    # 4. Current state reference (use Image-N notation)
+    prompt_parts.append(f"{VISUAL_DEMO_INSTRUCTION_PART2} Image-{current_image_idx}")
     prompt_parts.append("")
 
-    # Task instructions
+    # 5. Task instructions
     prompt_parts.append(VISUAL_DEMO_INSTRUCTION_PART3)
 
     prompt_text = "\n".join(prompt_parts)

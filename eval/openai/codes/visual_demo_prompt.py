@@ -26,6 +26,10 @@ Your response **must** strictly follow this format:
 <score_think>Reason for comparing the current state image with the reference state or "n/a"</score_think>
 <score>Your final estimated progress score or "n/a"</score>"""
 
+# NoThink version: simplified instruction for direct output
+VISUAL_DEMO_INSTRUCTION_PART3_NOTHINK = """Output Instruction:
+Based on the task goal, demonstration, and current image, output ONLY the estimated progress as a percentage (0%–100%), or output exactly "n/a" if the target is incorrect, unmatched, or any abnormal condition exists; output nothing else."""
+
 
 def format_visual_demo_progress_shifts(total_steps: int) -> str:
     """
@@ -61,7 +65,8 @@ def build_visual_demo_prompt(
     total_steps: int,
     stage_to_estimate_path: str,
     min_pixels: int | None = None,
-    max_pixels: int | None = None
+    max_pixels: int | None = None,
+    nothink: bool = False
 ) -> List[Dict[str, Any]]:
     """
     Build a multi-part prompt for Visual Demo progress estimation task (inference mode).
@@ -83,6 +88,7 @@ def build_visual_demo_prompt(
         stage_to_estimate_path: Path to the current state image
         min_pixels: Minimum pixels for image processing
         max_pixels: Maximum pixels for image processing
+        nothink: If True, use simplified instruction for direct score output
 
     Returns:
         List of message dicts for the model
@@ -120,8 +126,9 @@ def build_visual_demo_prompt(
         stage_img_msg["max_pixels"] = max_pixels
     msgs.append(stage_img_msg)
 
-    # Part 6: Task instructions
-    msgs.append({"type": "text", "value": VISUAL_DEMO_INSTRUCTION_PART3})
+    # Part 6: Task instructions (use nothink version if specified)
+    instruction = VISUAL_DEMO_INSTRUCTION_PART3_NOTHINK if nothink else VISUAL_DEMO_INSTRUCTION_PART3
+    msgs.append({"type": "text", "value": instruction})
 
     return msgs
 
@@ -129,7 +136,8 @@ def build_visual_demo_prompt(
 def build_visual_demo_prompt_from_item(
     item: Dict[str, Any],
     min_pixels: int | None = None,
-    max_pixels: int | None = None
+    max_pixels: int | None = None,
+    nothink: bool = False
 ) -> List[Dict[str, Any]]:
     """
     Standalone function to build Visual Demo prompt from a dataset item (inference mode).
@@ -142,6 +150,7 @@ def build_visual_demo_prompt_from_item(
             - stage_to_estimate: str
         min_pixels: Minimum pixels for image processing
         max_pixels: Maximum pixels for image processing
+        nothink: If True, use simplified instruction for direct score output
 
     Returns:
         List of message dicts for the model
@@ -152,5 +161,6 @@ def build_visual_demo_prompt_from_item(
         total_steps=item['total_steps'],
         stage_to_estimate_path=item['stage_to_estimate'],
         min_pixels=min_pixels,
-        max_pixels=max_pixels
+        max_pixels=max_pixels,
+        nothink=nothink
     )

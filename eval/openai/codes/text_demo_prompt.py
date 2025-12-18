@@ -67,6 +67,9 @@ If the task target is incorrect or no step matches the current image, output onl
 </score>
 """
 
+# NoThink version: simplified instruction for direct output
+TEXT_DEMO_INSTRUCTION_PART3_NOTHINK = """Based on the task goal, demonstration, and current image, output ONLY the estimated progress as a percentage (0%–100%), or output exactly "n/a" if the target is incorrect, unmatched, or any abnormal condition exists; output nothing else."""
+
 # TEXT_DEMO_INSTRUCTION_PART3 = """Your task:
 # 1. Read the task goal to understand the task objective and the entity being operated on.
 # 2. Analyze the text_demo to understand how the task visually and conceptually progresses from start to completion.
@@ -124,7 +127,8 @@ def build_text_demo_prompt(
     total_steps: int,
     stage_to_estimate_path: str,
     min_pixels: int | None = None,
-    max_pixels: int | None = None
+    max_pixels: int | None = None,
+    nothink: bool = False
 ) -> List[Dict[str, Any]]:
     """
     Build a multi-part prompt for Text Demo progress estimation task (inference mode).
@@ -145,6 +149,7 @@ def build_text_demo_prompt(
         stage_to_estimate_path: Path to the current state image
         min_pixels: Minimum pixels for image processing
         max_pixels: Maximum pixels for image processing
+        nothink: If True, use simplified instruction for direct score output
 
     Returns:
         List of message dicts for the model
@@ -175,8 +180,9 @@ def build_text_demo_prompt(
         stage_img_msg["max_pixels"] = max_pixels
     msgs.append(stage_img_msg)
 
-    # Part 6: Task instructions
-    msgs.append({"type": "text", "value": TEXT_DEMO_INSTRUCTION_PART3})
+    # Part 6: Task instructions (use nothink version if specified)
+    instruction = TEXT_DEMO_INSTRUCTION_PART3_NOTHINK if nothink else TEXT_DEMO_INSTRUCTION_PART3
+    msgs.append({"type": "text", "value": instruction})
 
     return msgs
 
@@ -184,7 +190,8 @@ def build_text_demo_prompt(
 def build_text_demo_prompt_from_item(
     item: Dict[str, Any],
     min_pixels: int | None = None,
-    max_pixels: int | None = None
+    max_pixels: int | None = None,
+    nothink: bool = False
 ) -> List[Dict[str, Any]]:
     """
     Standalone function to build Text Demo prompt from a dataset item (inference mode).
@@ -197,6 +204,7 @@ def build_text_demo_prompt_from_item(
             - stage_to_estimate: str
         min_pixels: Minimum pixels for image processing
         max_pixels: Maximum pixels for image processing
+        nothink: If True, use simplified instruction for direct score output
 
     Returns:
         List of message dicts for the model
@@ -207,5 +215,6 @@ def build_text_demo_prompt_from_item(
         total_steps=item['total_steps'],
         stage_to_estimate_path=item['stage_to_estimate'],
         min_pixels=min_pixels,
-        max_pixels=max_pixels
+        max_pixels=max_pixels,
+        nothink=nothink
     )

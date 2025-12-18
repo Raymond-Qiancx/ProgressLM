@@ -219,6 +219,9 @@ class InternVLChat(InternVLPromptMixin, BaseModel):
         """
         Build prompt and collect images from message list.
 
+        NOTE: The text parts should already contain <image> placeholders.
+        This method does NOT add image prefixes.
+
         Args:
             messages: List of message dicts with 'type' and 'value' keys
 
@@ -234,14 +237,8 @@ class InternVLChat(InternVLPromptMixin, BaseModel):
             elif msg['type'] == 'text':
                 text_parts.append(msg['value'])
 
-        # Combine text parts
-        full_text = "\n\n".join(text_parts)
-
-        # Build InternVL multi-image prompt format
-        if len(image_paths) > 0:
-            prompt = self.build_internvl_multi_image_prompt(len(image_paths), full_text)
-        else:
-            prompt = full_text
+        # Combine text parts (should already contain <image> placeholders)
+        prompt = "\n\n".join(text_parts)
 
         return image_paths, prompt
 
@@ -347,24 +344,23 @@ class InternVLChat(InternVLPromptMixin, BaseModel):
         """
         Convenience method for direct generation from images and prompt.
 
+        NOTE: The prompt should already contain <image> placeholders at the
+        appropriate positions. This method does NOT add image prefixes.
+
         Args:
             image_paths: List of image file paths
-            prompt: The prompt text
+            prompt: The prompt text (with <image> placeholders embedded)
             system_prompt: Optional system prompt override
 
         Returns:
             Generated response string
         """
+        # Add system prompt (prompt already contains <image> placeholders)
+        sys_prompt = system_prompt if system_prompt else self.system_prompt
+        full_prompt = f"{sys_prompt}\n\n{prompt}" if sys_prompt else prompt
+
         if len(image_paths) > 0:
             pixel_values, num_patches_list = self._prepare_images(image_paths)
-
-            # Build InternVL multi-image prompt
-            full_prompt = self.build_internvl_multi_image_prompt(len(image_paths), prompt)
-
-            # Add system prompt
-            sys_prompt = system_prompt if system_prompt else self.system_prompt
-            if sys_prompt:
-                full_prompt = f"{sys_prompt}\n\n{full_prompt}"
 
             generation_config = dict(**self.generate_kwargs)
 
@@ -376,9 +372,6 @@ class InternVLChat(InternVLPromptMixin, BaseModel):
                 num_patches_list=num_patches_list,
             )
         else:
-            sys_prompt = system_prompt if system_prompt else self.system_prompt
-            full_prompt = f"{sys_prompt}\n\n{prompt}" if sys_prompt else prompt
-
             generation_config = dict(**self.generate_kwargs)
 
             response = self.model.chat(
@@ -397,6 +390,9 @@ class InternVLChat(InternVLPromptMixin, BaseModel):
     ) -> List[str]:
         """
         Batch inference for multiple samples using model.batch_chat().
+
+        NOTE: The prompts should already contain <image> placeholders at the
+        appropriate positions. This method does NOT add image prefixes.
 
         Args:
             batch_items: List of (image_paths, prompt) tuples
@@ -421,13 +417,11 @@ class InternVLChat(InternVLPromptMixin, BaseModel):
                 all_pixel_values.append(pixel_values)
                 # Total patches for this sample
                 all_num_patches.append(pixel_values.size(0))
-
-                # Build InternVL multi-image prompt
-                full_prompt = self.build_internvl_multi_image_prompt(len(image_paths), prompt)
             else:
                 all_num_patches.append(0)
-                full_prompt = prompt
 
+            # Prompt already contains <image> placeholders - do NOT add image prefix
+            full_prompt = prompt
             if sys_prompt:
                 full_prompt = f"{sys_prompt}\n\n{full_prompt}"
             questions.append(full_prompt)

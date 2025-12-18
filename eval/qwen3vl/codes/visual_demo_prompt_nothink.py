@@ -12,14 +12,9 @@ VISUAL_DEMO_INSTRUCTION_PART1 = """Here is the demonstration:"""
 VISUAL_DEMO_INSTRUCTION_PART2 = """Here is the current state that you need to estimate:"""
 
 
-VISUAL_DEMO_INSTRUCTION_PART3 = """Your task:
-1. Check the current state image carefully.
-2. Analyze the overall task goal and visual demonstration to understand how the task progresses from start to completion.
-3. Identify the reference states from the visual demonstration that are most related to the current state image.
-4. Compare the current state image with the chosen reference state, determining whether the image is behind or after the reference state.
-5. Estimate the progress numerically as a floating-point value between 0% and 100%, or directly output the "n/a" if you really cannot match the current state image to any of the states from demonstration.
+VISUAL_DEMO_INSTRUCTION_PART3 = """Output Instruction:
+Based on the task goal, demonstration, and current image, output ONLY the estimated progress as a percentage (0%–100%), or output exactly "n/a" if the target is incorrect, unmatched, or any abnormal condition exists; output nothing else."""
 
-Your answer only needs to output the final progress score you estimated, no other words needed."""
 
 
 def format_visual_demo_progress_shifts(total_steps: int) -> str:

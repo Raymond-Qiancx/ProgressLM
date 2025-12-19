@@ -98,6 +98,7 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
                 is_valid, error_msg = validate_image_path(item)
                 if not is_valid:
                     gt_score = item.get('progress_score')
+                    gt_is_na = gt_score is None
                     result = {
                         "score": None,
                         "ground_truth_score": f"{int(gt_score * 100)}%" if gt_score else "n/a",
@@ -106,7 +107,7 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
                         "meta_data": {**item, "status": "failed"}
                     }
                     results.append(result)
-                    progress_queue.put((1, float('inf'), 1))
+                    progress_queue.put((1, float('inf'), 1, 1 if gt_is_na else 0, 0))
                 else:
                     image_paths, prompt_text = build_text_demo_prompt_from_item(item)
                     valid_items.append(item)
@@ -133,6 +134,12 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
                         else:
                             evaluation_score = float('inf')
 
+                        # Check n/a accuracy (when gt is n/a, did model predict n/a?)
+                        pred_is_na = predicted_score == "n/a"
+                        gt_is_na = gt_score is None
+                        gt_na_flag = 1 if gt_is_na else 0
+                        pred_na_correct = 1 if gt_is_na and pred_is_na else 0
+
                         result = {
                             "score": "n/a" if predicted_score == "n/a" else f"{int(predicted_score * 100)}%" if isinstance(predicted_score, (int, float)) else None,
                             "ground_truth_score": f"{int(gt_score * 100)}%" if gt_score else "n/a",
@@ -141,10 +148,11 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
                             "meta_data": {**item, "status": "failed" if has_error else "success"}
                         }
                         results.append(result)
-                        progress_queue.put((1, evaluation_score, 1 if has_error else 0))
+                        progress_queue.put((1, evaluation_score, 1 if has_error else 0, gt_na_flag, pred_na_correct))
 
                     except Exception as e:
                         gt_score = item.get('progress_score')
+                        gt_is_na = gt_score is None
                         result = {
                             "score": None,
                             "ground_truth_score": f"{int(gt_score * 100)}%" if gt_score else "n/a",
@@ -153,12 +161,13 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
                             "meta_data": {**item, "status": "failed"}
                         }
                         results.append(result)
-                        progress_queue.put((1, float('inf'), 1))
+                        progress_queue.put((1, float('inf'), 1, 1 if gt_is_na else 0, 0))
 
             except Exception as e:
                 # Batch failed, mark all items as error
                 for item in valid_items:
                     gt_score = item.get('progress_score')
+                    gt_is_na = gt_score is None
                     result = {
                         "score": None,
                         "ground_truth_score": f"{int(gt_score * 100)}%" if gt_score else "n/a",
@@ -167,13 +176,12 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
                         "meta_data": {**item, "status": "failed"}
                     }
                     results.append(result)
-                    progress_queue.put((1, float('inf'), 1))
+                    progress_queue.put((1, float('inf'), 1, 1 if gt_is_na else 0, 0))
 
-            # Save periodically
-            if len(results) % 50 == 0:
-                with open(gpu_output_file, 'w', encoding='utf-8') as f:
-                    for res in results:
-                        f.write(json.dumps(res, ensure_ascii=False) + '\n')
+            # Save after each batch
+            with open(gpu_output_file, 'w', encoding='utf-8') as f:
+                for res in results:
+                    f.write(json.dumps(res, ensure_ascii=False) + '\n')
 
         with open(gpu_output_file, 'w', encoding='utf-8') as f:
             for res in results:
@@ -235,6 +243,8 @@ def main():
     total_processed = 0
     total_score_sum = 0.0
     valid_count = 0
+    gt_na_count = 0
+    pred_na_correct_count = 0
 
     pbar = tqdm(total=len(data), desc="Progress")
 
@@ -242,17 +252,43 @@ def main():
         if all(not p.is_alive() for p in processes):
             break
         while not progress_queue.empty():
-            proc_count, score, error = progress_queue.get_nowait()
+            proc_count, score, error, gt_na_flag, pred_na_correct = progress_queue.get_nowait()
             total_processed += proc_count
+            gt_na_count += gt_na_flag
+            pred_na_correct_count += pred_na_correct
             if score != float('inf'):
                 total_score_sum += score
                 valid_count += 1
             pbar.update(proc_count)
+            # Update tqdm with real-time score and n/a recall
+            if valid_count > 0:
+                mean_err = total_score_sum / valid_count
+                na_recall = pred_na_correct_count / gt_na_count * 100 if gt_na_count > 0 else 0
+                pbar.set_postfix({"mean_err": f"{mean_err:.4f}", "na_recall": f"{na_recall:.1f}%", "valid": valid_count})
         time.sleep(0.5)
 
     pbar.close()
+
+    # Drain queues to prevent blocking
+    while not progress_queue.empty():
+        try:
+            progress_queue.get_nowait()
+        except:
+            break
+
+    while not result_queue.empty():
+        try:
+            result_queue.get_nowait()
+        except:
+            break
+
+    # Join processes with timeout and force terminate if needed
     for p in processes:
-        p.join(timeout=60)
+        p.join(timeout=30)
+        if p.is_alive():
+            print(f"Force terminating process {p.pid}")
+            p.terminate()
+            p.join(timeout=5)
 
     all_results = []
     for gpu_id in gpu_ids:

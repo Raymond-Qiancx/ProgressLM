@@ -24,13 +24,13 @@ from qwen2_vl.model import Qwen2VLChat
 
 def parse_visual_demo_response(response: str) -> Dict[str, Any]:
     """
-    Parse the model's response to extract XML tags.
+    Parse the model's response to extract score directly (nothink mode).
 
-    Expected format:
-    <ref_think>reasoning...</ref_think>
-    <ref>2</ref>  (now expects 1-based integer index)
-    <score_think>reasoning...</score_think>
-    <score>8%</score>  (supports both "8%" and "0.08" formats)
+    Supported formats:
+    - "75%" or "75 %"
+    - "0.75"
+    - "75" (values > 1.0 are treated as percentages)
+    - "n/a"
 
     Args:
         response: Model output string
@@ -38,78 +38,48 @@ def parse_visual_demo_response(response: str) -> Dict[str, Any]:
     Returns:
         Dictionary with parsed fields:
         {
-            'ref_think': str,
-            'ref': str or int (1-based image number),
-            'score_think': str,
-            'score': float or None (in 0.0-1.0 range),
+            'score': float or "n/a" or None (in 0.0-1.0 range),
             'parse_error': bool
         }
     """
     result = {
-        'ref_think': '',
-        'ref': '',
-        'score_think': '',
         'score': None,
         'parse_error': False
     }
 
-    try:
-        # Extract ref_think
-        ref_think_match = re.search(r'<ref_think>(.*?)</ref_think>', response, re.DOTALL)
-        if ref_think_match:
-            result['ref_think'] = ref_think_match.group(1).strip()
+    response_clean = response.strip()
 
-        # Extract ref (now expects integer 1-based index or "n/a")
-        ref_match = re.search(r'<ref>(.*?)</ref>', response, re.DOTALL)
-        if ref_match:
-            ref_str = ref_match.group(1).strip()
-            # Check for "n/a" first
-            if ref_str.lower() in ["n/a", "na"]:
-                result['ref'] = "n/a"
-            else:
-                try:
-                    # Extract just the number (handle "No. 2", "2", "image 2", etc.)
-                    ref_num = re.search(r'\d+', ref_str)
-                    if ref_num:
-                        result['ref'] = int(ref_num.group())
-                    else:
-                        result['ref'] = ref_str  # Keep original if no number found
-                except (ValueError, AttributeError):
-                    result['ref'] = ref_str
+    # Check for n/a
+    if response_clean.lower() in ["n/a", "na"]:
+        result['score'] = "n/a"
+        return result
 
-        # Extract score_think
-        score_think_match = re.search(r'<score_think>(.*?)</score_think>', response, re.DOTALL)
-        if score_think_match:
-            result['score_think'] = score_think_match.group(1).strip()
+    # Priority 1: Match percentage format (e.g., "75%", "75 %")
+    percent_match = re.search(r'(\d+(?:\.\d+)?)\s*%', response_clean)
+    if percent_match:
+        score_value = float(percent_match.group(1)) / 100.0
+        result['score'] = max(0.0, min(1.0, score_value))
+        return result
 
-        # Extract score (supports "8%", "0.08", or "n/a")
-        score_match = re.search(r'<score>(.*?)</score>', response, re.DOTALL)
-        if score_match:
-            score_str = score_match.group(1).strip()
-            # Check for "n/a" first
-            if score_str.lower() in ["n/a", "na"]:
-                result['score'] = "n/a"
-            else:
-                try:
-                    # Remove % sign if present
-                    if score_str.endswith('%'):
-                        score_value = float(score_str[:-1]) / 100.0
-                    else:
-                        score_value = float(score_str)
-                        # If > 1.0, assume it's percentage without % sign
-                        if score_value > 1.0:
-                            score_value = score_value / 100.0
+    # Priority 2: Match pure number (e.g., "0.75", "75")
+    number_match = re.search(r'^[\s]*(\d+(?:\.\d+)?)[\s]*$', response_clean)
+    if number_match:
+        score_value = float(number_match.group(1))
+        if score_value > 1.0:
+            score_value = score_value / 100.0
+        result['score'] = max(0.0, min(1.0, score_value))
+        return result
 
-                    # Clamp to [0, 1]
-                    result['score'] = max(0.0, min(1.0, score_value))
-                except ValueError:
-                    result['parse_error'] = True
-        else:
-            result['parse_error'] = True
+    # Priority 3: Extract any number from response
+    any_number = re.search(r'(\d+(?:\.\d+)?)', response_clean)
+    if any_number:
+        score_value = float(any_number.group(1))
+        if score_value > 1.0:
+            score_value = score_value / 100.0
+        result['score'] = max(0.0, min(1.0, score_value))
+        return result
 
-    except Exception as e:
-        result['parse_error'] = True
-
+    result['parse_error'] = True
     return result
 
 
@@ -140,67 +110,26 @@ def calculate_evaluation_score(predicted: Optional[float], ground_truth: float) 
     return relative_error
 
 
-def calculate_ref_error(predicted_ref: Optional[int], ground_truth_ref: int) -> float:
+def calculate_false_positive(predicted_score, gt_score) -> bool:
     """
-    Calculate reference index error: |ground_truth_ref - predicted_ref|
-
-    Measures absolute difference between predicted and ground truth image indices.
-    Lower is better (0.0 = perfect match).
-
-    Args:
-        predicted_ref: Predicted reference image index (1-based) or None if parsing failed
-        ground_truth_ref: Ground truth closest image index (1-based)
-
-    Returns:
-        Absolute error (0.0 = perfect, higher = worse), or inf if predicted_ref is None or not an integer
-    """
-    if predicted_ref is None:
-        return float('inf')
-
-    # Ensure predicted_ref is an integer
-    if not isinstance(predicted_ref, int):
-        return float('inf')
-
-    absolute_error = abs(ground_truth_ref - predicted_ref)
-    return float(absolute_error)
-
-
-def calculate_false_positives(predicted_ref, predicted_score, gt_ref, gt_score) -> Tuple[bool, bool]:
-    """
-    Calculate false positive rates for ref and score.
+    Calculate false positive for score (nothink mode - no ref).
 
     False positive occurs when:
     - GT is numeric but prediction is "n/a"
     - GT is "n/a" but prediction is numeric
 
-    Correct cases:
-    - Both GT and prediction are "n/a"
-    - Both GT and prediction are numeric (use error calculation instead)
-
     Args:
-        predicted_ref: Predicted ref (int, "n/a", or invalid)
         predicted_score: Predicted score (float, "n/a", or invalid)
-        gt_ref: Ground truth ref (int or None)
         gt_score: Ground truth score (float or None)
 
     Returns:
-        (is_ref_false_positive, is_score_false_positive)
+        is_score_false_positive
     """
-    # Check ref false positive
-    gt_ref_is_na = (gt_ref is None)
-    pred_ref_is_na = (predicted_ref == "n/a" or predicted_ref == "" or not isinstance(predicted_ref, int))
-
-    # False positive: mismatch between GT and prediction
-    ref_fp = gt_ref_is_na != pred_ref_is_na
-
-    # Check score false positive
     gt_score_is_na = (gt_score is None)
     pred_score_is_na = (predicted_score == "n/a" or predicted_score is None or not isinstance(predicted_score, (int, float)))
 
     # False positive: mismatch between GT and prediction
-    score_fp = gt_score_is_na != pred_score_is_na
-
-    return ref_fp, score_fp
+    return gt_score_is_na != pred_score_is_na
 
 
 def calculate_voc_metrics(results: List[Dict[str, Any]]) -> Dict[str, Any]:
@@ -348,13 +277,9 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
                             ground_truth_score_str = "n/a"
 
                         result = {
-                            "ref": None,
-                            "score": None,
-                            "closest_idx": item.get('closest_idx'),
+                            "predicted_score": None,
                             "ground_truth_score": ground_truth_score_str,
-                            "ref_score": float('inf'),
-                            "pred_score": float('inf'),
-                            "ref_false_positive": False,
+                            "evaluation_score": float('inf'),
                             "score_false_positive": False,
                             "response": f"Validation error: {error_msg}",
                             "meta_data": {
@@ -363,7 +288,7 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
                             }
                         }
                         results.append(result)
-                        progress_queue.put((1, float('inf'), float('inf'), 0, 0, 1))  # (processed, score, ref_error, ref_fp, score_fp, error)
+                        progress_queue.put((1, float('inf'), 0, 1))  # (processed, score, score_fp, error)
                         continue
 
                     messages = build_visual_demo_prompt_from_item(
@@ -388,29 +313,19 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
                         # Parse response
                         parsed = parse_visual_demo_response(response)
                         predicted_score = parsed['score']
-                        predicted_ref = parsed['ref']
                         has_error = parsed['parse_error']
 
                         # Get ground truth values
                         gt_score = item['progress_score']  # Can be float or None
-                        gt_ref = item['closest_idx']  # Can be int or None
 
-                        # Calculate false positives
-                        ref_fp, score_fp = calculate_false_positives(
-                            predicted_ref, predicted_score, gt_ref, gt_score
-                        )
+                        # Calculate false positive
+                        score_fp = calculate_false_positive(predicted_score, gt_score)
 
                         # Calculate evaluation score for progress (only for numeric pairs)
                         if gt_score is not None and isinstance(predicted_score, (int, float)):
                             evaluation_score = calculate_evaluation_score(predicted_score, gt_score)
                         else:
                             evaluation_score = float('inf')
-
-                        # Calculate reference index error (only for numeric pairs)
-                        if gt_ref is not None and isinstance(predicted_ref, int):
-                            ref_error = calculate_ref_error(predicted_ref, gt_ref)
-                        else:
-                            ref_error = float('inf')
 
                         # Convert scores back to strings for output
                         if predicted_score == "n/a":
@@ -425,21 +340,10 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
                         else:
                             ground_truth_score_str = "n/a"
 
-                        if predicted_ref == "n/a":
-                            predicted_ref_str = "n/a"
-                        elif isinstance(predicted_ref, int):
-                            predicted_ref_str = str(predicted_ref)
-                        else:
-                            predicted_ref_str = None
-
                         result = {
-                            "ref": predicted_ref_str,
-                            "score": predicted_score_str,
-                            "closest_idx": gt_ref,
+                            "predicted_score": predicted_score_str,
                             "ground_truth_score": ground_truth_score_str,
-                            "ref_score": evaluation_score,
-                            "pred_score": ref_error,
-                            "ref_false_positive": ref_fp,
+                            "evaluation_score": evaluation_score,
                             "score_false_positive": score_fp,
                             "response": response,
                             "meta_data": {
@@ -450,8 +354,8 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
 
                         results.append(result)
 
-                        # Report progress: (processed_count, score_error, ref_error, ref_fp, score_fp, parse_error)
-                        progress_queue.put((1, evaluation_score, ref_error, 1 if ref_fp else 0, 1 if score_fp else 0, 1 if has_error else 0))
+                        # Report progress: (processed_count, score_error, score_fp, parse_error)
+                        progress_queue.put((1, evaluation_score, 1 if score_fp else 0, 1 if has_error else 0))
 
                     except Exception as e:
                         # Parse error for this specific item
@@ -462,13 +366,9 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
                             ground_truth_score_str = "n/a"
 
                         result = {
-                            "ref": None,
-                            "score": None,
-                            "closest_idx": item.get('closest_idx'),
+                            "predicted_score": None,
                             "ground_truth_score": ground_truth_score_str,
-                            "ref_score": float('inf'),
-                            "pred_score": float('inf'),
-                            "ref_false_positive": False,
+                            "evaluation_score": float('inf'),
                             "score_false_positive": False,
                             "response": f"Processing error: {str(e)}\nResponse: {response if response else ''}",
                             "meta_data": {
@@ -477,7 +377,7 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
                             }
                         }
                         results.append(result)
-                        progress_queue.put((1, float('inf'), float('inf'), 0, 0, 1))
+                        progress_queue.put((1, float('inf'), 0, 1))
 
             except Exception as e:
                 # Batch error - mark all items in batch as errors
@@ -489,13 +389,9 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
                         ground_truth_score_str = "n/a"
 
                     result = {
-                        "ref": None,
-                        "score": None,
-                        "closest_idx": item.get('closest_idx'),
+                        "predicted_score": None,
                         "ground_truth_score": ground_truth_score_str,
-                        "ref_score": float('inf'),
-                        "pred_score": float('inf'),
-                        "ref_false_positive": False,
+                        "evaluation_score": float('inf'),
                         "score_false_positive": False,
                         "response": f"Batch error: {str(e)}",
                         "meta_data": {
@@ -504,7 +400,7 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
                         }
                     }
                     results.append(result)
-                    progress_queue.put((1, float('inf'), float('inf'), 0, 0, 1))
+                    progress_queue.put((1, float('inf'), 0, 1))
 
             # Update processed count
             processed_count += len(batch_items)
@@ -610,10 +506,8 @@ def run_visual_demo_inference(args):
     # Monitor progress with unified tqdm
     total_processed = 0
     total_score_sum = 0.0
-    total_ref_error_sum = 0.0
     valid_count = 0  # Count of non-error samples
     error_count = 0
-    ref_fp_count = 0  # Count of ref false positives
     score_fp_count = 0  # Count of score false positives
 
     # Use tqdm with fixed width - dynamic single-line update only
@@ -640,23 +534,18 @@ def run_visual_demo_inference(args):
             # Collect all pending progress updates
             batch_proc_count = 0
             batch_score_sum = 0.0
-            batch_ref_error_sum = 0.0
             batch_valid_count = 0
             batch_errors = 0
-            batch_ref_fp = 0
             batch_score_fp = 0
 
             while not progress_queue.empty():
-                # Each progress update: (processed_count, score, ref_error, ref_fp, score_fp, error)
-                proc_count, score, ref_error, ref_fp, score_fp, error = progress_queue.get_nowait()
+                # Each progress update: (processed_count, score, score_fp, error)
+                proc_count, score, score_fp, error = progress_queue.get_nowait()
                 batch_proc_count += proc_count
                 # Only sum finite values
                 if score != float('inf'):
                     batch_score_sum += score
-                if ref_error != float('inf'):
-                    batch_ref_error_sum += ref_error
                 batch_errors += error
-                batch_ref_fp += ref_fp
                 batch_score_fp += score_fp
                 # Only count non-error samples for mean calculation
                 if error == 0:
@@ -666,10 +555,8 @@ def run_visual_demo_inference(args):
             if batch_proc_count > 0:
                 total_processed += batch_proc_count
                 total_score_sum += batch_score_sum
-                total_ref_error_sum += batch_ref_error_sum
                 valid_count += batch_valid_count
                 error_count += batch_errors
-                ref_fp_count += batch_ref_fp
                 score_fp_count += batch_score_fp
                 accumulated_updates += batch_proc_count
                 last_progress_time = time.time()  # Reset timeout timer
@@ -687,10 +574,9 @@ def run_visual_demo_inference(args):
                 pbar.update(accumulated_updates)
                 # Only calculate mean from valid (non-error) samples
                 mean_score = total_score_sum / valid_count if valid_count > 0 else 0.0
-                mean_ref_error = total_ref_error_sum / valid_count if valid_count > 0 else 0.0
-                ref_fp_rate = ref_fp_count / total_processed * 100 if total_processed > 0 else 0.0
                 score_fp_rate = score_fp_count / total_processed * 100 if total_processed > 0 else 0.0
-                pbar.set_postfix_str(f"MeanScore={mean_score:.3f}, MeanRef={mean_ref_error:.2f}, RefFP={ref_fp_rate:.1f}%, ScoreFP={score_fp_rate:.1f}%")
+                error_rate = error_count / total_processed * 100 if total_processed > 0 else 0.0
+                pbar.set_postfix_str(f"MeanErr={mean_score:.3f}, FP={score_fp_rate:.1f}%, Err={error_rate:.1f}%")
                 accumulated_updates = 0
                 last_update_time = current_time
 
@@ -767,13 +653,12 @@ def run_visual_demo_inference(args):
         drain_count = 0
         while not progress_queue.empty():
             try:
-                proc_count, score, ref_error, error = progress_queue.get_nowait()
+                proc_count, score, score_fp, error = progress_queue.get_nowait()
                 total_processed += proc_count
                 if score != float('inf'):
                     total_score_sum += score
-                if ref_error != float('inf'):
-                    total_ref_error_sum += ref_error
                 error_count += error
+                score_fp_count += score_fp
                 drain_count += proc_count
                 # Only count non-error samples for mean calculation
                 if error == 0:
@@ -784,8 +669,7 @@ def run_visual_demo_inference(args):
         if drain_count > 0:
             print(f"Drained {drain_count} remaining progress updates")
             mean_score = total_score_sum / valid_count if valid_count > 0 else 0.0
-            mean_ref_error = total_ref_error_sum / valid_count if valid_count > 0 else 0.0
-            print(f"Final count: {total_processed}/{len(data)}, MeanScore={mean_score:.3f}, MeanRef={mean_ref_error:.2f}")
+            print(f"Final count: {total_processed}/{len(data)}, MeanErr={mean_score:.3f}")
 
         print("\nWaiting for all workers to finish...")
 
@@ -857,21 +741,15 @@ def run_visual_demo_inference(args):
     # Calculate final statistics
     valid_results = [r for r in all_results if r['meta_data']['status'] == 'success']
     # Filter out inf values for mean calculation
-    finite_scores_all = [r.get('ref_score', float('inf')) for r in all_results if r.get('ref_score') != float('inf')]
-    finite_scores_valid = [r.get('ref_score', float('inf')) for r in valid_results if r.get('ref_score') != float('inf')]
-    finite_ref_errors_all = [r.get('pred_score', float('inf')) for r in all_results if r.get('pred_score') != float('inf')]
-    finite_ref_errors_valid = [r.get('pred_score', float('inf')) for r in valid_results if r.get('pred_score') != float('inf')]
+    finite_scores_all = [r.get('evaluation_score', float('inf')) for r in all_results if r.get('evaluation_score') != float('inf')]
+    finite_scores_valid = [r.get('evaluation_score', float('inf')) for r in valid_results if r.get('evaluation_score') != float('inf')]
 
     mean_score = sum(finite_scores_all) / len(finite_scores_all) if finite_scores_all else float('inf')
     mean_score_valid = sum(finite_scores_valid) / len(finite_scores_valid) if finite_scores_valid else float('inf')
-    mean_ref_error = sum(finite_ref_errors_all) / len(finite_ref_errors_all) if finite_ref_errors_all else float('inf')
-    mean_ref_error_valid = sum(finite_ref_errors_valid) / len(finite_ref_errors_valid) if finite_ref_errors_valid else float('inf')
     error_rate = error_count / len(all_results) if all_results else 0.0
 
-    # Calculate false positive rates
-    ref_fp_total = sum(1 for r in all_results if r.get('ref_false_positive', False))
+    # Calculate false positive rate
     score_fp_total = sum(1 for r in all_results if r.get('score_false_positive', False))
-    ref_fp_rate = ref_fp_total / len(all_results) if all_results else 0.0
     score_fp_rate = score_fp_total / len(all_results) if all_results else 0.0
 
     # Calculate VOC metrics
@@ -879,25 +757,22 @@ def run_visual_demo_inference(args):
     voc_metrics = calculate_voc_metrics(all_results)
 
     # Count GT type distribution
-    gt_numeric_count = sum(1 for r in all_results if r['meta_data'].get('closest_idx') is not None and r['meta_data'].get('progress_score') is not None)
+    gt_numeric_count = sum(1 for r in all_results if r['meta_data'].get('progress_score') is not None)
     gt_na_count = len(all_results) - gt_numeric_count
 
     # Print final summary
     print("\n" + "=" * 70)
-    print("VISUAL DEMO PROGRESS ESTIMATION SUMMARY")
+    print("VISUAL DEMO PROGRESS ESTIMATION SUMMARY (NOTHINK MODE)")
     print("=" * 70)
     print(f"Total samples (expanded): {len(data)}")
     print(f"Original samples: {len(data) // args.num_inferences}")
     print(f"Inferences per sample: {args.num_inferences}")
     print(f"Processed: {len(all_results)}")
     print(f"Errors: {error_count} ({error_rate*100:.2f}%)")
-    print(f"\nError Metrics:")
+    print(f"\nEvaluation Metrics:")
     print(f"  Mean evaluation score (all): {mean_score:.4f}")
     print(f"  Mean evaluation score (valid only): {mean_score_valid:.4f}")
-    print(f"  Mean ref error (all): {mean_ref_error:.4f}")
-    print(f"  Mean ref error (valid only): {mean_ref_error_valid:.4f}")
-    print(f"\nFalse Positive Rates:")
-    print(f"  Ref false positive rate: {ref_fp_rate*100:.2f}% ({ref_fp_total}/{len(all_results)})")
+    print(f"\nFalse Positive Rate:")
     print(f"  Score false positive rate: {score_fp_rate*100:.2f}% ({score_fp_total}/{len(all_results)})")
     print(f"\nVOC (Trajectory Order Consistency):")
     if voc_metrics['voc_mean'] is not None:
@@ -923,11 +798,7 @@ def run_visual_demo_inference(args):
         "error_rate": error_rate,
         "mean_evaluation_score_all": mean_score,
         "mean_evaluation_score_valid": mean_score_valid,
-        "mean_ref_error_all": mean_ref_error,
-        "mean_ref_error_valid": mean_ref_error_valid,
-        "ref_false_positive_count": ref_fp_total,
         "score_false_positive_count": score_fp_total,
-        "ref_false_positive_rate": ref_fp_rate,
         "score_false_positive_rate": score_fp_rate,
         "voc_mean": voc_metrics['voc_mean'],
         "voc_std": voc_metrics['voc_std'],

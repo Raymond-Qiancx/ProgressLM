@@ -13,7 +13,7 @@
 MODEL_PATH="/projects/p32958/jianshu/weight/OpenGVLab/InternVL3_5-38B"
 
 # Dataset configuration - negation dataset
-DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/text/text_eval_nega.jsonl"
+DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/tiny-bench/text-neg-mini.jsonl"
 IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
 
 # Output configuration
@@ -41,7 +41,7 @@ INPUT_SIZE=448
 
 # Processing parameters
 LIMIT=-1
-BATCH_SIZE=4
+BATCH_SIZE=1
 
 # Misc
 VERBOSE=false
@@ -86,8 +86,8 @@ CODES_DIR="$INTERNVL_DIR/codes"
 
 cd "$CODES_DIR" || exit 1
 
-# Use nothink version
-CMD="python run_text_demo_nothink.py \
+# Use nothink single-process version for large models (device_map="auto" across GPUs)
+CMD="python run_text_demo_nothink_single.py \
     --model-path $MODEL_PATH \
     --dataset-path $DATASET_PATH \
     --output-file $OUTPUT_FILE \

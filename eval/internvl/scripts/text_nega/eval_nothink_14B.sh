@@ -13,7 +13,7 @@
 MODEL_PATH="/projects/p32958/jianshu/weight/OpenGVLab/InternVL3_5-14B"
 
 # Dataset configuration - negation dataset
-DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/text/text_eval_nega.jsonl"
+DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/tiny-bench/text-neg-mini.jsonl"
 IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
 
 # Output configuration
@@ -41,7 +41,7 @@ INPUT_SIZE=448
 
 # Processing parameters
 LIMIT=-1
-BATCH_SIZE=4
+BATCH_SIZE=10
 
 # Misc
 VERBOSE=false

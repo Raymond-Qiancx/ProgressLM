@@ -204,12 +204,18 @@ class InternVLChat(InternVLPromptMixin, BaseModel):
         Returns:
             Tuple of (pixel_values tensor, num_patches_list)
         """
+        # Get the device of vision_model for proper placement in multi-GPU setup
+        try:
+            vision_device = next(self.model.vision_model.parameters()).device
+        except:
+            vision_device = 'cuda'
+
         return load_images_batch(
             image_paths,
             input_size=self.input_size,
             max_num=self.max_num_tiles,
             dtype=torch.bfloat16,
-            device='cuda'
+            device=vision_device
         )
 
     def _build_prompt_from_messages(

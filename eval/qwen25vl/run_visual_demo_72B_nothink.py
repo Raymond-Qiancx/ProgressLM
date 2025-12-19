@@ -332,7 +332,7 @@ def run_visual_demo_inference_single(args):
                         ground_truth_score_str = "n/a"
 
                     result = {
-                        "score": None,
+                        "predicted_score": None,
                         "ground_truth_score": ground_truth_score_str,
                         "evaluation_score": float('inf'),
                         "score_false_positive": False,
@@ -407,7 +407,7 @@ def run_visual_demo_inference_single(args):
                         ground_truth_score_str = "n/a"
 
                     result = {
-                        "score": predicted_score_str,
+                        "predicted_score": predicted_score_str,
                         "ground_truth_score": ground_truth_score_str,
                         "evaluation_score": evaluation_score,
                         "score_false_positive": score_fp,
@@ -425,7 +425,7 @@ def run_visual_demo_inference_single(args):
                     mean_score = total_score_sum / valid_count if valid_count > 0 else 0.0
                     error_rate = error_count / len(results) * 100 if results else 0.0
                     score_fp_rate = score_fp_count / len(results) * 100 if results else 0.0
-                    pbar.set_postfix_str(f"MeanScore={mean_score:.3f}, ErrorRate={error_rate:.1f}%, ScoreFP={score_fp_rate:.1f}%")
+                    pbar.set_postfix_str(f"MeanErr={mean_score:.3f}, Err={error_rate:.1f}%, FP={score_fp_rate:.1f}%")
 
                 except Exception as e:
                     # Parse error for this specific item
@@ -436,7 +436,7 @@ def run_visual_demo_inference_single(args):
                         ground_truth_score_str = "n/a"
 
                     result = {
-                        "score": None,
+                        "predicted_score": None,
                         "ground_truth_score": ground_truth_score_str,
                         "evaluation_score": float('inf'),
                         "score_false_positive": False,
@@ -460,7 +460,7 @@ def run_visual_demo_inference_single(args):
                     ground_truth_score_str = "n/a"
 
                 result = {
-                    "score": None,
+                    "predicted_score": None,
                     "ground_truth_score": ground_truth_score_str,
                     "evaluation_score": float('inf'),
                     "score_false_positive": False,

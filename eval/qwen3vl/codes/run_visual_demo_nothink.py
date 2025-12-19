@@ -55,58 +55,31 @@ def parse_visual_demo_response(response: str) -> Dict[str, Any]:
     }
 
     try:
-        # Extract ref_think
-        ref_think_match = re.search(r'<ref_think>(.*?)</ref_think>', response, re.DOTALL)
-        if ref_think_match:
-            result['ref_think'] = ref_think_match.group(1).strip()
+        # Nothink模式：直接从response提取百分比，不解析XML标签
+        response_clean = response.strip()
 
-        # Extract ref (now expects integer 1-based index or "n/a")
-        ref_match = re.search(r'<ref>(.*?)</ref>', response, re.DOTALL)
-        if ref_match:
-            ref_str = ref_match.group(1).strip()
-            # Check for "n/a" first
-            if ref_str.lower() in ["n/a", "na"]:
-                result['ref'] = "n/a"
-            else:
-                try:
-                    # Extract just the number (handle "No. 2", "2", "image 2", etc.)
-                    ref_num = re.search(r'\d+', ref_str)
-                    if ref_num:
-                        result['ref'] = int(ref_num.group())
-                    else:
-                        result['ref'] = ref_str  # Keep original if no number found
-                except (ValueError, AttributeError):
-                    result['ref'] = ref_str
+        # ref不提取，nothink模式不输出ref
+        result['ref'] = None
 
-        # Extract score_think
-        score_think_match = re.search(r'<score_think>(.*?)</score_think>', response, re.DOTALL)
-        if score_think_match:
-            result['score_think'] = score_think_match.group(1).strip()
-
-        # Extract score (supports "8%", "0.08", or "n/a")
-        score_match = re.search(r'<score>(.*?)</score>', response, re.DOTALL)
-        if score_match:
-            score_str = score_match.group(1).strip()
-            # Check for "n/a" first
-            if score_str.lower() in ["n/a", "na"]:
-                result['score'] = "n/a"
-            else:
-                try:
-                    # Remove % sign if present
-                    if score_str.endswith('%'):
-                        score_value = float(score_str[:-1]) / 100.0
-                    else:
-                        score_value = float(score_str)
-                        # If > 1.0, assume it's percentage without % sign
-                        if score_value > 1.0:
-                            score_value = score_value / 100.0
-
-                    # Clamp to [0, 1]
-                    result['score'] = max(0.0, min(1.0, score_value))
-                except ValueError:
-                    result['parse_error'] = True
+        # 检测 "n/a"
+        if response_clean.lower() in ["n/a", "na"]:
+            result['score'] = "n/a"
         else:
-            result['parse_error'] = True
+            # 尝试提取百分比 (如 "60%")
+            percent_match = re.search(r'(\d+(?:\.\d+)?)\s*%', response_clean)
+            if percent_match:
+                score_value = float(percent_match.group(1)) / 100.0
+                result['score'] = max(0.0, min(1.0, score_value))
+            else:
+                # 尝试纯数字
+                number_match = re.search(r'(\d+(?:\.\d+)?)', response_clean)
+                if number_match:
+                    score_value = float(number_match.group(1))
+                    if score_value > 1.0:
+                        score_value = score_value / 100.0
+                    result['score'] = max(0.0, min(1.0, score_value))
+                else:
+                    result['parse_error'] = True
 
     except Exception as e:
         result['parse_error'] = True

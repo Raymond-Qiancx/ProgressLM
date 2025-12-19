@@ -1,10 +1,13 @@
 #!/bin/bash
 
 #####################################################################
-# Text Demo Progress Estimation Evaluation Script
+# Text Demo Progress Estimation Evaluation Script - 3B No-Think Mode
 #
 # This script runs progress estimation evaluation on Text Demo dataset
-# using Qwen2-VL model with distributed GPU support.
+# using Qwen2-VL 3B model with distributed GPU support.
+#
+# NO-THINK MODE: Uses simplified prompt that asks for direct score output
+# without intermediate reasoning steps.
 #
 # Expected JSONL format:
 # {
@@ -22,15 +25,15 @@
 # ======================== Configuration ========================
 
 # Model configuration
-MODEL_PATH="/projects/p32958/Results/sft_model/qwen25vl_3b_think_sft"
+MODEL_PATH="/projects/b1222/userdata/jianshu/chengxuan/saved/models/Qwen2.5-VL-3B-Instruct"
 
 # Dataset configuration - using merged eval dataset
-DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/text/text_nega_test.jsonl"
+DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/tiny-bench/text-neg-mini.jsonl"
 IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
 
 # Output configuration
-BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/new_pro_bench/text_nega/sft_3b"
-PROJECT_NAME="text_nega_sft_3b"
+BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/new_pro_bench/text_nega/nothink_3b"
+PROJECT_NAME="text_nega_nothink_3b"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 OUTPUT_DIR="${BASE_OUTPUT_DIR}/${PROJECT_NAME}_${TIMESTAMP}"
 OUTPUT_FILE="${OUTPUT_DIR}/results.jsonl"
@@ -38,13 +41,13 @@ LOG_FILE="${OUTPUT_DIR}/run.log"
 
 # GPU configuration
 GPU_IDS="0,1,2,3"  # Comma-separated GPU IDs to use
-BATCH_SIZE=48  # Batch size per GPU (can be higher since only 1 image per sample)
+BATCH_SIZE=8  # Batch size per GPU (can be higher since only 1 image per sample)
 
 # Inference configuration
 NUM_INFERENCES=1  # Number of inferences per sample (data expansion factor)
 
 # Model parameters
-TEMPERATURE=0.8  # Higher temperature for diversity across multiple inferences
+TEMPERATURE=0.6  # Higher temperature for diversity across multiple inferences
 TOP_P=0.9
 TOP_K=50
 MAX_NEW_TOKENS=40000  # Increased for longer CoT reasoning chains
@@ -107,7 +110,7 @@ EVAL_DIR="$PROJECT_DIR/qwen25vl"
 cd "$EVAL_DIR" || exit 1
 
 # Build command
-CMD="python run_text_demo.py \
+CMD="python run_text_demo_nothink.py \
     --model-path $MODEL_PATH \
     --dataset-path $DATASET_PATH \
     --output-file $OUTPUT_FILE \

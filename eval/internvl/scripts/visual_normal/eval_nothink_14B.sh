@@ -13,7 +13,7 @@
 MODEL_PATH="/projects/p32958/jianshu/weight/OpenGVLab/InternVL3_5-14B"
 
 # Dataset configuration
-DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/visual/visual_eval_one_view.jsonl"
+DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/tiny-bench/visual_single_mini.jsonl"
 IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
 
 # Output configuration
@@ -41,7 +41,7 @@ INPUT_SIZE=448
 
 # Processing parameters
 LIMIT=-1
-BATCH_SIZE=4
+BATCH_SIZE=10
 
 # Misc
 VERBOSE=false

@@ -28,7 +28,7 @@
 MODEL_PATH="/projects/p32958/chengxuan/models/Qwen2.5-VL-32B-Instruct"
 
 # Dataset configuration - using merged eval dataset
-DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/visual/visual_franka_multi_view_3k.jsonl"
+DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/tiny-bench/visual_multi_mini.jsonl"
 IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
 
 # Output configuration

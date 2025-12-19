@@ -17,13 +17,8 @@ TEXT_DEMO_INSTRUCTION_PART1 = """Here is the demonstration (If you see [left] [r
 TEXT_DEMO_INSTRUCTION_PART2 = """Here is the current state that you need to estimate:"""
 
 
-TEXT_DEMO_INSTRUCTION_PART3 = """Your task:
-1. Analyze the text_demo to understand how the task visually and conceptually progresses from start to completion.
-2. Identify the step from the text_demo that are most visually and semantically similar to the current state image.
-3. Compare the current state image with the chosen reference step to determine whether it represents an earlier or later stage.
-4. Estimate the progress numerically as a floating-point value between 0% and 100%.
-
-Your answer only needs to output the final progress score you estimated."""
+TEXT_DEMO_INSTRUCTION_PART3 = """Output Instruction:
+Based on the task goal, demonstration, and current image, output ONLY the estimated progress as a percentage (0%–100%), or output exactly "n/a" if the target is incorrect, unmatched, or any abnormal condition exists; output nothing else."""
 
 
 def format_text_demo_with_progress(text_demo_list: List[str], total_steps: int) -> str:

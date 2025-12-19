@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-可视化数据标注器 - Web版本（基于Gradio）
-用于标注 edited_raw_all.jsonl 中的数据，显示图片和元数据，支持 Yes/No 标注
+Visual Data Annotation Tool - Web Version (Gradio-based)
+For annotating data in annotated_raw.jsonl, displaying images and metadata, supporting Yes/No annotation
 """
 
 import json
@@ -15,49 +15,50 @@ import shutil
 
 class WebAnnotationTool:
     def __init__(self):
-        # 配置文件路径
-        self.jsonl_path = "/gpfs/projects/p32958/chengxuan/ProgressLM/data/raw/edit_imgs/edited_raw_all.jsonl"
+        # Configuration file paths
+        self.base_dir = "/gpfs/projects/p32958/chengxuan/ProgressLM/data/utils_img/visual_nega/sub_1_sub"
+        self.jsonl_path = os.path.join(self.base_dir, "annotated_raw.jsonl")
         self.image_base_path = "/gpfs/projects/p32958/chengxuan/results/progresslm/negative/image/"
-        self.output_path = "/gpfs/projects/p32958/chengxuan/ProgressLM/data/utils_img/visual_nega/annotated_output.jsonl"
-        self.progress_path = "/gpfs/projects/p32958/chengxuan/ProgressLM/data/utils_img/visual_nega/annotation_progress.json"
+        self.output_path = os.path.join(self.base_dir, "annotated_output.jsonl")
+        self.progress_path = os.path.join(self.base_dir, "annotation_progress.json")
 
-        # 数据存储
+        # Data storage
         self.all_data = []
         self.current_index = 0
         self.annotations = {}  # {index: True/False}  True=Yes, False=No
 
-        # 加载数据
+        # Load data
         self.load_data()
         self.load_progress()
 
     def load_data(self):
-        """加载JSONL数据"""
-        print(f"正在加载数据: {self.jsonl_path}")
+        """Load JSONL data"""
+        print(f"Loading data: {self.jsonl_path}")
         try:
             with open(self.jsonl_path, 'r', encoding='utf-8') as f:
                 for line in f:
                     line = line.strip()
                     if line:
                         self.all_data.append(json.loads(line))
-            print(f"成功加载 {len(self.all_data)} 条记录")
+            print(f"Successfully loaded {len(self.all_data)} records")
         except Exception as e:
-            print(f"错误: 加载数据失败: {e}")
+            print(f"Error: Failed to load data: {e}")
             sys.exit(1)
 
     def load_progress(self):
-        """加载标注进度"""
+        """Load annotation progress"""
         if os.path.exists(self.progress_path):
             try:
                 with open(self.progress_path, 'r', encoding='utf-8') as f:
                     progress = json.load(f)
                     self.current_index = progress.get('current_index', 0)
                     self.annotations = {int(k): v for k, v in progress.get('annotations', {}).items()}
-                print(f"恢复进度: 从第 {self.current_index + 1} 条记录开始")
+                print(f"Restored progress: Starting from record {self.current_index + 1}")
             except Exception as e:
-                print(f"加载进度文件失败: {e}")
+                print(f"Failed to load progress file: {e}")
 
     def save_progress(self):
-        """保存标注进度"""
+        """Save annotation progress"""
         try:
             progress = {
                 'current_index': self.current_index,
@@ -66,10 +67,10 @@ class WebAnnotationTool:
             with open(self.progress_path, 'w', encoding='utf-8') as f:
                 json.dump(progress, f, indent=2)
         except Exception as e:
-            print(f"保存进度失败: {e}")
+            print(f"Failed to save progress: {e}")
 
     def get_image_pair(self, meta_data):
-        """获取原图和编辑后图片的路径"""
+        """Get original and edited image paths"""
         try:
             image_id = meta_data.get('id', '')
             image_name = meta_data.get('image', '')
@@ -77,11 +78,11 @@ class WebAnnotationTool:
             if not image_id or not image_name:
                 return None, None
 
-            # 构建原图路径
-            original_base_path = "/gpfs/projects/p32958/chengxuan/new_extracted_images/images/"
+            # Build original image path
+            original_base_path = "/projects/p32958/chengxuan/data/images/"
             original_path = os.path.join(original_base_path, image_id, image_name)
 
-            # 构建编辑后图片路径
+            # Build edited image path
             if image_name.endswith('.jpg'):
                 edited_image_name = image_name.replace('.jpg', '_edit.jpg')
             else:
@@ -89,21 +90,21 @@ class WebAnnotationTool:
 
             edited_path = os.path.join(self.image_base_path, image_id, edited_image_name)
 
-            # 检查文件是否存在
+            # Check if files exist
             original_exists = os.path.exists(original_path)
             edited_exists = os.path.exists(edited_path)
 
             return (original_path if original_exists else None,
                     edited_path if edited_exists else None)
         except Exception as e:
-            print(f"获取图片路径失败: {e}")
+            print(f"Failed to get image path: {e}")
             return None, None
 
     def format_record_info(self, record):
-        """格式化记录信息为Markdown"""
+        """Format record info as Markdown"""
         info = []
 
-        info.append("# 数据信息\n")
+        info.append("# Data Information\n")
 
         info.append("## STRATEGY")
         info.append(f"**{record.get('strategy', 'N/A')}**\n")
@@ -129,135 +130,135 @@ class WebAnnotationTool:
         return "\n\n".join(info)
 
     def get_current_record(self):
-        """获取当前记录的所有信息"""
+        """Get all information of current record"""
         if self.current_index >= len(self.all_data):
             return None, None, None, None, None
 
         record = self.all_data[self.current_index]
 
-        # 获取格式化的文本信息
+        # Get formatted text info
         info_text = self.format_record_info(record)
 
-        # 获取原图和编辑图
+        # Get original and edited images
         meta_data = record.get('meta_data', {})
         original_path, edited_path = self.get_image_pair(meta_data)
 
-        # 获取进度信息
-        progress_text = f"### 记录 {self.current_index + 1} / {len(self.all_data)}"
+        # Get progress info
+        progress_text = f"### Record {self.current_index + 1} / {len(self.all_data)}"
         if self.current_index in self.annotations:
             status = "✓ YES" if self.annotations[self.current_index] else "✗ NO"
-            progress_text += f" (已标注: {status})"
+            progress_text += f" (Annotated: {status})"
 
-        # 获取统计信息
+        # Get statistics info
         yes_count = sum(1 for v in self.annotations.values() if v)
         no_count = sum(1 for v in self.annotations.values() if not v)
         total_annotated = len(self.annotations)
-        stats_text = f"**已标注:** {total_annotated} | **YES:** {yes_count} | **NO:** {no_count}"
+        stats_text = f"**Annotated:** {total_annotated} | **YES:** {yes_count} | **NO:** {no_count}"
 
         return info_text, original_path, edited_path, progress_text, stats_text
 
     def annotate_yes(self):
-        """标注为 YES"""
+        """Annotate as YES"""
         self.annotations[self.current_index] = True
         self.save_progress()
         self.current_index += 1
         return self.get_current_record()
 
     def annotate_no(self):
-        """标注为 NO"""
+        """Annotate as NO"""
         self.annotations[self.current_index] = False
         self.save_progress()
         self.current_index += 1
         return self.get_current_record()
 
     def skip_record(self):
-        """跳过当前记录"""
+        """Skip current record"""
         self.current_index += 1
         return self.get_current_record()
 
     def previous_record(self):
-        """上一条记录"""
+        """Previous record"""
         if self.current_index > 0:
             self.current_index -= 1
         return self.get_current_record()
 
     def next_record(self):
-        """下一条记录"""
+        """Next record"""
         if self.current_index < len(self.all_data) - 1:
             self.current_index += 1
         return self.get_current_record()
 
     def save_and_finish(self):
-        """保存结果"""
+        """Save results"""
         if not self.annotations:
-            return "⚠️ 没有任何标注，无法保存！"
+            return "⚠️ No annotations to save!"
 
-        # 保存标注结果
+        # Save annotation results
         yes_records = []
         for idx, keep in self.annotations.items():
             if keep:
                 yes_records.append(self.all_data[idx])
 
-        # 写入输出文件
+        # Write to output file
         try:
             with open(self.output_path, 'w', encoding='utf-8') as f:
                 for record in yes_records:
                     f.write(json.dumps(record, ensure_ascii=False) + '\n')
 
-            # 保存统计信息
+            # Save statistics
             stats_path = self.output_path.replace('.jsonl', '_stats.txt')
             with open(stats_path, 'w', encoding='utf-8') as f:
                 yes_count = sum(1 for v in self.annotations.values() if v)
                 no_count = sum(1 for v in self.annotations.values() if not v)
                 total_annotated = len(self.annotations)
 
-                f.write(f"标注统计信息\n")
+                f.write(f"Annotation Statistics\n")
                 f.write(f"=" * 50 + "\n")
-                f.write(f"总记录数: {len(self.all_data)}\n")
-                f.write(f"已标注数: {total_annotated}\n")
-                f.write(f"YES (保留): {yes_count}\n")
-                f.write(f"NO (删除): {no_count}\n")
-                f.write(f"未标注: {len(self.all_data) - total_annotated}\n")
+                f.write(f"Total Records: {len(self.all_data)}\n")
+                f.write(f"Annotated: {total_annotated}\n")
+                f.write(f"YES (Keep): {yes_count}\n")
+                f.write(f"NO (Delete): {no_count}\n")
+                f.write(f"Not Annotated: {len(self.all_data) - total_annotated}\n")
                 if total_annotated > 0:
-                    f.write(f"保留率: {yes_count / total_annotated * 100:.2f}%\n")
+                    f.write(f"Keep Rate: {yes_count / total_annotated * 100:.2f}%\n")
                 else:
-                    f.write(f"保留率: N/A\n")
+                    f.write(f"Keep Rate: N/A\n")
 
-            # 备份进度文件（而不是删除）
+            # Backup progress file (instead of deleting)
             if os.path.exists(self.progress_path):
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 backup_path = self.progress_path.replace('.json', f'_backup_{timestamp}.json')
                 shutil.copy2(self.progress_path, backup_path)
-                print(f"进度文件已备份到: {backup_path}")
+                print(f"Progress file backed up to: {backup_path}")
 
             yes_count = sum(1 for v in self.annotations.values() if v)
             no_count = sum(1 for v in self.annotations.values() if not v)
 
             result_text = f"""
-✅ 标注结果已保存成功！
+✅ Annotation results saved successfully!
 
-**输出文件:** {self.output_path}
-**统计文件:** {stats_path}
+**Output File:** {self.output_path}
+**Statistics File:** {stats_path}
 
-**保留记录数 (YES):** {yes_count}
-**删除记录数 (NO):** {no_count}
-**总标注数:** {len(self.annotations)}
+**Records Kept (YES):** {yes_count}
+**Records Deleted (NO):** {no_count}
+**Total Annotated:** {len(self.annotations)}
 
-标注工作已完成！可以关闭浏览器。
+Annotation complete! You can close the browser.
 """
             return result_text
 
         except Exception as e:
-            return f"❌ 保存失败: {e}"
+            return f"❌ Save failed: {e}"
 
 
 def create_ui():
-    """创建Gradio界面"""
+    """Create Gradio interface"""
     tool = WebAnnotationTool()
 
-    with gr.Blocks(title="可视化数据标注器", theme=gr.themes.Soft()) as app:
-        gr.Markdown("# 📝 可视化数据标注器")
-        gr.Markdown("使用 **YES** / **NO** 按钮标注数据，按 **保存并完成** 导出结果")
+    with gr.Blocks(title="Visual Data Annotation Tool", theme=gr.themes.Soft()) as app:
+        gr.Markdown("# 📝 Visual Data Annotation Tool")
+        gr.Markdown("Use **YES** / **NO** buttons to annotate data, click **Save & Finish** to export results")
 
         with gr.Row():
             progress_display = gr.Markdown(value=tool.get_current_record()[3])
@@ -266,52 +267,52 @@ def create_ui():
             stats_display = gr.Markdown(value=tool.get_current_record()[4])
 
         with gr.Row():
-            # 左侧：文本信息
+            # Left side: Text info
             with gr.Column(scale=1):
                 info_display = gr.Markdown(
                     value=tool.get_current_record()[0],
-                    label="数据信息"
+                    label="Data Information"
                 )
 
-            # 右侧：图片对比区
+            # Right side: Image comparison area
             with gr.Column(scale=1):
                 with gr.Row():
-                    # 原始图片
+                    # Original image
                     original_image_display = gr.Image(
                         value=tool.get_current_record()[1],
-                        label="原始图片",
+                        label="Original Image",
                         height=600
                     )
-                    # 编辑后图片
+                    # Edited image
                     edited_image_display = gr.Image(
                         value=tool.get_current_record()[2],
-                        label="编辑后的图片",
+                        label="Edited Image",
                         height=600
                     )
 
-        # 控制按钮
+        # Control buttons
         with gr.Row():
-            prev_btn = gr.Button("⬅️ 上一条", variant="secondary")
-            yes_btn = gr.Button("✅ YES (保留)", variant="primary", size="lg")
-            no_btn = gr.Button("❌ NO (删除)", variant="stop", size="lg")
-            skip_btn = gr.Button("⏭️ 跳过", variant="secondary")
+            prev_btn = gr.Button("⬅️ Previous", variant="secondary")
+            yes_btn = gr.Button("✅ YES (Keep)", variant="primary", size="lg")
+            no_btn = gr.Button("❌ NO (Delete)", variant="stop", size="lg")
+            skip_btn = gr.Button("⏭️ Skip", variant="secondary")
 
         with gr.Row():
-            next_btn = gr.Button("➡️ 下一条", variant="secondary")
-            save_btn = gr.Button("💾 保存并完成", variant="primary")
+            next_btn = gr.Button("➡️ Next", variant="secondary")
+            save_btn = gr.Button("💾 Save & Finish", variant="primary")
 
-        # 保存结果显示
+        # Save result display
         result_display = gr.Markdown(visible=False)
 
-        # 按钮事件
+        # Button events
         def update_yes():
             info, original_img, edited_img, prog, stats = tool.annotate_yes()
             if info is None:
                 return {
-                    info_display: "✅ 所有数据已标注完成！",
+                    info_display: "✅ All data has been annotated!",
                     original_image_display: None,
                     edited_image_display: None,
-                    progress_display: "完成",
+                    progress_display: "Complete",
                     stats_display: stats if stats else ""
                 }
             return {
@@ -326,10 +327,10 @@ def create_ui():
             info, original_img, edited_img, prog, stats = tool.annotate_no()
             if info is None:
                 return {
-                    info_display: "✅ 所有数据已标注完成！",
+                    info_display: "✅ All data has been annotated!",
                     original_image_display: None,
                     edited_image_display: None,
-                    progress_display: "完成",
+                    progress_display: "Complete",
                     stats_display: stats if stats else ""
                 }
             return {
@@ -344,10 +345,10 @@ def create_ui():
             info, original_img, edited_img, prog, stats = tool.skip_record()
             if info is None:
                 return {
-                    info_display: "✅ 所有数据已标注完成！",
+                    info_display: "✅ All data has been annotated!",
                     original_image_display: None,
                     edited_image_display: None,
-                    progress_display: "完成",
+                    progress_display: "Complete",
                     stats_display: stats if stats else ""
                 }
             return {
@@ -372,10 +373,10 @@ def create_ui():
             info, original_img, edited_img, prog, stats = tool.next_record()
             if info is None:
                 return {
-                    info_display: "✅ 已经是最后一条记录！",
+                    info_display: "✅ This is the last record!",
                     original_image_display: None,
                     edited_image_display: None,
-                    progress_display: "完成",
+                    progress_display: "Complete",
                     stats_display: stats if stats else ""
                 }
             return {
@@ -424,49 +425,49 @@ def create_ui():
 
         gr.Markdown("""
         ---
-        ### 💡 使用说明
-        - **YES**: 保留当前记录并跳到下一条
-        - **NO**: 删除当前记录并跳到下一条
-        - **跳过**: 不标注，直接查看下一条
-        - **上一条/下一条**: 浏览和修改已标注的记录
-        - **保存并完成**: 导出所有标注为YES的记录到文件
+        ### 💡 Instructions
+        - **YES**: Keep current record and move to next
+        - **NO**: Delete current record and move to next
+        - **Skip**: Skip without annotation, view next record
+        - **Previous/Next**: Browse and modify annotated records
+        - **Save & Finish**: Export all YES records to file
 
-        ### 📁 输出文件
-        - `annotated_output.jsonl` - 所有标注为YES的记录
-        - `annotated_output_stats.txt` - 详细统计信息
+        ### 📁 Output Files
+        - `annotated_output.jsonl` - All records marked as YES
+        - `annotated_output_stats.txt` - Detailed statistics
         """)
 
     return app
 
 
 def main():
-    """主函数"""
+    """Main function"""
     print("=" * 60)
-    print("可视化数据标注器 - Web版本")
+    print("Visual Data Annotation Tool - Web Version")
     print("=" * 60)
 
     app = create_ui()
 
-    print("\n🚀 启动Web服务器...")
+    print("\n🚀 Starting Web Server...")
     print("\n" + "=" * 60)
-    print("📌 访问方式：")
+    print("📌 Access Methods:")
     print("=" * 60)
-    print("1. 本地访问: http://localhost:7860")
-    print("2. 远程访问: 使用下方显示的公网地址")
-    print("3. SSH端口转发: ssh -L 7860:localhost:7860 user@server")
+    print("1. Local: http://localhost:7860")
+    print("2. Remote: Use the public URL shown below")
+    print("3. SSH Port Forward: ssh -L 7860:localhost:7860 user@server")
     print("=" * 60)
-    print("\n按 Ctrl+C 停止服务器\n")
+    print("\nPress Ctrl+C to stop the server\n")
 
-    # 启动Gradio服务器
-    # share=True 会生成一个公网链接（临时，72小时有效）
+    # Launch Gradio server
+    # share=True generates a public URL (temporary, valid for 72 hours)
     app.launch(
-        server_name="0.0.0.0",  # 允许外部访问
+        server_name="0.0.0.0",  # Allow external access
         server_port=7860,
-        share=True,  # 生成公网链接
+        share=True,  # Generate public URL
         show_error=True,
         allowed_paths=[
-            "/gpfs/projects/p32958/chengxuan/results/progresslm/negative/image/",  # 编辑后的图片目录
-            "/gpfs/projects/p32958/chengxuan/new_extracted_images/images/"  # 原始图片目录
+            "/gpfs/projects/p32958/chengxuan/results/progresslm/negative/image/",  # Edited images directory
+            "/projects/p32958/chengxuan/data/images/"  # Original images directory
         ]
     )
 

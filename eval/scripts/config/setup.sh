@@ -6,4 +6,4 @@ cd /projects/p32958/chengxuan/ProgressLM
 
 conda activate qwen25vl
 
-conda activate qwen3vl
+# conda activate qwen3vl

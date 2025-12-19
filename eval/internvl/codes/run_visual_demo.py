@@ -127,18 +127,47 @@ def calculate_false_positives(predicted_ref, predicted_score, gt_ref, gt_score) 
 
 
 def calculate_voc_metrics(results: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """Calculate VOC (trajectory order consistency) using Spearman correlation."""
+    """
+    Calculate VOC (trajectory order consistency) using Spearman correlation.
+
+    Process:
+    1. Group samples by complete trajectory ID
+    2. Filter: only keep trajectories where GT closest_idx and progress_score are both numeric
+    3. For each trajectory:
+       - Extract GT scores and predicted scores
+       - Calculate Spearman correlation directly between scores
+       - scipy handles ties by assigning average ranks to equal values
+       - Single-sample trajectories → VOC = None
+    4. Return mean and std of all valid VOCs
+
+    Args:
+        results: List of result dictionaries with meta_data containing id, closest_idx, progress_score
+
+    Returns:
+        Dictionary with VOC statistics:
+        {
+            'voc_mean': float or None,
+            'voc_std': float or None,
+            'voc_count': int,  # number of trajectories with VOC
+            'voc_values': List[float]  # individual VOC values
+        }
+    """
     from collections import defaultdict
 
+    # Group by trajectory ID
     trajectories = defaultdict(list)
     for res in results:
         meta = res.get('meta_data', {})
         traj_id = meta.get('id', '')
+
+        # Only include if GT has numeric values
         gt_ref = meta.get('closest_idx')
         gt_score = meta.get('progress_score')
 
         if gt_ref is not None and gt_score is not None:
+            # GT is numeric
             pred_score = res.get('score')
+            # Convert n/a to 0.0 for ranking
             if pred_score == "n/a" or pred_score is None:
                 pred_score_numeric = 0.0
             else:
@@ -146,27 +175,28 @@ def calculate_voc_metrics(results: List[Dict[str, Any]]) -> Dict[str, Any]:
 
             trajectories[traj_id].append({
                 'gt_score': gt_score,
-                'pred_score': pred_score_numeric,
-                'result': res
+                'pred_score': pred_score_numeric
             })
 
+    # Calculate VOC for each trajectory
     voc_values = []
     for traj_id, samples in trajectories.items():
         if len(samples) <= 1:
+            # Cannot calculate correlation for single sample
             continue
 
-        samples_sorted_by_gt = sorted(samples, key=lambda x: x['gt_score'])
-        true_order = list(range(len(samples_sorted_by_gt)))
+        # Extract scores directly
+        gt_scores = [s['gt_score'] for s in samples]
+        pred_scores = [s['pred_score'] for s in samples]
 
-        samples_sorted_by_pred = sorted(samples, key=lambda x: x['pred_score'])
-        pred_rank_map = {id(s['result']): rank for rank, s in enumerate(samples_sorted_by_pred)}
-        pred_order = [pred_rank_map[id(s['result'])] for s in samples_sorted_by_gt]
-
-        if len(set(true_order)) > 1 and len(set(pred_order)) > 1:
-            correlation, _ = spearmanr(true_order, pred_order)
+        # Calculate Spearman correlation directly on scores
+        # scipy.stats.spearmanr handles ties by assigning average ranks
+        if len(set(gt_scores)) > 1:  # Need variation in GT scores
+            correlation, _ = spearmanr(gt_scores, pred_scores)
             if not np.isnan(correlation):
                 voc_values.append(correlation)
 
+    # Calculate statistics
     if len(voc_values) > 0:
         return {
             'voc_mean': float(np.mean(voc_values)),
@@ -175,7 +205,12 @@ def calculate_voc_metrics(results: List[Dict[str, Any]]) -> Dict[str, Any]:
             'voc_values': voc_values
         }
     else:
-        return {'voc_mean': None, 'voc_std': None, 'voc_count': 0, 'voc_values': []}
+        return {
+            'voc_mean': None,
+            'voc_std': None,
+            'voc_count': 0,
+            'voc_values': []
+        }
 
 
 def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, result_queue: Queue):

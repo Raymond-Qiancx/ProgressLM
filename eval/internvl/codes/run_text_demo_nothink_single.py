@@ -124,6 +124,8 @@ def main():
                     "score": None,
                     "ground_truth_score": f"{int(gt_score * 100)}%" if gt_score else "n/a",
                     "score_error": float('inf'),
+                    "gt_is_na": gt_is_na,
+                    "pred_na_correct": None,
                     "response": f"Validation error: {error_msg}",
                     "meta_data": {**item, "status": "failed"}
                 }
@@ -162,6 +164,8 @@ def main():
                     "score": "n/a" if predicted_score == "n/a" else f"{int(predicted_score * 100)}%" if isinstance(predicted_score, (int, float)) else None,
                     "ground_truth_score": f"{int(gt_score * 100)}%" if gt_score else "n/a",
                     "score_error": evaluation_score,
+                    "gt_is_na": gt_is_na,
+                    "pred_na_correct": pred_is_na if gt_is_na else None,
                     "response": response,
                     "meta_data": {**item, "status": "failed" if has_error else "success"}
                 }
@@ -176,6 +180,8 @@ def main():
                 "score": None,
                 "ground_truth_score": f"{int(gt_score * 100)}%" if gt_score else "n/a",
                 "score_error": float('inf'),
+                "gt_is_na": gt_is_na,
+                "pred_na_correct": None,
                 "response": f"Error: {str(e)}",
                 "meta_data": {**item, "status": "failed"}
             }

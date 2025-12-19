@@ -2,6 +2,7 @@ data/images/
 data/train/rl/new
 ref_codes/VLAC/evo_vlac/examples/videos/ref_images
 ref_codes/VLAC/evo_vlac/examples/videos/test_images
+data/benchmark/teaser
 
 
 # Byte-compiled / optimized / DLL files

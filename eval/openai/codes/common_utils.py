@@ -266,20 +266,29 @@ def calculate_voc_metrics(results: List[Dict[str, Any]]) -> Dict[str, Any]:
     Calculate VOC (trajectory order consistency) using Spearman correlation.
 
     Process:
-    1. Group samples by trajectory ID
-    2. Filter: only keep trajectories where GT is numeric
+    1. Group samples by complete trajectory ID
+    2. Filter: only keep trajectories where GT closest_idx and progress_score are both numeric
     3. For each trajectory:
-       - Sort by GT progress_score to get true order
-       - Sort by predicted score (n/a -> 0.0) to get predicted order
-       - Calculate Spearman correlation between rankings
+       - Extract GT scores and predicted scores
+       - Calculate Spearman correlation directly between scores
+       - scipy handles ties by assigning average ranks to equal values
+       - Single-sample trajectories → VOC = None
     4. Return mean and std of all valid VOCs
 
     Args:
-        results: List of result dictionaries with meta_data
+        results: List of result dictionaries with meta_data containing id, closest_idx, progress_score
 
     Returns:
-        Dictionary with VOC statistics
+        Dictionary with VOC statistics:
+        {
+            'voc_mean': float or None,
+            'voc_std': float or None,
+            'voc_count': int,  # number of trajectories with VOC
+            'voc_values': List[float]  # individual VOC values
+        }
     """
+    from collections import defaultdict
+
     # Group by trajectory ID
     trajectories = defaultdict(list)
     for res in results:
@@ -291,48 +300,34 @@ def calculate_voc_metrics(results: List[Dict[str, Any]]) -> Dict[str, Any]:
         gt_score = meta.get('progress_score')
 
         if gt_ref is not None and gt_score is not None:
+            # GT is numeric
             pred_score = res.get('score')
             # Convert n/a to 0.0 for ranking
             if pred_score == "n/a" or pred_score is None:
                 pred_score_numeric = 0.0
-            elif isinstance(pred_score, str):
-                # Handle percentage strings
-                try:
-                    if pred_score.endswith('%'):
-                        pred_score_numeric = float(pred_score[:-1]) / 100.0
-                    else:
-                        pred_score_numeric = float(pred_score)
-                except ValueError:
-                    pred_score_numeric = 0.0
             else:
                 pred_score_numeric = float(pred_score) if isinstance(pred_score, (int, float)) else 0.0
 
             trajectories[traj_id].append({
                 'gt_score': gt_score,
-                'pred_score': pred_score_numeric,
-                'result': res
+                'pred_score': pred_score_numeric
             })
 
     # Calculate VOC for each trajectory
     voc_values = []
     for traj_id, samples in trajectories.items():
         if len(samples) <= 1:
+            # Cannot calculate correlation for single sample
             continue
 
-        # Sort by GT score to get true ranking
-        samples_sorted_by_gt = sorted(samples, key=lambda x: x['gt_score'])
-        true_order = list(range(len(samples_sorted_by_gt)))
+        # Extract scores directly
+        gt_scores = [s['gt_score'] for s in samples]
+        pred_scores = [s['pred_score'] for s in samples]
 
-        # Sort by predicted score to get predicted ranking
-        samples_sorted_by_pred = sorted(samples, key=lambda x: x['pred_score'])
-
-        # Map each sample to its predicted rank
-        pred_rank_map = {id(s['result']): rank for rank, s in enumerate(samples_sorted_by_pred)}
-        pred_order = [pred_rank_map[id(s['result'])] for s in samples_sorted_by_gt]
-
-        # Calculate Spearman correlation
-        if len(set(true_order)) > 1 and len(set(pred_order)) > 1:
-            correlation, _ = spearmanr(true_order, pred_order)
+        # Calculate Spearman correlation directly on scores
+        # scipy.stats.spearmanr handles ties by assigning average ranks
+        if len(set(gt_scores)) > 1:  # Need variation in GT scores
+            correlation, _ = spearmanr(gt_scores, pred_scores)
             if not np.isnan(correlation):
                 voc_values.append(correlation)
 

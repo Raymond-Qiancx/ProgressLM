@@ -62,20 +62,23 @@ def build_visual_demo_prompt(
     # Collect all image paths
     all_image_paths = visual_demo_paths + [stage_to_estimate_path]
 
-    # Build text prompt
+    # Build text prompt with <image> placeholders for each image
     prompt_parts = []
 
-    # Demonstration introduction
+    # Demonstration introduction with image placeholders
     prompt_parts.append(VISUAL_DEMO_INSTRUCTION_PART1)
 
-    # Progress shift information
-    progress_shifts = format_visual_demo_progress_shifts(total_steps)
-    prompt_parts.append(f"The progress shifts across all given visual demos is: {progress_shifts}")
+    # Add <image> placeholder for each demo image with progress info
+    num_demo_images = len(visual_demo_paths)
+    for i in range(num_demo_images):
+        progress_percentage = round((i / total_steps) * 100)
+        prompt_parts.append(f"<image>\nImage-{i + 1} ({progress_percentage}%)")
+
     prompt_parts.append("")
 
-    # Current state introduction
+    # Current state introduction with image placeholder
     prompt_parts.append(VISUAL_DEMO_INSTRUCTION_PART2)
-    prompt_parts.append(f"(This is Image-{len(visual_demo_paths) + 1})")
+    prompt_parts.append(f"<image>\n(This is Image-{num_demo_images + 1})")
     prompt_parts.append("")
 
     # Task instructions

@@ -11,6 +11,7 @@ Usage:
     python calc_voc_auto.py results.jsonl
     python calc_voc_auto.py results.jsonl --format 1
     python calc_voc_auto.py results.jsonl --output voc_results.json
+    python /projects/p32958/chengxuan/ProgressLM/eval/eval_results/voc/calc_voc_auto.py 
 """
 
 import json

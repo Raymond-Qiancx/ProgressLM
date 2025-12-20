@@ -181,26 +181,30 @@ def parse_nothink_response(response: str) -> Dict[str, Any]:
 
 def calculate_evaluation_score(predicted: Optional[float], ground_truth: float) -> float:
     """
-    Calculate evaluation score: |ground_truth - predicted| / ground_truth
+    Calculate evaluation score: |ground_truth - predicted| / max(ground_truth, 1 - ground_truth)
 
-    Uses pure relative error metric. Lower is better (0.0 = perfect prediction).
+    Uses normalized error metric. Lower is better (0.0 = perfect prediction).
+    This normalization treats small and large GT values fairly.
 
     Args:
         predicted: Predicted progress score (0-1) or None if parsing failed
         ground_truth: Ground truth progress score (0-1)
 
     Returns:
-        Relative error (0.0 = perfect, higher = worse), or inf if invalid
+        Normalized error (0.0 = perfect, 1.0 = max possible error), or inf if invalid
     """
     if predicted is None:
         return float('inf')
 
-    # Avoid division by zero
-    if ground_truth == 0.0:
-        return 0.0 if predicted == 0.0 else float('inf')
+    # Calculate max possible error for normalization
+    max_possible = max(ground_truth, 1.0 - ground_truth)
 
-    relative_error = abs(ground_truth - predicted) / ground_truth
-    return relative_error
+    # Avoid division by zero (only happens when gt = 0.5 exactly, but max_possible would be 0.5)
+    if max_possible == 0.0:
+        return 0.0 if predicted == ground_truth else float('inf')
+
+    normalized_error = abs(ground_truth - predicted) / max_possible
+    return normalized_error
 
 
 def calculate_ref_error(predicted_ref: Optional[int], ground_truth_ref: int) -> float:
@@ -265,86 +269,138 @@ def calculate_voc_metrics(results: List[Dict[str, Any]]) -> Dict[str, Any]:
     """
     Calculate VOC (trajectory order consistency) using Spearman correlation.
 
+    Uses sample-level N/A filtering: N/A predictions are excluded from
+    calculation rather than being converted to 0.0.
+
     Process:
     1. Group samples by complete trajectory ID
-    2. Filter: only keep trajectories where GT closest_idx and progress_score are both numeric
-    3. For each trajectory:
-       - Extract GT scores and predicted scores
-       - Calculate Spearman correlation directly between scores
-       - scipy handles ties by assigning average ranks to equal values
-       - Single-sample trajectories → VOC = None
-    4. Return mean and std of all valid VOCs
+    2. Filter out N/A predictions at sample level
+    3. For each trajectory with >= 2 valid samples:
+       - Calculate Spearman correlation between GT and predicted scores
+       - Skip if all predictions or GT scores are constant
+    4. Return mean, std and detailed statistics
 
     Args:
-        results: List of result dictionaries with meta_data containing id, closest_idx, progress_score
+        results: List of result dictionaries with meta_data containing id, progress_score
 
     Returns:
-        Dictionary with VOC statistics:
-        {
-            'voc_mean': float or None,
-            'voc_std': float or None,
-            'voc_count': int,  # number of trajectories with VOC
-            'voc_values': List[float]  # individual VOC values
-        }
+        Dictionary with VOC statistics and sample coverage info
     """
     from collections import defaultdict
 
-    # Group by trajectory ID
+    # Group by trajectory ID and collect samples
     trajectories = defaultdict(list)
+    total_samples = 0
+    total_na_samples = 0
+
     for res in results:
         meta = res.get('meta_data', {})
         traj_id = meta.get('id', '')
-
-        # Only include if GT has numeric values
-        gt_ref = meta.get('closest_idx')
         gt_score = meta.get('progress_score')
 
-        if gt_ref is not None and gt_score is not None:
-            # GT is numeric
-            pred_score = res.get('score')
-            # Convert n/a to 0.0 for ranking
-            if pred_score == "n/a" or pred_score is None:
-                pred_score_numeric = 0.0
-            else:
-                pred_score_numeric = float(pred_score) if isinstance(pred_score, (int, float)) else 0.0
+        if gt_score is not None:
+            total_samples += 1
+            pred_score_raw = res.get('score')
+
+            # Parse score, N/A returns None (not 0.0)
+            pred_score = None
+            if pred_score_raw is not None and pred_score_raw != "n/a":
+                if isinstance(pred_score_raw, (int, float)):
+                    pred_score = float(pred_score_raw)
+                elif isinstance(pred_score_raw, str):
+                    # Parse percentage format "45%"
+                    score_str = pred_score_raw.strip()
+                    if score_str.endswith('%'):
+                        try:
+                            pred_score = float(score_str[:-1]) / 100.0
+                        except:
+                            pass
+                    else:
+                        try:
+                            val = float(score_str)
+                            pred_score = val if val <= 1.0 else val / 100.0
+                        except:
+                            pass
+
+            if pred_score is None:
+                total_na_samples += 1
 
             trajectories[traj_id].append({
                 'gt_score': gt_score,
-                'pred_score': pred_score_numeric
+                'pred_score': pred_score  # Can be None
             })
 
-    # Calculate VOC for each trajectory
+    # Calculate VOC for each trajectory (with sample-level filtering)
     voc_values = []
+    skipped_all_na = 0
+    skipped_single = 0
+    skipped_constant_pred = 0
+    skipped_constant_gt = 0
+
     for traj_id, samples in trajectories.items():
-        if len(samples) <= 1:
-            # Cannot calculate correlation for single sample
+        # Filter out samples with N/A predictions
+        valid_samples = [s for s in samples if s['pred_score'] is not None]
+
+        if len(valid_samples) == 0:
+            skipped_all_na += 1
             continue
 
-        # Extract scores directly
-        gt_scores = [s['gt_score'] for s in samples]
-        pred_scores = [s['pred_score'] for s in samples]
+        if len(valid_samples) <= 1:
+            skipped_single += 1
+            continue
 
-        # Calculate Spearman correlation directly on scores
-        # scipy.stats.spearmanr handles ties by assigning average ranks
-        if len(set(gt_scores)) > 1:  # Need variation in GT scores
-            correlation, _ = spearmanr(gt_scores, pred_scores)
-            if not np.isnan(correlation):
-                voc_values.append(correlation)
+        gt_scores = [s['gt_score'] for s in valid_samples]
+        pred_scores = [s['pred_score'] for s in valid_samples]
+
+        # Skip if all predictions are the same (no variation)
+        if len(set(pred_scores)) == 1:
+            skipped_constant_pred += 1
+            continue
+
+        # Skip if all GT scores are the same
+        if len(set(gt_scores)) == 1:
+            skipped_constant_gt += 1
+            continue
+
+        correlation, _ = spearmanr(gt_scores, pred_scores)
+        if not np.isnan(correlation):
+            voc_values.append(correlation)
 
     # Calculate statistics
+    valid_samples_count = total_samples - total_na_samples
+    sample_coverage = valid_samples_count / total_samples if total_samples > 0 else 0.0
+
     if len(voc_values) > 0:
         return {
             'voc_mean': float(np.mean(voc_values)),
             'voc_std': float(np.std(voc_values)),
             'voc_count': len(voc_values),
-            'voc_values': voc_values
+            'voc_values': voc_values,
+            'total_samples': total_samples,
+            'valid_samples': valid_samples_count,
+            'na_samples': total_na_samples,
+            'sample_coverage': sample_coverage,
+            'total_trajectories': len(trajectories),
+            'skipped_all_na': skipped_all_na,
+            'skipped_single': skipped_single,
+            'skipped_constant_pred': skipped_constant_pred,
+            'skipped_constant_gt': skipped_constant_gt
         }
     else:
         return {
             'voc_mean': None,
             'voc_std': None,
             'voc_count': 0,
-            'voc_values': []
+            'voc_values': [],
+            'total_samples': total_samples,
+            'valid_samples': valid_samples_count,
+            'na_samples': total_na_samples,
+            'sample_coverage': sample_coverage,
+            'total_trajectories': len(trajectories),
+            'skipped_all_na': skipped_all_na,
+            'skipped_single': skipped_single,
+            'skipped_constant_pred': skipped_constant_pred,
+            'skipped_constant_gt': skipped_constant_gt
         }
 
 

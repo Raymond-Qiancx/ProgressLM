@@ -252,6 +252,9 @@ def run_text_demo_evaluation(args):
     total_score_sum = 0.0
     valid_count = 0
     score_fp_count = 0
+    # NA statistics: track when gt is n/a
+    na_total = 0  # Total samples where gt is n/a
+    na_correct = 0  # Samples where gt is n/a AND prediction is also n/a
 
     # Process with ThreadPoolExecutor
     with ThreadPoolExecutor(max_workers=args.max_workers) as executor:
@@ -282,21 +285,34 @@ def run_text_demo_evaluation(args):
                         success_count += 1
                         total_tokens += result['meta_data'].get('tokens_used', 0)
 
-                        # Update metrics
-                        if result['score_error'] != float('inf'):
-                            total_score_sum += result['score_error']
-                            valid_count += 1
+                        # Check if gt is n/a
+                        gt_is_na = (result['ground_truth_score'] == "n/a")
+                        pred_is_na = (result['score'] == "n/a" or result['score'] is None)
+
+                        if gt_is_na:
+                            # GT is n/a: only count NA ratio
+                            na_total += 1
+                            if pred_is_na:
+                                na_correct += 1
+                        else:
+                            # GT is numeric: calculate score error
+                            if result['score_error'] != float('inf'):
+                                total_score_sum += result['score_error']
+                                valid_count += 1
+
                         if result['score_false_positive']:
                             score_fp_count += 1
                     else:
                         error_count += 1
 
-                    # Update progress bar
+                    # Update progress bar with na_ratio
                     mean_score = total_score_sum / valid_count if valid_count > 0 else 0.0
+                    na_ratio = na_correct / na_total if na_total > 0 else 0.0
                     pbar.set_postfix({
                         'ok': success_count,
                         'err': error_count,
                         'score': f'{mean_score:.3f}',
+                        'na_ratio': f'{na_ratio:.3f}',
                         'tokens': total_tokens
                     })
 
@@ -329,9 +345,20 @@ def run_text_demo_evaluation(args):
 
     # Calculate final statistics
     valid_results = [r for r in all_results if r['meta_data']['status'] == 'success']
-    finite_scores = [r['score_error'] for r in all_results if r.get('score_error') != float('inf')]
 
+    # Separate NA samples from numeric samples
+    na_samples = [r for r in valid_results if r.get('ground_truth_score') == "n/a"]
+    numeric_samples = [r for r in valid_results if r.get('ground_truth_score') != "n/a"]
+
+    # Calculate score error only for numeric GT samples
+    finite_scores = [r['score_error'] for r in numeric_samples if r.get('score_error') != float('inf')]
     mean_score = sum(finite_scores) / len(finite_scores) if finite_scores else float('inf')
+
+    # Calculate NA ratio
+    na_correct_count = sum(1 for r in na_samples if r.get('score') == "n/a" or r.get('score') is None)
+    na_total_count = len(na_samples)
+    na_ratio_final = na_correct_count / na_total_count if na_total_count > 0 else 0.0
+
     error_rate = error_count / len(samples_to_process) if samples_to_process else 0.0
 
     # Calculate false positive rates
@@ -351,8 +378,11 @@ def run_text_demo_evaluation(args):
     print(f"Processed this run: {len(samples_to_process)}")
     print(f"Total in output: {len(all_results)}")
     print(f"Errors: {error_count} ({error_rate*100:.2f}%)")
-    print(f"\nError Metrics:")
+    print(f"\nError Metrics (numeric GT only):")
     print(f"  Mean score error: {mean_score:.4f}")
+    print(f"  Numeric samples: {len(numeric_samples)}")
+    print(f"\nNA Ratio (when GT is n/a):")
+    print(f"  NA ratio: {na_ratio_final*100:.2f}% ({na_correct_count}/{na_total_count})")
     print(f"\nFalse Positive Rates:")
     print(f"  Score FP rate: {score_fp_rate*100:.2f}% ({score_fp_total}/{len(all_results)})")
     print(f"\nVOC (Trajectory Order Consistency):")
@@ -378,7 +408,11 @@ def run_text_demo_evaluation(args):
         "total_in_output": len(all_results),
         "errors": error_count,
         "error_rate": error_rate,
+        "numeric_samples": len(numeric_samples),
         "mean_score_error": mean_score,
+        "na_gt_samples": na_total_count,
+        "na_correct_count": na_correct_count,
+        "na_ratio": na_ratio_final,
         "score_false_positive_count": score_fp_total,
         "score_false_positive_rate": score_fp_rate,
         "voc_mean": voc_metrics['voc_mean'],

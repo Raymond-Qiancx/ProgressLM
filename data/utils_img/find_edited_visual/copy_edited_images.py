@@ -16,7 +16,7 @@ from collections import defaultdict
 # SOURCE_BASE = "/projects/p32958/chengxuan/results/progresslm/negative/image"
 # TARGET_BASE = "/projects/p32958/chengxuan/new_extracted_images/images"
 
-JSONL_FILE = "/projects/p32958/chengxuan/ProgressLM/data/raw/edit_imgs/labeled/edited_visual_nega_2.jsonl"
+JSONL_FILE = "/projects/p32958/chengxuan/ProgressLM/data/benchmark/tiny-bench/visual-nega.jsonl"
 SOURCE_BASE = "/projects/p32958/chengxuan/results/progresslm/negative/image"
 TARGET_BASE = "/projects/p32958/chengxuan/data/images"
 

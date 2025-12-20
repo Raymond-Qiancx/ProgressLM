@@ -4,7 +4,7 @@
 #####################################################################
 
 MODEL_PATH="/projects/p32958/jianshu/weight/Qwen/Qwen3-VL-32B-Instruct"
-DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/sft/now/visual_edit_sft.jsonl"
+DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/tiny-bench/visual-nega.jsonl"
 IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
 
 BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/qwen3vl/edit_nega"

@@ -36,7 +36,7 @@
 MODEL_PATH="/projects/p32958/chengxuan/models/Qwen2.5-VL-72B-Instruct"
 
 # Dataset configuration - using merged eval dataset
-DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/sft/now/visual_edit_sft.jsonl"
+DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/tiny-bench/visual-nega.jsonl"
 IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
 
 # Output configuration
@@ -49,7 +49,7 @@ LOG_FILE="${OUTPUT_DIR}/run.log"
 
 # GPU configuration - Use all 4 GPUs for model parallelism
 GPU_IDS="0,1,2,3"  # All 4 GPUs will be used for model parallelism
-BATCH_SIZE=8  # Small batch size for 72B model (increase if memory allows)
+BATCH_SIZE=2  # Small batch size for 72B model (increase if memory allows)
 
 # Inference configuration
 NUM_INFERENCES=1  # Number of inferences per sample (data expansion factor)

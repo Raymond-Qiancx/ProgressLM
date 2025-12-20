@@ -35,8 +35,8 @@ DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/tiny-bench/te
 IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
 
 # Output configuration
-BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/new_pro_bench/text_nega/think_72b"
-PROJECT_NAME="text_normal_72b"
+BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/new_pro_bench/text_nega/nothink_72b"
+PROJECT_NAME="nothink_72b"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 OUTPUT_DIR="${BASE_OUTPUT_DIR}/${PROJECT_NAME}_${TIMESTAMP}"
 OUTPUT_FILE="${OUTPUT_DIR}/results.jsonl"

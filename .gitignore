@@ -3,7 +3,8 @@ data/train/rl/new
 ref_codes/VLAC/evo_vlac/examples/videos/ref_images
 ref_codes/VLAC/evo_vlac/examples/videos/test_images
 data/benchmark/teaser
-
+data/benchmark/human/images
+data/benchmark/human/images_compressed
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -4,7 +4,7 @@
 #####################################################################
 
 # API Configuration
-API_KEY=""
+API_KEY="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"
 MODEL="gpt-5"
 
 # Dataset Configuration
@@ -23,7 +23,7 @@ LOG_FILE="${OUTPUT_DIR}/run.log"
 MAX_WORKERS=5
 NUM_INFERENCES=1
 TEMPERATURE=1.0
-MAX_COMPLETION_TOKENS=1000
+MAX_COMPLETION_TOKENS=4000
 LIMIT=-1
 RESUME=false
 

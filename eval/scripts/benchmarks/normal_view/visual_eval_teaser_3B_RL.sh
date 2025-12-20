@@ -26,8 +26,8 @@
 MODEL_PATH="/projects/p32958/Results/full_model/global_step_485/actor/qwen25vl_3b_rl_scale"
 
 # Dataset configuration - Teaser visual demo meta-data
-DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/teaser/jsonl/teaser_bench/visual_demo_from_demo.jsonl"
-IMAGE_ROOT="/projects/p32958/chengxuan/ProgressLM/data/benchmark/teaser/demo"
+DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/teaser/jsonl/teaser_bench/visual_demo_from_open-x.jsonl"
+IMAGE_ROOT="/projects/p32958/chengxuan/ProgressLM/data/benchmark/teaser/"
 
 # Output configuration
 BASE_OUTPUT_DIR="/projects/p32958/chengxuan/ProgressLM/data/benchmark/teaser/results"

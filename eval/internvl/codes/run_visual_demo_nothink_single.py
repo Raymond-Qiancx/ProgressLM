@@ -108,6 +108,7 @@ def main():
     valid_count = 0
     gt_na_count = 0
     pred_na_correct_count = 0
+    pred_na_count = 0
 
     pbar = tqdm(data, desc="Progress")
 
@@ -154,6 +155,8 @@ def main():
                     gt_na_count += 1
                     if pred_is_na:
                         pred_na_correct_count += 1
+                if pred_is_na:
+                    pred_na_count += 1
 
                 # Track valid scores
                 if evaluation_score != float('inf'):
@@ -192,7 +195,13 @@ def main():
         if valid_count > 0:
             mean_err = total_score_sum / valid_count
             na_recall = pred_na_correct_count / gt_na_count * 100 if gt_na_count > 0 else 0
-            pbar.set_postfix({"mean_err": f"{mean_err:.4f}", "na_recall": f"{na_recall:.1f}%", "valid": valid_count})
+            na_ratio = pred_na_count / total_processed * 100 if total_processed > 0 else 0
+            pbar.set_postfix({
+                "mean_err": f"{mean_err:.4f}",
+                "na_recall": f"{na_recall:.1f}%",
+                "na_ratio": f"{na_ratio:.1f}%",
+                "valid": valid_count
+            })
 
         # Save after each sample
         with open(args.output_file, 'w', encoding='utf-8') as f:
@@ -208,14 +217,18 @@ def main():
 
     # Save summary
     mean_score = total_score_sum / valid_count if valid_count > 0 else 0.0
+    total_samples = len(results)
     na_recall = pred_na_correct_count / gt_na_count * 100 if gt_na_count > 0 else 0.0
+    pred_na_ratio = pred_na_count / total_samples * 100 if total_samples > 0 else 0.0
     summary = {
-        "total_samples": len(results),
+        "total_samples": total_samples,
         "valid_samples": valid_count,
         "mean_score_error": mean_score,
         "gt_na_count": gt_na_count,
+        "pred_na_count": pred_na_count,
         "pred_na_correct_count": pred_na_correct_count,
-        "na_recall": na_recall
+        "na_recall": na_recall,
+        "pred_na_ratio": pred_na_ratio
     }
 
     summary_file = args.output_file.replace('.jsonl', '_summary.json')
@@ -225,6 +238,7 @@ def main():
     print(f"\nResults: {args.output_file}")
     print(f"Mean Score Error: {mean_score:.4f}")
     print(f"N/A Recall (gt=n/a -> pred=n/a): {na_recall:.1f}% ({pred_na_correct_count}/{gt_na_count})")
+    print(f"N/A Ratio (pred=n/a): {pred_na_ratio:.1f}% ({pred_na_count}/{total_samples})")
 
     # Cleanup
     del model

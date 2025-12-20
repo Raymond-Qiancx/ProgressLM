@@ -37,15 +37,26 @@ def parse_text_demo_response(response: str) -> Dict[str, Any]:
                 else:
                     result['ref'] = ref_str
         else:
-            # Fallback: look for number between </ref_think> and <score_think>
+            # Fallback 1: look for number between </ref_think> and <score_think>
             ref_fallback = re.search(r'</ref_think>\s*(\d+)\s*<score_think>', response, re.DOTALL)
             if ref_fallback:
                 result['ref'] = int(ref_fallback.group(1))
             else:
-                # Also try: number right after </ref_think>
+                # Fallback 2: number right after </ref_think>
                 ref_fallback2 = re.search(r'</ref_think>\s*(\d+)', response, re.DOTALL)
                 if ref_fallback2:
                     result['ref'] = int(ref_fallback2.group(1))
+                else:
+                    # Fallback 3: extract "Step N" from <ref_think> content
+                    ref_think_content = result.get('ref_think', '')
+                    step_match = re.search(r'(?:Step|step)\s*(\d+)', ref_think_content)
+                    if step_match:
+                        result['ref'] = int(step_match.group(1))
+                    else:
+                        # Fallback 4: extract first "Step N" from entire response
+                        step_match_global = re.search(r'(?:Step|step)\s*(\d+)', response)
+                        if step_match_global:
+                            result['ref'] = int(step_match_global.group(1))
 
         score_think_match = re.search(r'<score_think>(.*?)</score_think>', response, re.DOTALL)
         if score_think_match:

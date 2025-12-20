@@ -111,7 +111,7 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
                         "meta_data": {**item, "status": "failed"}
                     }
                     results.append(result)
-                    progress_queue.put((1, float('inf'), 1, 1 if gt_is_na else 0, 0))
+                    progress_queue.put((1, float('inf'), 1, 1 if gt_is_na else 0, 0, 0))
                 else:
                     image_paths, prompt_text = build_visual_demo_prompt_from_item(item)
                     valid_items.append(item)
@@ -154,7 +154,10 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
                             "meta_data": {**item, "status": "failed" if has_error else "success"}
                         }
                         results.append(result)
-                        progress_queue.put((1, evaluation_score, 1 if has_error else 0, gt_na_flag, pred_na_correct))
+                        pred_is_na = 1 if pred_is_na else 0
+                        progress_queue.put(
+                            (1, evaluation_score, 1 if has_error else 0, gt_na_flag, pred_na_correct, pred_is_na)
+                        )
 
                     except Exception as e:
                         gt_score = item.get('progress_score')
@@ -169,7 +172,7 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
                             "meta_data": {**item, "status": "failed"}
                         }
                         results.append(result)
-                        progress_queue.put((1, float('inf'), 1, 1 if gt_is_na else 0, 0))
+                        progress_queue.put((1, float('inf'), 1, 1 if gt_is_na else 0, 0, 0))
 
             except Exception as e:
                 # Batch failed, mark all items as error
@@ -186,7 +189,7 @@ def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, r
                         "meta_data": {**item, "status": "failed"}
                     }
                     results.append(result)
-                    progress_queue.put((1, float('inf'), 1, 1 if gt_is_na else 0, 0))
+                    progress_queue.put((1, float('inf'), 1, 1 if gt_is_na else 0, 0, 0))
 
             # Save after each batch
             with open(gpu_output_file, 'w', encoding='utf-8') as f:
@@ -255,6 +258,7 @@ def main():
     valid_count = 0
     gt_na_count = 0
     pred_na_correct_count = 0
+    pred_na_count = 0
 
     pbar = tqdm(total=len(data), desc="Progress")
 
@@ -262,10 +266,11 @@ def main():
         if all(not p.is_alive() for p in processes):
             break
         while not progress_queue.empty():
-            proc_count, score, error, gt_na_flag, pred_na_correct = progress_queue.get_nowait()
+            proc_count, score, error, gt_na_flag, pred_na_correct, pred_is_na = progress_queue.get_nowait()
             total_processed += proc_count
             gt_na_count += gt_na_flag
             pred_na_correct_count += pred_na_correct
+            pred_na_count += pred_is_na
             if score != float('inf'):
                 total_score_sum += score
                 valid_count += 1
@@ -274,7 +279,13 @@ def main():
             if valid_count > 0:
                 mean_err = total_score_sum / valid_count
                 na_recall = pred_na_correct_count / gt_na_count * 100 if gt_na_count > 0 else 0
-                pbar.set_postfix({"mean_err": f"{mean_err:.4f}", "na_recall": f"{na_recall:.1f}%", "valid": valid_count})
+                na_ratio = pred_na_count / total_processed * 100 if total_processed > 0 else 0
+                pbar.set_postfix({
+                    "mean_err": f"{mean_err:.4f}",
+                    "na_recall": f"{na_recall:.1f}%",
+                    "na_ratio": f"{na_ratio:.1f}%",
+                    "valid": valid_count
+                })
         time.sleep(0.5)
 
     pbar.close()
@@ -313,7 +324,24 @@ def main():
             f.write(json.dumps(res, ensure_ascii=False) + '\n')
 
     mean_score = total_score_sum / valid_count if valid_count > 0 else 0.0
-    summary = {"total_samples": len(all_results), "valid_samples": valid_count, "mean_score_error": mean_score}
+    total_samples = len(all_results)
+    pred_na_count = sum(1 for res in all_results if res.get("score") == "n/a")
+    gt_na_count = sum(1 for res in all_results if res.get("gt_is_na") is True)
+    pred_na_correct_count = sum(
+        1 for res in all_results if res.get("gt_is_na") is True and res.get("score") == "n/a"
+    )
+    na_recall = pred_na_correct_count / gt_na_count * 100 if gt_na_count > 0 else 0.0
+    pred_na_ratio = pred_na_count / total_samples * 100 if total_samples > 0 else 0.0
+    summary = {
+        "total_samples": total_samples,
+        "valid_samples": valid_count,
+        "mean_score_error": mean_score,
+        "gt_na_count": gt_na_count,
+        "pred_na_count": pred_na_count,
+        "pred_na_correct_count": pred_na_correct_count,
+        "na_recall": na_recall,
+        "pred_na_ratio": pred_na_ratio
+    }
 
     summary_file = args.output_file.replace('.jsonl', '_summary.json')
     with open(summary_file, 'w') as f:
@@ -321,6 +349,7 @@ def main():
 
     print(f"\nResults: {args.output_file}")
     print(f"Mean Score Error: {mean_score:.4f}")
+    print(f"N/A Ratio (pred=n/a): {pred_na_ratio:.1f}% ({pred_na_count}/{total_samples})")
 
 
 if __name__ == "__main__":

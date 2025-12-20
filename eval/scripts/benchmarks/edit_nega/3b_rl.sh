@@ -30,14 +30,14 @@ MODEL_PATH="/projects/p32958/Results/full_model/global_step_638/actor/qwen25vl_3
 
 
 # Dataset configuration - using merged eval dataset
-DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/train/sft/now/visual_edit_sft.jsonl"
+DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/tiny-bench/visual-nega.jsonl"
 IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
 
 # Output configuration
 BASE_OUTPUT_DIR="/projects/p32958/chengxuan/results/new_pro_bench/edit_nega/3B_RL"
 
 
-PROJECT_NAME="visual_3B_SFT"
+PROJECT_NAME="3B_rl"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 OUTPUT_DIR="${BASE_OUTPUT_DIR}/${PROJECT_NAME}_${TIMESTAMP}"
 OUTPUT_FILE="${OUTPUT_DIR}/results.jsonl"
@@ -45,7 +45,7 @@ LOG_FILE="${OUTPUT_DIR}/run.log"
 
 # GPU configuration
 GPU_IDS="0,1,2,3"  # Comma-separated GPU IDs to use
-BATCH_SIZE=20  # Batch size per GPU (adjust based on VRAM and image count)
+BATCH_SIZE=5  # Batch size per GPU (adjust based on VRAM and image count)
 
 # Inference configuration
 NUM_INFERENCES=1  # Number of inferences per sample (data expansion factor)

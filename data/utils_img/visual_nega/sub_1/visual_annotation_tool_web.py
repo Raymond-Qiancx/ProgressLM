@@ -78,7 +78,7 @@ class WebAnnotationTool:
                 return None, None
 
             # 构建原图路径
-            original_base_path = "/gpfs/projects/p32958/chengxuan/new_extracted_images/images/"
+            original_base_path = "/projects/p32958/chengxuan/data/images/"
             original_path = os.path.join(original_base_path, image_id, image_name)
 
             # 构建编辑后图片路径

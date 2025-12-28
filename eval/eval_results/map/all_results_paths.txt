@@ -3,7 +3,7 @@
 # Total files: 121
 
 # =============================================
-# Model Family: new_pro_bench
+# Model Family: qwen25vl
 # =============================================
 
 # Task: edit_nega
@@ -117,8 +117,6 @@
 /projects/p32958/chengxuan/results/qwen3vl/edit_nega/qwen3vl_8b_nothink_20251219_193006/results.jsonl
 # type: nothink, size: 32b
 /projects/p32958/chengxuan/results/qwen3vl/edit_nega/qwen3vl_32b_nothink_20251219_191839/results.jsonl
-# type: nothink, size: 30b_moe
-/projects/p32958/chengxuan/results/qwen3vl/edit_nega/qwen3vl_30b_moe_nothink_20251219_191302/results.jsonl
 
 # Task: text_nega (nega_text)
 # type: think, size: 2b
@@ -191,6 +189,7 @@
 /projects/p32958/chengxuan/results/qwen3vl/normal_view/qwen3vl_8b_nothink_20251217_232704/results.jsonl
 # type: nothink, size: 32b
 /projects/p32958/chengxuan/results/qwen3vl/normal_view/qwen3vl_32b_nothink_20251217_232648/results.jsonl
+
 
 # =============================================
 # Model Family: openai

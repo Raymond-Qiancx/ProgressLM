@@ -1,0 +1,1187 @@
+================================================================================
+Batch Calculation Results
+================================================================================
+Total Models Processed: 78
+Successful: 78
+Failed: 0
+Date: 2025-12-21 18:43:31
+
+================================================================================
+SUMMARY TABLE (Tab-Separated)
+================================================================================
+ModelFamily	Task	Type	Size	VOC_Mean	VOC_Std	Score_Mean	Score_Std	Ref_Mean	Ref_Std	Samples
+Qwen2.5VL	text_normal	think	3B	0.1598	0.5385	0.4314	0.3692	0.4754	0.3925	417/503
+Qwen2.5VL	text_normal	think	7B	0.3917	0.5343	0.4201	0.3560	0.4422	0.3614	402/503
+Qwen2.5VL	text_normal	think	32B	0.5073	0.5926	0.3101	0.2947	0.3351	0.3349	448/503
+Qwen2.5VL	text_normal	think	72B	0.5325	0.5527	0.2646	0.2620	0.2901	0.3091	355/503
+Qwen2.5VL	text_normal	nothink	3B	0.0752	0.5404	0.4587	0.3446	N/A	N/A	503/503
+Qwen2.5VL	text_normal	nothink	7B	0.2046	0.5986	0.3908	0.2854	N/A	N/A	503/503
+Qwen2.5VL	text_normal	nothink	32B	0.2997	0.5337	0.4260	0.3247	N/A	N/A	503/503
+Qwen2.5VL	text_normal	nothink	72B	0.4160	0.5776	0.3891	0.3397	N/A	N/A	503/503
+Qwen2.5VL	visual_multi_view	think	3B	0.2700	0.3569	0.4109	0.3117	0.6876	2.7108	522/546
+Qwen2.5VL	visual_multi_view	think	7B	0.3038	0.4266	0.4713	0.3344	0.4700	0.7178	402/546
+Qwen2.5VL	visual_multi_view	think	32B	0.7044	0.2616	0.3241	0.2784	0.2958	0.3042	546/546
+Qwen2.5VL	visual_multi_view	think	72B	0.7710	0.2862	0.2549	0.2391	0.2250	0.2612	473/546
+Qwen2.5VL	visual_multi_view	nothink	3B	0.2886	0.3588	0.3336	0.2344	N/A	N/A	546/546
+Qwen2.5VL	visual_multi_view	nothink	7B	0.2671	0.4676	0.3651	0.2718	N/A	N/A	521/546
+Qwen2.5VL	visual_multi_view	nothink	32B	0.2943	0.4297	0.4572	0.3557	N/A	N/A	546/546
+Qwen2.5VL	visual_multi_view	nothink	72B	0.5070	0.4217	0.3089	0.2960	N/A	N/A	431/546
+Qwen2.5VL	visual_single_view	think	3B	0.2881	0.3677	0.3800	0.2884	0.6259	2.4230	1330/1413
+Qwen2.5VL	visual_single_view	think	7B	0.3849	0.4587	0.4005	0.3157	0.3882	0.9655	971/1413
+Qwen2.5VL	visual_single_view	think	32B	0.7454	0.3314	0.2740	0.2575	0.2279	0.2783	1413/1413
+Qwen2.5VL	visual_single_view	think	72B	0.7940	0.2327	0.2137	0.2239	0.1905	0.2444	1408/1413
+Qwen2.5VL	visual_single_view	nothink	3B	0.4300	0.3715	0.3239	0.2502	N/A	N/A	1412/1413
+Qwen2.5VL	visual_single_view	nothink	7B	0.5190	0.3525	0.3021	0.2566	N/A	N/A	1355/1413
+Qwen2.5VL	visual_single_view	nothink	32B	0.7285	0.3275	0.2387	0.2409	N/A	N/A	1413/1413
+Qwen2.5VL	visual_single_view	nothink	72B	0.8387	0.1813	0.1791	0.1987	N/A	N/A	1401/1413
+qwen3vl	text_normal	think	2b	0.2409	0.4417	0.5073	0.3891	0.9644	3.7471	440/503
+qwen3vl	text_normal	think	4b	0.4477	0.5780	0.2920	0.3083	0.3393	0.3744	454/503
+qwen3vl	text_normal	think	8b	0.5496	0.4889	0.2510	0.2804	0.2998	0.3465	409/503
+qwen3vl	text_normal	think	32b	0.6520	0.4984	0.2374	0.2610	0.2565	0.3056	466/503
+qwen3vl	text_normal	nothink	2b	N/A	N/A	0.5930	0.4089	N/A	N/A	502/503
+qwen3vl	text_normal	nothink	4b	0.3814	0.5662	0.3624	0.3122	N/A	N/A	502/503
+qwen3vl	text_normal	nothink	8b	0.3423	0.5833	0.3529	0.3300	N/A	N/A	486/503
+qwen3vl	text_normal	nothink	32b	0.5190	0.5965	0.2505	0.2904	N/A	N/A	471/503
+qwen3vl	visual_multi_view	think	2b	0.1825	0.1811	0.6280	0.3805	1.2791	4.3077	527/546
+qwen3vl	visual_multi_view	think	4b	0.6919	0.3287	0.3476	0.3059	0.6341	2.5795	537/546
+qwen3vl	visual_multi_view	think	8b	0.7733	0.2066	0.3042	0.2722	0.3106	0.3121	539/546
+qwen3vl	visual_multi_view	think	32b	0.8878	0.1093	0.2332	0.2122	0.2054	0.2416	544/546
+qwen3vl	visual_multi_view	nothink	2b	0.3093	0.0000	0.6623	0.3782	N/A	N/A	546/546
+qwen3vl	visual_multi_view	nothink	4b	0.5159	0.4182	0.3411	0.3071	N/A	N/A	546/546
+qwen3vl	visual_multi_view	nothink	8b	0.6132	0.3958	0.2520	0.2444	N/A	N/A	546/546
+qwen3vl	visual_multi_view	nothink	32b	0.7775	0.2192	0.2190	0.2088	N/A	N/A	525/546
+qwen3vl	visual_single_view	think	2b	0.2151	0.3149	0.5990	0.3785	0.7179	2.3472	1306/1413
+qwen3vl	visual_single_view	think	4b	0.6561	0.3930	0.2764	0.2776	0.4791	1.8367	1408/1413
+qwen3vl	visual_single_view	think	8b	0.7908	0.2778	0.2549	0.2550	0.2624	0.5380	1403/1413
+qwen3vl	visual_single_view	think	32b	0.8374	0.2601	0.1941	0.2131	0.1748	0.3966	1407/1413
+qwen3vl	visual_single_view	nothink	2b	0.3496	0.2709	0.6118	0.3793	N/A	N/A	1412/1413
+qwen3vl	visual_single_view	nothink	4b	0.7228	0.3099	0.2244	0.2232	N/A	N/A	1413/1413
+qwen3vl	visual_single_view	nothink	8b	0.8174	0.2545	0.2005	0.2177	N/A	N/A	1413/1413
+qwen3vl	visual_single_view	nothink	32b	0.8827	0.1740	0.1646	0.1834	N/A	N/A	1413/1413
+openai	text_normal	nothink	gpt5	0.5580	0.6267	N/A	N/A	N/A	N/A	468/503
+openai	text_normal	nothink	gpt5_mini	0.5519	0.5764	N/A	N/A	N/A	N/A	454/503
+openai	visual_multi_view	nothink	gpt5	0.8943	0.1033	N/A	N/A	N/A	N/A	536/546
+openai	visual_multi_view	nothink	gpt5_mini	0.8905	0.1353	N/A	N/A	N/A	N/A	544/546
+openai	visual_single_view	nothink	gpt5	0.8937	0.1566	N/A	N/A	N/A	N/A	1413/1413
+openai	visual_single_view	nothink	gpt5_mini	0.8405	0.2024	N/A	N/A	N/A	N/A	1408/1413
+internvl	text_normal	think	4B	0.1651	0.5482	0.3600	0.2940	0.4432	0.5526	448/503
+internvl	text_normal	think	14B	0.2668	0.5645	0.3447	0.3003	0.4068	0.3659	469/503
+internvl	text_normal	think	38B	0.4982	0.4963	0.3074	0.2661	0.3554	0.3474	432/503
+internvl	text_normal	nothink	4B	0.0557	0.4526	N/A	N/A	N/A	N/A	398/503
+internvl	text_normal	nothink	14B	0.1030	0.6023	N/A	N/A	N/A	N/A	470/503
+internvl	text_normal	nothink	38B	0.2326	0.6593	N/A	N/A	N/A	N/A	286/503
+internvl	visual_multi_view	think	4B	0.0354	0.3671	0.5631	0.3571	0.6107	0.8343	545/546
+internvl	visual_multi_view	think	14B	0.2508	0.3770	0.5997	0.3792	0.5766	0.3937	546/546
+internvl	visual_multi_view	think	38B	0.3174	0.2718	0.5674	0.3746	0.5515	0.3968	541/546
+internvl	visual_multi_view	nothink	4B	0.1214	0.4319	N/A	N/A	N/A	N/A	527/546
+internvl	visual_multi_view	nothink	14B	-0.4025	0.0968	N/A	N/A	N/A	N/A	546/546
+internvl	visual_multi_view	nothink	38B	0.4968	0.4344	N/A	N/A	N/A	N/A	266/546
+internvl	visual_single_view	think	4B	0.1189	0.3182	0.5368	0.3482	0.6326	1.1798	1408/1413
+internvl	visual_single_view	think	14B	0.1665	0.3663	0.6263	0.3778	0.5926	0.3947	1412/1413
+internvl	visual_single_view	think	38B	0.2155	0.3792	0.5709	0.3669	0.5507	0.3876	1398/1413
+internvl	visual_single_view	nothink	4B	0.3313	0.3348	N/A	N/A	N/A	N/A	1173/1413
+internvl	visual_single_view	nothink	14B	0.2422	0.3333	N/A	N/A	N/A	N/A	1404/1413
+internvl	visual_single_view	nothink	38B	0.7482	0.2645	N/A	N/A	N/A	N/A	1026/1413
+ProgressLM	text_normal	sft	3B	0.4628	0.5764	0.2910	0.3244	0.3302	0.3587	457/503
+ProgressLM	text_normal	rl	3B	0.6388	0.4170	0.2117	0.2859	0.2352	0.3103	475/503
+ProgressLM	visual_multi_view	sft	3B	0.6784	0.2793	0.2033	0.1962	0.2080	0.2272	498/546
+ProgressLM	visual_multi_view	rl	3B	0.8882	0.1979	0.1514	0.1494	0.1677	0.1974	482/546
+ProgressLM	visual_single_view	sft	3B	0.8401	0.1740	0.1556	0.1516	0.1540	0.1869	1405/1413
+ProgressLM	visual_single_view	rl	3B	0.9345	0.0735	0.1061	0.1181	0.0994	0.1593	1412/1413
+
+================================================================================
+DETAILED RESULTS
+================================================================================
+
+--------------------------------------------------------------------------------
+Model: Qwen2.5VL/text_normal/think_3B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.1598  Std: 0.5385
+Score Error:
+  Mean: 0.4314  Std: 0.3692
+Ref Error:
+  Mean: 0.4754  Std: 0.3925
+Samples: 417/503 (82.90%)
+Trajectories: 84/100
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/new_pro_bench/text_normal/think_3B/text_think_3b_20251220_042906/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: Qwen2.5VL/text_normal/think_7B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.3917  Std: 0.5343
+Score Error:
+  Mean: 0.4201  Std: 0.3560
+Ref Error:
+  Mean: 0.4422  Std: 0.3614
+Samples: 402/503 (79.92%)
+Trajectories: 80/100
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/new_pro_bench/text_normal/think_7B/text_think_7b_20251220_052923/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: Qwen2.5VL/text_normal/think_32B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.5073  Std: 0.5926
+Score Error:
+  Mean: 0.3101  Std: 0.2947
+Ref Error:
+  Mean: 0.3351  Std: 0.3349
+Samples: 448/503 (89.07%)
+Trajectories: 92/100
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/new_pro_bench/text_normal/think_32b/text_normal_32b_20251217_030738/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: Qwen2.5VL/text_normal/think_72B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.5325  Std: 0.5527
+Score Error:
+  Mean: 0.2646  Std: 0.2620
+Ref Error:
+  Mean: 0.2901  Std: 0.3091
+Samples: 355/503 (70.58%)
+Trajectories: 80/100
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/new_pro_bench/text_normal/think_72b/text_normal_72b_20251217_031904/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: Qwen2.5VL/text_normal/nothink_3B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.0752  Std: 0.5404
+Score Error:
+  Mean: 0.4587  Std: 0.3446
+Ref Error:
+  N/A
+Samples: 503/503 (100.00%)
+Trajectories: 93/100
+Format: score_only
+Path: /projects/p32958/chengxuan/results/new_pro_bench/text_normal/nothink_3b/text_normal_nothink_3b_20251218_020745/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: Qwen2.5VL/text_normal/nothink_7B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.2046  Std: 0.5986
+Score Error:
+  Mean: 0.3908  Std: 0.2854
+Ref Error:
+  N/A
+Samples: 503/503 (100.00%)
+Trajectories: 96/100
+Format: score_only
+Path: /projects/p32958/chengxuan/results/new_pro_bench/text_normal/nothink_7b/text_normal_nothink_7b_20251218_195031/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: Qwen2.5VL/text_normal/nothink_32B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.2997  Std: 0.5337
+Score Error:
+  Mean: 0.4260  Std: 0.3247
+Ref Error:
+  N/A
+Samples: 503/503 (100.00%)
+Trajectories: 84/100
+Format: score_only
+Path: /projects/p32958/chengxuan/results/new_pro_bench/text_normal/nothink_32b/text_normal_nothink_32b_20251218_030902/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: Qwen2.5VL/text_normal/nothink_72B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.4160  Std: 0.5776
+Score Error:
+  Mean: 0.3891  Std: 0.3397
+Ref Error:
+  N/A
+Samples: 503/503 (100.00%)
+Trajectories: 95/100
+Format: score_only
+Path: /projects/p32958/chengxuan/results/new_pro_bench/text_normal/nothink_72b/text_normal_nothink_72b_20251218_043523/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: Qwen2.5VL/visual_multi_view/think_3B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.2700  Std: 0.3569
+Score Error:
+  Mean: 0.4109  Std: 0.3117
+Ref Error:
+  Mean: 0.6876  Std: 2.7108
+Samples: 522/546 (95.60%)
+Trajectories: 40/40
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/new_pro_bench/visual_multi_view/think_3B/visual_multi_think_3B_20251220_042023/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: Qwen2.5VL/visual_multi_view/think_7B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.3038  Std: 0.4266
+Score Error:
+  Mean: 0.4713  Std: 0.3344
+Ref Error:
+  Mean: 0.4700  Std: 0.7178
+Samples: 402/546 (73.63%)
+Trajectories: 36/40
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/new_pro_bench/visual_multi_view/think_7B/visual_multi_think_7B_20251220_052206/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: Qwen2.5VL/visual_multi_view/think_32B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.7044  Std: 0.2616
+Score Error:
+  Mean: 0.3241  Std: 0.2784
+Ref Error:
+  Mean: 0.2958  Std: 0.3042
+Samples: 546/546 (100.00%)
+Trajectories: 40/40
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/new_pro_bench/visual_multi_view/think_32B/visual_multi_view_32B_20251217_025341/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: Qwen2.5VL/visual_multi_view/think_72B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.7710  Std: 0.2862
+Score Error:
+  Mean: 0.2549  Std: 0.2391
+Ref Error:
+  Mean: 0.2250  Std: 0.2612
+Samples: 473/546 (86.63%)
+Trajectories: 39/40
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/new_pro_bench/visual_multi_view/think_72B/visual_multi_view_72B_20251217_031225/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: Qwen2.5VL/visual_multi_view/nothink_3B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.2886  Std: 0.3588
+Score Error:
+  Mean: 0.3336  Std: 0.2344
+Ref Error:
+  N/A
+Samples: 546/546 (100.00%)
+Trajectories: 40/40
+Format: score_only
+Path: /projects/p32958/chengxuan/results/new_pro_bench/visual_multi_view/nothink_3B/visual_multi_view_3B_nothink_20251218_020250/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: Qwen2.5VL/visual_multi_view/nothink_7B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.2671  Std: 0.4676
+Score Error:
+  Mean: 0.3651  Std: 0.2718
+Ref Error:
+  N/A
+Samples: 521/546 (95.42%)
+Trajectories: 40/40
+Format: score_only
+Path: /projects/p32958/chengxuan/results/new_pro_bench/visual_multi_view/nothink_7B/visual_multi_view_7B_nothink_20251218_022343/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: Qwen2.5VL/visual_multi_view/nothink_32B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.2943  Std: 0.4297
+Score Error:
+  Mean: 0.4572  Std: 0.3557
+Ref Error:
+  N/A
+Samples: 546/546 (100.00%)
+Trajectories: 37/40
+Format: score_only
+Path: /projects/p32958/chengxuan/results/new_pro_bench/visual_multi_view/nothink_32B/visual_multi_view_32B_nothink_20251218_024616/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: Qwen2.5VL/visual_multi_view/nothink_72B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.5070  Std: 0.4217
+Score Error:
+  Mean: 0.3089  Std: 0.2960
+Ref Error:
+  N/A
+Samples: 431/546 (78.94%)
+Trajectories: 40/40
+Format: score_only
+Path: /projects/p32958/chengxuan/results/new_pro_bench/visual_multi_view/nothink_72B/visual_multi_view_72B_nothink_20251218_035535/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: Qwen2.5VL/visual_single_view/think_3B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.2881  Std: 0.3677
+Score Error:
+  Mean: 0.3800  Std: 0.2884
+Ref Error:
+  Mean: 0.6259  Std: 2.4230
+Samples: 1330/1413 (94.13%)
+Trajectories: 100/100
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/new_pro_bench/visual_single_view/think_3B/visual_think_3B_20251220_040157/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: Qwen2.5VL/visual_single_view/think_7B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.3849  Std: 0.4587
+Score Error:
+  Mean: 0.4005  Std: 0.3157
+Ref Error:
+  Mean: 0.3882  Std: 0.9655
+Samples: 971/1413 (68.72%)
+Trajectories: 99/100
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/new_pro_bench/visual_single_view/think_7B/visual_think_7B_20251220_044118/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: Qwen2.5VL/visual_single_view/think_32B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.7454  Std: 0.3314
+Score Error:
+  Mean: 0.2740  Std: 0.2575
+Ref Error:
+  Mean: 0.2279  Std: 0.2783
+Samples: 1413/1413 (100.00%)
+Trajectories: 100/100
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/new_pro_bench/visual_single_view/one_view_32B/visual_one_view_32B_20251217_030747/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: Qwen2.5VL/visual_single_view/think_72B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.7940  Std: 0.2327
+Score Error:
+  Mean: 0.2137  Std: 0.2239
+Ref Error:
+  Mean: 0.1905  Std: 0.2444
+Samples: 1408/1413 (99.65%)
+Trajectories: 100/100
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/new_pro_bench/visual_single_view/one_view_72B/visual_one_view_72B_20251217_035048/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: Qwen2.5VL/visual_single_view/nothink_3B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.4300  Std: 0.3715
+Score Error:
+  Mean: 0.3239  Std: 0.2502
+Ref Error:
+  N/A
+Samples: 1412/1413 (99.93%)
+Trajectories: 99/100
+Format: score_only
+Path: /projects/p32958/chengxuan/results/new_pro_bench/visual_single_view/one_view_nothink_3B/visual_one_view_nothink_3B_20251218_015519/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: Qwen2.5VL/visual_single_view/nothink_7B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.5190  Std: 0.3525
+Score Error:
+  Mean: 0.3021  Std: 0.2566
+Ref Error:
+  N/A
+Samples: 1355/1413 (95.90%)
+Trajectories: 100/100
+Format: score_only
+Path: /projects/p32958/chengxuan/results/new_pro_bench/visual_single_view/one_view_nothink_7B/visual_one_view_nothink_7B_20251218_021505/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: Qwen2.5VL/visual_single_view/nothink_32B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.7285  Std: 0.3275
+Score Error:
+  Mean: 0.2387  Std: 0.2409
+Ref Error:
+  N/A
+Samples: 1413/1413 (100.00%)
+Trajectories: 100/100
+Format: score_only
+Path: /projects/p32958/chengxuan/results/new_pro_bench/visual_single_view/one_view_nothink_32B/visual_one_view_nothink_32B_20251218_023058/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: Qwen2.5VL/visual_single_view/nothink_72B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.8387  Std: 0.1813
+Score Error:
+  Mean: 0.1791  Std: 0.1987
+Ref Error:
+  N/A
+Samples: 1401/1413 (99.15%)
+Trajectories: 100/100
+Format: score_only
+Path: /projects/p32958/chengxuan/results/new_pro_bench/visual_single_view/one_view_nothink_72B/visual_one_view_nothink_72B_20251218_023110/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: qwen3vl/text_normal/think_2b
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.2409  Std: 0.4417
+Score Error:
+  Mean: 0.5073  Std: 0.3891
+Ref Error:
+  Mean: 0.9644  Std: 3.7471
+Samples: 440/503 (87.48%)
+Trajectories: 64/100
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/qwen3vl/normal_text/qwen3vl_2b_20251220_184212/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: qwen3vl/text_normal/think_4b
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.4477  Std: 0.5780
+Score Error:
+  Mean: 0.2920  Std: 0.3083
+Ref Error:
+  Mean: 0.3393  Std: 0.3744
+Samples: 454/503 (90.26%)
+Trajectories: 87/100
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/qwen3vl/normal_text/qwen3vl_4b_20251220_053603/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: qwen3vl/text_normal/think_8b
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.5496  Std: 0.4889
+Score Error:
+  Mean: 0.2510  Std: 0.2804
+Ref Error:
+  Mean: 0.2998  Std: 0.3465
+Samples: 409/503 (81.31%)
+Trajectories: 79/100
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/qwen3vl/normal_text/qwen3vl_8b_20251217_063242/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: qwen3vl/text_normal/think_32b
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.6520  Std: 0.4984
+Score Error:
+  Mean: 0.2374  Std: 0.2610
+Ref Error:
+  Mean: 0.2565  Std: 0.3056
+Samples: 466/503 (92.64%)
+Trajectories: 92/100
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/qwen3vl/normal_text/qwen3vl_32b_20251217_165518/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: qwen3vl/text_normal/nothink_2b
+--------------------------------------------------------------------------------
+VOC:
+  N/A (no valid trajectories)
+Score Error:
+  Mean: 0.5930  Std: 0.4089
+Ref Error:
+  N/A
+Samples: 502/503 (99.80%)
+Trajectories: 0/100
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/qwen3vl/normal_text/qwen3vl_2b_nothink_20251218_003212/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: qwen3vl/text_normal/nothink_4b
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.3814  Std: 0.5662
+Score Error:
+  Mean: 0.3624  Std: 0.3122
+Ref Error:
+  N/A
+Samples: 502/503 (99.80%)
+Trajectories: 84/100
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/qwen3vl/normal_text/qwen3vl_4b_nothink_20251218_003248/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: qwen3vl/text_normal/nothink_8b
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.3423  Std: 0.5833
+Score Error:
+  Mean: 0.3529  Std: 0.3300
+Ref Error:
+  N/A
+Samples: 486/503 (96.62%)
+Trajectories: 81/100
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/qwen3vl/normal_text/qwen3vl_8b_nothink_20251218_185437/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: qwen3vl/text_normal/nothink_32b
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.5190  Std: 0.5965
+Score Error:
+  Mean: 0.2505  Std: 0.2904
+Ref Error:
+  N/A
+Samples: 471/503 (93.64%)
+Trajectories: 91/100
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/qwen3vl/normal_text/qwen3vl_32b_nothink_20251217_233444/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: qwen3vl/visual_multi_view/think_2b
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.1825  Std: 0.1811
+Score Error:
+  Mean: 0.6280  Std: 0.3805
+Ref Error:
+  Mean: 1.2791  Std: 4.3077
+Samples: 527/546 (96.52%)
+Trajectories: 23/40
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/qwen3vl/multi_view/qwen3vl_2b_20251220_203520/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: qwen3vl/visual_multi_view/think_4b
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.6919  Std: 0.3287
+Score Error:
+  Mean: 0.3476  Std: 0.3059
+Ref Error:
+  Mean: 0.6341  Std: 2.5795
+Samples: 537/546 (98.35%)
+Trajectories: 40/40
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/qwen3vl/multi_view/qwen3vl_4b_20251220_042947/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: qwen3vl/visual_multi_view/think_8b
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.7733  Std: 0.2066
+Score Error:
+  Mean: 0.3042  Std: 0.2722
+Ref Error:
+  Mean: 0.3106  Std: 0.3121
+Samples: 539/546 (98.72%)
+Trajectories: 40/40
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/qwen3vl/multi_view/qwen3vl_8b_20251217_055635/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: qwen3vl/visual_multi_view/think_32b
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.8878  Std: 0.1093
+Score Error:
+  Mean: 0.2332  Std: 0.2122
+Ref Error:
+  Mean: 0.2054  Std: 0.2416
+Samples: 544/546 (99.63%)
+Trajectories: 40/40
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/qwen3vl/multi_view/qwen3vl_32b_20251217_163149/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: qwen3vl/visual_multi_view/nothink_2b
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.3093  Std: 0.0000
+Score Error:
+  Mean: 0.6623  Std: 0.3782
+Ref Error:
+  N/A
+Samples: 546/546 (100.00%)
+Trajectories: 1/40
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/qwen3vl/multi_view/qwen3vl_2b_nothink_20251218_002913/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: qwen3vl/visual_multi_view/nothink_4b
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.5159  Std: 0.4182
+Score Error:
+  Mean: 0.3411  Std: 0.3071
+Ref Error:
+  N/A
+Samples: 546/546 (100.00%)
+Trajectories: 40/40
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/qwen3vl/multi_view/qwen3vl_4b_nothink_20251218_002958/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: qwen3vl/visual_multi_view/nothink_8b
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.6132  Std: 0.3958
+Score Error:
+  Mean: 0.2520  Std: 0.2444
+Ref Error:
+  N/A
+Samples: 546/546 (100.00%)
+Trajectories: 40/40
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/qwen3vl/multi_view/qwen3vl_8b_nothink_20251217_233423/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: qwen3vl/visual_multi_view/nothink_32b
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.7775  Std: 0.2192
+Score Error:
+  Mean: 0.2190  Std: 0.2088
+Ref Error:
+  N/A
+Samples: 525/546 (96.15%)
+Trajectories: 40/40
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/qwen3vl/multi_view/qwen3vl_32b_nothink_20251217_232659/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: qwen3vl/visual_single_view/think_2b
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.2151  Std: 0.3149
+Score Error:
+  Mean: 0.5990  Std: 0.3785
+Ref Error:
+  Mean: 0.7179  Std: 2.3472
+Samples: 1306/1413 (92.43%)
+Trajectories: 85/100
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/qwen3vl/normal_view/qwen3vl_2b_20251220_025352/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: qwen3vl/visual_single_view/think_4b
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.6561  Std: 0.3930
+Score Error:
+  Mean: 0.2764  Std: 0.2776
+Ref Error:
+  Mean: 0.4791  Std: 1.8367
+Samples: 1408/1413 (99.65%)
+Trajectories: 100/100
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/qwen3vl/normal_view/qwen3vl_4b_20251220_025401/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: qwen3vl/visual_single_view/think_8b
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.7908  Std: 0.2778
+Score Error:
+  Mean: 0.2549  Std: 0.2550
+Ref Error:
+  Mean: 0.2624  Std: 0.5380
+Samples: 1403/1413 (99.29%)
+Trajectories: 100/100
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/qwen3vl/normal_view/qwen3vl_8b_20251217_034326/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: qwen3vl/visual_single_view/think_32b
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.8374  Std: 0.2601
+Score Error:
+  Mean: 0.1941  Std: 0.2131
+Ref Error:
+  Mean: 0.1748  Std: 0.3966
+Samples: 1407/1413 (99.58%)
+Trajectories: 100/100
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/qwen3vl/normal_view/qwen3vl_32b_20251217_153811/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: qwen3vl/visual_single_view/nothink_2b
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.3496  Std: 0.2709
+Score Error:
+  Mean: 0.6118  Std: 0.3793
+Ref Error:
+  N/A
+Samples: 1412/1413 (99.93%)
+Trajectories: 51/100
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/qwen3vl/normal_view/qwen3vl_2b_nothink_20251218_002324/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: qwen3vl/visual_single_view/nothink_4b
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.7228  Std: 0.3099
+Score Error:
+  Mean: 0.2244  Std: 0.2232
+Ref Error:
+  N/A
+Samples: 1413/1413 (100.00%)
+Trajectories: 100/100
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/qwen3vl/normal_view/qwen3vl_4b_nothink_20251218_002340/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: qwen3vl/visual_single_view/nothink_8b
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.8174  Std: 0.2545
+Score Error:
+  Mean: 0.2005  Std: 0.2177
+Ref Error:
+  N/A
+Samples: 1413/1413 (100.00%)
+Trajectories: 100/100
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/qwen3vl/normal_view/qwen3vl_8b_nothink_20251217_232704/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: qwen3vl/visual_single_view/nothink_32b
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.8827  Std: 0.1740
+Score Error:
+  Mean: 0.1646  Std: 0.1834
+Ref Error:
+  N/A
+Samples: 1413/1413 (100.00%)
+Trajectories: 100/100
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/qwen3vl/normal_view/qwen3vl_32b_nothink_20251217_232648/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: openai/text_normal/nothink_gpt5
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.5580  Std: 0.6267
+Score Error:
+  N/A
+Ref Error:
+  N/A
+Samples: 468/503 (93.04%)
+Trajectories: 93/100
+Format: score_only
+Path: /projects/p32958/chengxuan/results/openai/normal_text_nothink/gpt5_nothink_20251219_215746/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: openai/text_normal/nothink_gpt5_mini
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.5519  Std: 0.5764
+Score Error:
+  N/A
+Ref Error:
+  N/A
+Samples: 454/503 (90.26%)
+Trajectories: 91/100
+Format: score_only
+Path: /projects/p32958/chengxuan/results/openai/normal_text_nothink/gpt5_mini_nothink_20251217_215959/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: openai/visual_multi_view/nothink_gpt5
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.8943  Std: 0.1033
+Score Error:
+  N/A
+Ref Error:
+  N/A
+Samples: 536/546 (98.17%)
+Trajectories: 40/40
+Format: score_only
+Path: /projects/p32958/chengxuan/results/openai/multi_view_nothink/gpt5_nothink_20251219_215639/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: openai/visual_multi_view/nothink_gpt5_mini
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.8905  Std: 0.1353
+Score Error:
+  N/A
+Ref Error:
+  N/A
+Samples: 544/546 (99.63%)
+Trajectories: 40/40
+Format: score_only
+Path: /projects/p32958/chengxuan/results/openai/multi_view_nothink/gpt5_mini_nothink_20251217_220229/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: openai/visual_single_view/nothink_gpt5
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.8937  Std: 0.1566
+Score Error:
+  N/A
+Ref Error:
+  N/A
+Samples: 1413/1413 (100.00%)
+Trajectories: 100/100
+Format: score_only
+Path: /projects/p32958/chengxuan/results/openai/normal_view_nothink/gpt5_nothink_20251219_215355/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: openai/visual_single_view/nothink_gpt5_mini
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.8405  Std: 0.2024
+Score Error:
+  N/A
+Ref Error:
+  N/A
+Samples: 1408/1413 (99.65%)
+Trajectories: 100/100
+Format: score_only
+Path: /projects/p32958/chengxuan/results/openai/normal_view_nothink/gpt5_mini_nothink_20251217_215930/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: internvl/text_normal/think_4B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.1651  Std: 0.5482
+Score Error:
+  Mean: 0.3600  Std: 0.2940
+Ref Error:
+  Mean: 0.4432  Std: 0.5526
+Samples: 448/503 (89.07%)
+Trajectories: 81/100
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/internvl/text_normal/internvl_4B_text_20251220_023059/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: internvl/text_normal/think_14B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.2668  Std: 0.5645
+Score Error:
+  Mean: 0.3447  Std: 0.3003
+Ref Error:
+  Mean: 0.4068  Std: 0.3659
+Samples: 469/503 (93.24%)
+Trajectories: 89/100
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/internvl/text_normal/internvl_14B_text_20251217_204450/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: internvl/text_normal/think_38B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.4982  Std: 0.4963
+Score Error:
+  Mean: 0.3074  Std: 0.2661
+Ref Error:
+  Mean: 0.3554  Std: 0.3474
+Samples: 432/503 (85.88%)
+Trajectories: 85/100
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/internvl/text_normal/internvl_38B_text_20251217_205104/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: internvl/text_normal/nothink_4B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.0557  Std: 0.4526
+Score Error:
+  N/A
+Ref Error:
+  N/A
+Samples: 398/503 (79.13%)
+Trajectories: 30/100
+Format: score_only
+Path: /projects/p32958/chengxuan/results/internvl/text_normal_nothink/internvl_4B_text_normal_nothink_20251218_195139/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: internvl/text_normal/nothink_14B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.1030  Std: 0.6023
+Score Error:
+  N/A
+Ref Error:
+  N/A
+Samples: 470/503 (93.44%)
+Trajectories: 79/100
+Format: score_only
+Path: /projects/p32958/chengxuan/results/internvl/text_normal_nothink/internvl_14B_text_normal_nothink_20251218_030248/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: internvl/text_normal/nothink_38B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.2326  Std: 0.6593
+Score Error:
+  N/A
+Ref Error:
+  N/A
+Samples: 286/503 (56.86%)
+Trajectories: 51/100
+Format: score_only
+Path: /projects/p32958/chengxuan/results/internvl/text_normal_nothink/internvl_38B_text_normal_nothink_20251218_195750/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: internvl/visual_multi_view/think_4B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.0354  Std: 0.3671
+Score Error:
+  Mean: 0.5631  Std: 0.3571
+Ref Error:
+  Mean: 0.6107  Std: 0.8343
+Samples: 545/546 (99.82%)
+Trajectories: 38/40
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/internvl/visual_multi/internvl_4B_multi_20251220_014300/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: internvl/visual_multi_view/think_14B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.2508  Std: 0.3770
+Score Error:
+  Mean: 0.5997  Std: 0.3792
+Ref Error:
+  Mean: 0.5766  Std: 0.3937
+Samples: 546/546 (100.00%)
+Trajectories: 25/40
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/internvl/visual_multi/internvl_14B_multi_20251217_211724/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: internvl/visual_multi_view/think_38B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.3174  Std: 0.2718
+Score Error:
+  Mean: 0.5674  Std: 0.3746
+Ref Error:
+  Mean: 0.5515  Std: 0.3968
+Samples: 541/546 (99.08%)
+Trajectories: 25/40
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/internvl/visual_multi/internvl_38B_multi_20251217_162331/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: internvl/visual_multi_view/nothink_4B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.1214  Std: 0.4319
+Score Error:
+  N/A
+Ref Error:
+  N/A
+Samples: 527/546 (96.52%)
+Trajectories: 15/40
+Format: score_only
+Path: /projects/p32958/chengxuan/results/internvl/visual_multi_nothink/internvl_4B_multi_nothink_20251218_030235/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: internvl/visual_multi_view/nothink_14B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: -0.4025  Std: 0.0968
+Score Error:
+  N/A
+Ref Error:
+  N/A
+Samples: 546/546 (100.00%)
+Trajectories: 2/40
+Format: score_only
+Path: /projects/p32958/chengxuan/results/internvl/visual_multi_nothink/internvl_14B_multi_nothink_20251218_030757/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: internvl/visual_multi_view/nothink_38B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.4968  Std: 0.4344
+Score Error:
+  N/A
+Ref Error:
+  N/A
+Samples: 266/546 (48.72%)
+Trajectories: 26/40
+Format: score_only
+Path: /projects/p32958/chengxuan/results/internvl/visual_multi_nothink/internvl_38B_multi_nothink_20251218_230758/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: internvl/visual_single_view/think_4B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.1189  Std: 0.3182
+Score Error:
+  Mean: 0.5368  Std: 0.3482
+Ref Error:
+  Mean: 0.6326  Std: 1.1798
+Samples: 1408/1413 (99.65%)
+Trajectories: 92/100
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/internvl/visual_normal/internvl_4B_20251220_022407/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: internvl/visual_single_view/think_14B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.1665  Std: 0.3663
+Score Error:
+  Mean: 0.6263  Std: 0.3778
+Ref Error:
+  Mean: 0.5926  Std: 0.3947
+Samples: 1412/1413 (99.93%)
+Trajectories: 54/100
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/internvl/visual_normal/internvl_14B_20251217_204426/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: internvl/visual_single_view/think_38B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.2155  Std: 0.3792
+Score Error:
+  Mean: 0.5709  Std: 0.3669
+Ref Error:
+  Mean: 0.5507  Std: 0.3876
+Samples: 1398/1413 (98.94%)
+Trajectories: 66/100
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/internvl/visual_normal/internvl_38B_20251217_164659/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: internvl/visual_single_view/nothink_4B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.3313  Std: 0.3348
+Score Error:
+  N/A
+Ref Error:
+  N/A
+Samples: 1173/1413 (83.01%)
+Trajectories: 40/100
+Format: score_only
+Path: /projects/p32958/chengxuan/results/internvl/visual_normal_nothink/internvl_4B_nothink_20251218_022635/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: internvl/visual_single_view/nothink_14B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.2422  Std: 0.3333
+Score Error:
+  N/A
+Ref Error:
+  N/A
+Samples: 1404/1413 (99.36%)
+Trajectories: 35/100
+Format: score_only
+Path: /projects/p32958/chengxuan/results/internvl/visual_normal_nothink/internvl_14B_nothink_20251218_205628/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: internvl/visual_single_view/nothink_38B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.7482  Std: 0.2645
+Score Error:
+  N/A
+Ref Error:
+  N/A
+Samples: 1026/1413 (72.61%)
+Trajectories: 95/100
+Format: score_only
+Path: /projects/p32958/chengxuan/results/internvl/visual_normal_nothink/internvl_38B_nothink_20251218_230326/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: ProgressLM/text_normal/sft_3B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.4628  Std: 0.5764
+Score Error:
+  Mean: 0.2910  Std: 0.3244
+Ref Error:
+  Mean: 0.3302  Std: 0.3587
+Samples: 457/503 (90.85%)
+Trajectories: 97/100
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/new_pro_bench/text_normal/sft_3b/text_normal_sft_3b_20251217_021805/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: ProgressLM/text_normal/rl_3B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.6388  Std: 0.4170
+Score Error:
+  Mean: 0.2117  Std: 0.2859
+Ref Error:
+  Mean: 0.2352  Std: 0.3103
+Samples: 475/503 (94.43%)
+Trajectories: 93/100
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/new_pro_bench/text_normal/rl_3b/rl_3b_20251217_022013/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: ProgressLM/visual_multi_view/sft_3B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.6784  Std: 0.2793
+Score Error:
+  Mean: 0.2033  Std: 0.1962
+Ref Error:
+  Mean: 0.2080  Std: 0.2272
+Samples: 498/546 (91.21%)
+Trajectories: 40/40
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/new_pro_bench/visual_multi_view/sft_3b_think/think_sft_3B_20251217_022124/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: ProgressLM/visual_multi_view/rl_3B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.8882  Std: 0.1979
+Score Error:
+  Mean: 0.1514  Std: 0.1494
+Ref Error:
+  Mean: 0.1677  Std: 0.1974
+Samples: 482/546 (88.28%)
+Trajectories: 40/40
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/new_pro_bench/visual_multi_view/rl_3B/visual_multi_view_rl_3B_20251217_021555/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: ProgressLM/visual_single_view/sft_3B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.8401  Std: 0.1740
+Score Error:
+  Mean: 0.1556  Std: 0.1516
+Ref Error:
+  Mean: 0.1540  Std: 0.1869
+Samples: 1405/1413 (99.43%)
+Trajectories: 100/100
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/new_pro_bench/visual_single_view/one_view_3B_SFT_think/visual_one_view_3B_SFT_20251217_025645/results.jsonl
+
+--------------------------------------------------------------------------------
+Model: ProgressLM/visual_single_view/rl_3B
+--------------------------------------------------------------------------------
+VOC:
+  Mean: 0.9345  Std: 0.0735
+Score Error:
+  Mean: 0.1061  Std: 0.1181
+Ref Error:
+  Mean: 0.0994  Std: 0.1593
+Samples: 1412/1413 (99.93%)
+Trajectories: 100/100
+Format: ref_score
+Path: /projects/p32958/chengxuan/results/new_pro_bench/visual_single_view/one_view_3B_RL/visual_one_view_3B_RL_20251217_121528/results.jsonl
+

@@ -29,7 +29,10 @@
 MODEL_PATH="/projects/p32958/Results/full_model/global_step_485/actor/qwen25vl_3b_rl_scale"
 
 # Dataset configuration - using merged eval dataset
-DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/tiny-bench/visual_single_mini.jsonl"
+
+DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/visual/visual_eval_one_view.jsonl"
+
+# DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/tiny-bench/visual_single_mini.jsonl"
 IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
 
 # Output configuration

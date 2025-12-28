@@ -26,7 +26,8 @@ MODEL_PATH="/projects/p32958/Results/full_model/global_step_485/actor/qwen25vl_3
 # MODEL_PATH="/projects/p32958/Results/rl_ckpt/qwen25_vl_3b_rl_multinode_20251213-235435/global_step_638/actor/qwen25vl_rl_retrain"
 
 # Dataset configuration - using merged eval dataset
-DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/tiny-bench/text-pos-mini.jsonl"
+# DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/tiny-bench/text-pos-mini.jsonl"
+DATASET_PATH="/projects/p32958/chengxuan/ProgressLM/data/benchmark/text/text_eval_one_view.jsonl"
 IMAGE_ROOT="/projects/p32958/chengxuan/data/images"
 
 # Output configuration

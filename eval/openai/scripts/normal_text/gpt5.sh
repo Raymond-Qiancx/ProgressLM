@@ -4,7 +4,7 @@
 #####################################################################
 
 # API Configuration
-API_KEY=""
+API_KEY="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"
 MODEL="gpt-5"
 
 # Dataset Configuration

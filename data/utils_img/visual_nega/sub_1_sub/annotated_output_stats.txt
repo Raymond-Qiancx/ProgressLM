@@ -1,8 +1,0 @@
-Annotation Statistics
-==================================================
-Total Records: 930
-Annotated: 855
-YES (Keep): 360
-NO (Delete): 495
-Not Annotated: 75
-Keep Rate: 42.11%

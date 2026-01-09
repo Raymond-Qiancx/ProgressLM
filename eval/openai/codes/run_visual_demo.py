@@ -181,7 +181,8 @@ def process_single_sample(
 
         # Calculate reference index error (only for numeric pairs)
         if gt_ref is not None and isinstance(predicted_ref, int):
-            ref_error = calculate_ref_error(predicted_ref, gt_ref)
+            num_demos = len(sample['visual_demo'])
+            ref_error = calculate_ref_error(predicted_ref, gt_ref, num_demos)
         else:
             ref_error = float('inf')
 

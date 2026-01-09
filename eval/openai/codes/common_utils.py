@@ -15,6 +15,51 @@ import numpy as np
 from scipy.stats import spearmanr
 
 
+# ==================== Score and Ref Parsing ====================
+
+def parse_score(score_str: Optional[str]) -> Optional[float]:
+    """Parse score string to float [0, 1]. Returns None for N/A."""
+    if score_str is None or score_str == '':
+        return None
+
+    score_str_lower = str(score_str).strip().lower()
+
+    # Check for N/A variants
+    if score_str_lower in ('n/a', 'na', 'none', 'null', '-'):
+        return None
+
+    # Handle numeric values
+    if isinstance(score_str, (int, float)):
+        val = float(score_str)
+        return val if val <= 1.0 else val / 100.0
+
+    score_str = str(score_str).strip()
+
+    # Handle percentage format
+    if score_str.endswith('%'):
+        try:
+            return float(score_str[:-1]) / 100.0
+        except:
+            return None
+
+    # Try parsing as float
+    try:
+        val = float(score_str)
+        return val if val <= 1.0 else val / 100.0
+    except:
+        return None
+
+
+def parse_ref(ref_str: Optional[str]) -> Optional[int]:
+    """Parse ref string to int."""
+    if ref_str is None or ref_str == 'n/a' or ref_str == '':
+        return None
+    try:
+        return int(ref_str)
+    except (ValueError, TypeError):
+        return None
+
+
 def parse_response(response: str) -> Dict[str, Any]:
     """
     Parse the model's response to extract XML tags.
@@ -207,18 +252,19 @@ def calculate_evaluation_score(predicted: Optional[float], ground_truth: float) 
     return normalized_error
 
 
-def calculate_ref_error(predicted_ref: Optional[int], ground_truth_ref: int) -> float:
+def calculate_ref_error(predicted_ref: Optional[int], ground_truth_ref: int, num_demos: int = None) -> float:
     """
-    Calculate reference index error: |ground_truth_ref - predicted_ref|
+    Calculate normalized reference index error: |gt_ref - pred_ref| / max(gt_ref - 1, num_demos - gt_ref)
 
-    Measures absolute difference between predicted and ground truth indices.
+    Uses normalized error metric for fair comparison across different trajectory lengths.
 
     Args:
         predicted_ref: Predicted reference index (1-based) or None
         ground_truth_ref: Ground truth closest index (1-based)
+        num_demos: Total number of demos in the trajectory (required for normalization)
 
     Returns:
-        Absolute error (0.0 = perfect, higher = worse), or inf if invalid
+        Normalized error (0.0 = perfect, 1.0 = max possible error), or inf if invalid
     """
     if predicted_ref is None:
         return float('inf')
@@ -226,8 +272,18 @@ def calculate_ref_error(predicted_ref: Optional[int], ground_truth_ref: int) -> 
     if not isinstance(predicted_ref, int):
         return float('inf')
 
-    absolute_error = abs(ground_truth_ref - predicted_ref)
-    return float(absolute_error)
+    # If num_demos not provided, fall back to absolute error
+    if num_demos is None:
+        return float(abs(ground_truth_ref - predicted_ref))
+
+    # Calculate max possible error for normalization
+    max_possible = max(ground_truth_ref - 1, num_demos - ground_truth_ref)
+
+    if max_possible == 0:
+        return 0.0
+
+    normalized_error = abs(ground_truth_ref - predicted_ref) / max_possible
+    return normalized_error
 
 
 def calculate_false_positives(

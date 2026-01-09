@@ -115,54 +115,64 @@ def parse_visual_demo_response(response: str) -> Dict[str, Any]:
 
 def calculate_evaluation_score(predicted: Optional[float], ground_truth: float) -> float:
     """
-    Calculate evaluation score: |ground_truth - predicted| / ground_truth
+    Calculate evaluation score: |ground_truth - predicted| / max(ground_truth, 1 - ground_truth)
 
-    Uses pure relative error metric. Lower is better (0.0 = perfect prediction).
-    This is more suitable for progress estimation as it considers the magnitude
-    of the true value.
+    Uses normalized error metric. Lower is better (0.0 = perfect prediction).
+    This normalization treats small and large GT values fairly.
 
     Args:
         predicted: Predicted progress score (0-1) or None if parsing failed
         ground_truth: Ground truth progress score (0-1)
 
     Returns:
-        Relative error (0.0 = perfect, higher = worse), or inf if predicted is None or ground_truth is 0
+        Normalized error (0.0 = perfect, 1.0 = max possible error), or inf if invalid
     """
     if predicted is None:
         return float('inf')
 
-    # Avoid division by zero
-    if ground_truth == 0.0:
-        # If ground_truth is 0, only perfect prediction gets 0.0
-        return 0.0 if predicted == 0.0 else float('inf')
+    # Calculate max possible error for normalization
+    max_possible = max(ground_truth, 1.0 - ground_truth)
 
-    relative_error = abs(ground_truth - predicted) / ground_truth
-    return relative_error
+    # Avoid division by zero (only happens when gt = 0.5 exactly, but max_possible would be 0.5)
+    if max_possible == 0.0:
+        return 0.0 if predicted == ground_truth else float('inf')
+
+    normalized_error = abs(ground_truth - predicted) / max_possible
+    return normalized_error
 
 
-def calculate_ref_error(predicted_ref: Optional[int], ground_truth_ref: int) -> float:
+def calculate_ref_error(predicted_ref: Optional[int], ground_truth_ref: int, num_demos: int = None) -> float:
     """
-    Calculate reference index error: |ground_truth_ref - predicted_ref|
+    Calculate normalized reference index error: |gt_ref - pred_ref| / max(gt_ref - 1, num_demos - gt_ref)
 
-    Measures absolute difference between predicted and ground truth image indices.
-    Lower is better (0.0 = perfect match).
+    Uses normalized error metric for fair comparison across different trajectory lengths.
 
     Args:
-        predicted_ref: Predicted reference image index (1-based) or None if parsing failed
-        ground_truth_ref: Ground truth closest image index (1-based)
+        predicted_ref: Predicted reference index (1-based) or None
+        ground_truth_ref: Ground truth closest index (1-based)
+        num_demos: Total number of demos in the trajectory (required for normalization)
 
     Returns:
-        Absolute error (0.0 = perfect, higher = worse), or inf if predicted_ref is None or not an integer
+        Normalized error (0.0 = perfect, 1.0 = max possible error), or inf if invalid
     """
     if predicted_ref is None:
         return float('inf')
 
-    # Ensure predicted_ref is an integer
     if not isinstance(predicted_ref, int):
         return float('inf')
 
-    absolute_error = abs(ground_truth_ref - predicted_ref)
-    return float(absolute_error)
+    # If num_demos not provided, fall back to absolute error
+    if num_demos is None:
+        return float(abs(ground_truth_ref - predicted_ref))
+
+    # Calculate max possible error for normalization
+    max_possible = max(ground_truth_ref - 1, num_demos - ground_truth_ref)
+
+    if max_possible == 0:
+        return 0.0
+
+    normalized_error = abs(ground_truth_ref - predicted_ref) / max_possible
+    return normalized_error
 
 def calculate_false_positives(predicted_ref, predicted_score, gt_ref, gt_score) -> Tuple[bool, bool]:
     """

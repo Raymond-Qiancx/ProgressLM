@@ -51,11 +51,13 @@ def parse_score_only(response: str) -> Dict[str, Any]:
 
 
 def calculate_evaluation_score(predicted, ground_truth):
+    """Calculate normalized error: |ground_truth - predicted| / max(ground_truth, 1 - ground_truth)"""
     if predicted is None:
         return float('inf')
-    if ground_truth == 0.0:
-        return 0.0 if predicted == 0.0 else float('inf')
-    return abs(ground_truth - predicted) / ground_truth
+    max_possible = max(ground_truth, 1.0 - ground_truth)
+    if max_possible == 0.0:
+        return 0.0 if predicted == ground_truth else float('inf')
+    return abs(ground_truth - predicted) / max_possible
 
 
 def worker_process(gpu_id: int, data_slice: List, args, progress_queue: Queue, result_queue: Queue):

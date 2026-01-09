@@ -85,29 +85,30 @@ def parse_visual_demo_response(response: str) -> Dict[str, Any]:
 
 def calculate_evaluation_score(predicted: Optional[float], ground_truth: float) -> float:
     """
-    Calculate evaluation score: |ground_truth - predicted| / ground_truth
+    Calculate evaluation score: |ground_truth - predicted| / max(ground_truth, 1 - ground_truth)
 
-    Uses pure relative error metric. Lower is better (0.0 = perfect prediction).
-    This is more suitable for progress estimation as it considers the magnitude
-    of the true value.
+    Uses normalized error metric. Lower is better (0.0 = perfect prediction).
+    This normalization treats small and large GT values fairly.
 
     Args:
         predicted: Predicted progress score (0-1) or None if parsing failed
         ground_truth: Ground truth progress score (0-1)
 
     Returns:
-        Relative error (0.0 = perfect, higher = worse), or inf if predicted is None or ground_truth is 0
+        Normalized error (0.0 = perfect, 1.0 = max possible error), or inf if invalid
     """
     if predicted is None:
         return float('inf')
 
-    # Avoid division by zero
-    if ground_truth == 0.0:
-        # If ground_truth is 0, only perfect prediction gets 0.0
-        return 0.0 if predicted == 0.0 else float('inf')
+    # Calculate max possible error for normalization
+    max_possible = max(ground_truth, 1.0 - ground_truth)
 
-    relative_error = abs(ground_truth - predicted) / ground_truth
-    return relative_error
+    # Avoid division by zero (only happens when gt = 0.5 exactly, but max_possible would be 0.5)
+    if max_possible == 0.0:
+        return 0.0 if predicted == ground_truth else float('inf')
+
+    normalized_error = abs(ground_truth - predicted) / max_possible
+    return normalized_error
 
 
 def calculate_false_positive(predicted_score, gt_score) -> bool:

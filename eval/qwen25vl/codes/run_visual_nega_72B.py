@@ -8,16 +8,13 @@ from tqdm import tqdm
 from typing import List, Dict, Any, Optional, Union
 import torch
 
-# Add parent directory to path for imports
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 # Local imports
-from text_demo_dataset import load_text_demo_dataset, validate_image_path
-from text_demo_prompt import build_text_demo_prompt_from_item, TEXT_DEMO_SYSTEM_PROMPT
-from qwen2_vl.model import Qwen2VLChat
+from datasets.visual_demo_dataset_cot_gen import load_visual_demo_dataset, validate_image_paths
+from prompts.visual_nega_prompt import build_visual_demo_prompt_from_item, VISUAL_DEMO_SYSTEM_PROMPT
+from core.model import Qwen2VLChat
 
 
-def parse_text_demo_response(response: str) -> Dict[str, Any]:
+def parse_visual_demo_response(response: str) -> Dict[str, Any]:
     """
     Parse the model's response to extract XML tags.
 
@@ -25,7 +22,7 @@ def parse_text_demo_response(response: str) -> Dict[str, Any]:
     <ref_think>reasoning...</ref_think>
     <ref>2</ref>  (now expects 1-based integer index)
     <score_think>reasoning...</score_think>
-    <score>33%</score>  (supports both "33%" and "0.33" formats)
+    <score>8%</score>  (supports both "8%" and "0.08" formats)
 
     Args:
         response: Model output string
@@ -34,7 +31,7 @@ def parse_text_demo_response(response: str) -> Dict[str, Any]:
         Dictionary with parsed fields:
         {
             'ref_think': str,
-            'ref': str or int (1-based step number),
+            'ref': str or int (1-based image number),
             'score_think': str,
             'score': float or None (in 0.0-1.0 range),
             'parse_error': bool
@@ -63,7 +60,7 @@ def parse_text_demo_response(response: str) -> Dict[str, Any]:
                 result['ref'] = "n/a"
             else:
                 try:
-                    # Extract just the number (handle "No. 2", "2", "step 2", etc.)
+                    # Extract just the number (handle "No. 2", "2", "image 2", etc.)
                     ref_num = re.search(r'\d+', ref_str)
                     if ref_num:
                         result['ref'] = int(ref_num.group())
@@ -77,7 +74,7 @@ def parse_text_demo_response(response: str) -> Dict[str, Any]:
         if score_think_match:
             result['score_think'] = score_think_match.group(1).strip()
 
-        # Extract score (supports "33%", "0.33", or "n/a")
+        # Extract score (supports "8%", "0.08", or "n/a")
         score_match = re.search(r'<score>(.*?)</score>', response, re.DOTALL)
         if score_match:
             score_str = score_match.group(1).strip()
@@ -149,12 +146,12 @@ def calculate_ref_error(predicted_ref: Union[int, str, None], ground_truth_ref: 
     """
     Calculate reference index error: |ground_truth_ref - predicted_ref|
 
-    Measures absolute difference between predicted and ground truth step indices.
+    Measures absolute difference between predicted and ground truth image indices.
     For "n/a" ground truth, checks if predicted is also "n/a" (Pass/Fail).
 
     Args:
-        predicted_ref: Predicted reference step index (1-based), "n/a", or None if parsing failed
-        ground_truth_ref: Ground truth closest step index (1-based) or "n/a"
+        predicted_ref: Predicted reference image index (1-based), "n/a", or None if parsing failed
+        ground_truth_ref: Ground truth closest image index (1-based) or "n/a"
 
     Returns:
         Absolute error (0.0 = perfect, higher = worse), or inf if prediction failed
@@ -181,9 +178,9 @@ def calculate_ref_error(predicted_ref: Union[int, str, None], ground_truth_ref: 
     return float(absolute_error)
 
 
-def run_text_demo_inference_single(args):
+def run_visual_demo_inference_single(args):
     """
-    Run text demo progress estimation with single-process batch inference.
+    Run visual demo progress estimation with single-process batch inference.
     Optimized for 72B models using model parallelism across multiple GPUs.
     Uses FRM's cheat prompt system with ground-truth.
     """
@@ -197,7 +194,7 @@ def run_text_demo_inference_single(args):
         old_stdout = sys.stdout
         sys.stdout = StringIO()
 
-    data = load_text_demo_dataset(
+    data = load_visual_demo_dataset(
         args.dataset_path,
         num_inferences=args.num_inferences,
         image_root=image_root
@@ -215,7 +212,7 @@ def run_text_demo_inference_single(args):
     num_gpus = len(gpu_ids)
 
     print(f"\n{'='*70}")
-    print(f"TEXT DEMO INFERENCE - SINGLE PROCESS MODE (72B Optimized)")
+    print(f"VISUAL DEMO INFERENCE - SINGLE PROCESS MODE (72B Optimized)")
     print(f"{'='*70}")
     print(f"GPUs available: {num_gpus} ({gpu_ids})")
     print(f"Model parallelism: {'ENABLED' if num_gpus > 1 else 'DISABLED'}")
@@ -255,18 +252,8 @@ def run_text_demo_inference_single(args):
     valid_count = 0
     error_count = 0
 
-    # n/a sample statistics
-    na_total = 0  # Total "n/a" samples
-    na_pass = 0   # "n/a" samples where model correctly predicted "n/a"
-
-    # Numeric sample statistics
-    numeric_total = 0
-    numeric_score_sum = 0.0
-    numeric_ref_error_sum = 0.0
-    numeric_valid = 0
-
     # Progress bar
-    pbar = tqdm(total=len(data), desc="Processing", ncols=160,
+    pbar = tqdm(total=len(data), desc="Processing", ncols=140,
                 bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]')
 
     i = 0
@@ -282,7 +269,7 @@ def run_text_demo_inference_single(args):
 
             for item in batch_items:
                 # Validate image paths
-                is_valid, error_msg = validate_image_path(item)
+                is_valid, error_msg = validate_image_paths(item)
                 if not is_valid:
                     # Skip this item, record error
                     # Format ground truth score string (handle "n/a")
@@ -299,8 +286,6 @@ def run_text_demo_inference_single(args):
                         "score": None,
                         "closest_idx": closest_idx_str,
                         "ground_truth_score": ground_truth_score_str,
-                        "ref_score": float('inf'),
-                        "pred_score": float('inf'),
                         "response": f"Validation error: {error_msg}",
                         "meta_data": {
                             "id": item['id'],
@@ -314,7 +299,7 @@ def run_text_demo_inference_single(args):
                     pbar.update(1)
                     continue
 
-                messages = build_text_demo_prompt_from_item(
+                messages = build_visual_demo_prompt_from_item(
                     item,
                     min_pixels=args.min_pixels,
                     max_pixels=args.max_pixels,
@@ -335,7 +320,7 @@ def run_text_demo_inference_single(args):
             for item, response in zip(valid_batch_items, batch_responses):
                 try:
                     # Parse response
-                    parsed = parse_text_demo_response(response)
+                    parsed = parse_visual_demo_response(response)
                     predicted_score = parsed['score']
                     predicted_ref = parsed['ref']
                     has_error = parsed['parse_error']
@@ -352,30 +337,13 @@ def run_text_demo_inference_single(args):
                         item['closest_idx']
                     )
 
-                    # Determine if this is an "n/a" sample
-                    is_na_sample = isinstance(item['progress_score'], str) and item['progress_score'].lower() == "n/a"
-
                     # Update statistics
                     if not has_error:
-                        valid_count += 1
-
-                        if is_na_sample:
-                            na_total += 1
-                            if evaluation_score == 0.0:  # Both ground truth and prediction are "n/a"
-                                na_pass += 1
-                        else:
-                            numeric_total += 1
-                            if evaluation_score != float('inf'):
-                                numeric_score_sum += evaluation_score
-                            if ref_error != float('inf'):
-                                numeric_ref_error_sum += ref_error
-                            numeric_valid += 1
-
-                        # Overall statistics (legacy)
                         if evaluation_score != float('inf'):
                             total_score_sum += evaluation_score
                         if ref_error != float('inf'):
                             total_ref_error_sum += ref_error
+                        valid_count += 1
                     else:
                         error_count += 1
 
@@ -407,8 +375,6 @@ def run_text_demo_inference_single(args):
                         "score": predicted_score_str,
                         "closest_idx": closest_idx_str,
                         "ground_truth_score": ground_truth_score_str,
-                        "ref_score": evaluation_score,
-                        "pred_score": ref_error,
                         "response": response,
                         "meta_data": {
                             "id": item['id'],
@@ -422,24 +388,10 @@ def run_text_demo_inference_single(args):
                     pbar.update(1)
 
                     # Update progress bar stats
-                    postfix_parts = []
-
-                    # Numeric sample statistics
-                    if numeric_total > 0:
-                        mean_score = numeric_score_sum / numeric_valid if numeric_valid > 0 else 0.0
-                        mean_ref_error = numeric_ref_error_sum / numeric_valid if numeric_valid > 0 else 0.0
-                        postfix_parts.append(f"score_err={mean_score:.3f}, ref_err={mean_ref_error:.2f}")
-
-                    # n/a sample statistics (Pass Rate)
-                    if na_total > 0:
-                        na_pass_rate = na_pass / na_total * 100
-                        postfix_parts.append(f"na_pass={na_pass_rate:.1f}%")
-
-                    # Error rate
-                    error_rate_pct = error_count / len(results) * 100 if results else 0.0
-                    postfix_parts.append(f"err={error_rate_pct:.1f}%")
-
-                    pbar.set_postfix_str(", ".join(postfix_parts))
+                    mean_score = total_score_sum / valid_count if valid_count > 0 else 0.0
+                    mean_ref_error = total_ref_error_sum / valid_count if valid_count > 0 else 0.0
+                    error_rate = error_count / len(results) * 100 if results else 0.0
+                    pbar.set_postfix_str(f"MeanScore={mean_score:.3f}, MeanRef={mean_ref_error:.2f}, ErrorRate={error_rate:.1f}%")
 
                 except Exception as e:
                     # Parse error for this specific item
@@ -455,8 +407,6 @@ def run_text_demo_inference_single(args):
                         "score": None,
                         "closest_idx": closest_idx_str,
                         "ground_truth_score": ground_truth_score_str,
-                        "ref_score": float('inf'),
-                        "pred_score": float('inf'),
                         "response": f"Processing error: {str(e)}\nResponse: {response if 'response' in locals() else ''}",
                         "meta_data": {
                             "id": item['id'],
@@ -486,8 +436,6 @@ def run_text_demo_inference_single(args):
                     "score": None,
                     "closest_idx": closest_idx_str,
                     "ground_truth_score": ground_truth_score_str,
-                    "ref_score": float('inf'),
-                    "pred_score": float('inf'),
                     "response": f"Batch error: {str(e)}",
                     "meta_data": {
                         "id": item['id'],
@@ -520,51 +468,21 @@ def run_text_demo_inference_single(args):
 
     # Calculate final statistics
     valid_results = [r for r in results if r['meta_data']['status'] == 'success']
-    finite_scores_all = [r['ref_score'] for r in results if r['ref_score'] != float('inf')]
-    finite_scores_valid = [r['ref_score'] for r in valid_results if r['ref_score'] != float('inf')]
-    finite_ref_errors_all = [r['pred_score'] for r in results if r['pred_score'] != float('inf')]
-    finite_ref_errors_valid = [r['pred_score'] for r in valid_results if r['pred_score'] != float('inf')]
-
-    mean_score = sum(finite_scores_all) / len(finite_scores_all) if finite_scores_all else float('inf')
-    mean_score_valid = sum(finite_scores_valid) / len(finite_scores_valid) if finite_scores_valid else float('inf')
-    mean_ref_error = sum(finite_ref_errors_all) / len(finite_ref_errors_all) if finite_ref_errors_all else float('inf')
-    mean_ref_error_valid = sum(finite_ref_errors_valid) / len(finite_ref_errors_valid) if finite_ref_errors_valid else float('inf')
+    mean_score_final = total_score_sum / valid_count if valid_count > 0 else float('inf')
+    mean_ref_error_final = total_ref_error_sum / valid_count if valid_count > 0 else float('inf')
     error_rate = error_count / len(results) if results else 0.0
-
-    # Calculate n/a pass rate
-    na_pass_rate = na_pass / na_total if na_total > 0 else 0.0
-
-    # Calculate numeric sample statistics
-    numeric_mean_score = numeric_score_sum / numeric_valid if numeric_valid > 0 else float('inf')
-    numeric_mean_ref_error = numeric_ref_error_sum / numeric_valid if numeric_valid > 0 else float('inf')
 
     # Print final summary
     print("\n" + "=" * 70)
-    print("TEXT DEMO PROGRESS ESTIMATION SUMMARY (72B + FRM Cheat Prompt)")
+    print("VISUAL DEMO PROGRESS ESTIMATION SUMMARY (72B + FRM Cheat Prompt)")
     print("=" * 70)
     print(f"Total samples (expanded): {len(data)}")
     print(f"Original samples: {len(data) // args.num_inferences}")
     print(f"Inferences per sample: {args.num_inferences}")
     print(f"Processed: {len(results)}")
     print(f"Errors: {error_count} ({error_rate*100:.2f}%)")
-    print()
-    print("Numeric Samples:")
-    print(f"  Total: {numeric_total}")
-    print(f"  Mean evaluation score: {numeric_mean_score:.4f}")
-    print(f"  Mean ref error: {numeric_mean_ref_error:.4f}")
-    print()
-    print("N/A Samples:")
-    print(f"  Total: {na_total}")
-    print(f"  Pass (correctly predicted n/a): {na_pass}")
-    print(f"  Fail (incorrectly predicted): {na_total - na_pass}")
-    print(f"  Pass Rate: {na_pass_rate*100:.2f}%")
-    print()
-    print(f"Overall (legacy):")
-    print(f"  Mean evaluation score (all): {mean_score:.4f}")
-    print(f"  Mean evaluation score (valid only): {mean_score_valid:.4f}")
-    print(f"  Mean ref error (all): {mean_ref_error:.4f}")
-    print(f"  Mean ref error (valid only): {mean_ref_error_valid:.4f}")
-    print()
+    print(f"Mean evaluation score: {mean_score_final:.4f}")
+    print(f"Mean ref error: {mean_ref_error_final:.4f}")
     print(f"Results saved to: {args.output_file}")
     print("=" * 70)
 
@@ -577,36 +495,14 @@ def run_text_demo_inference_single(args):
         "processed": len(results),
         "errors": error_count,
         "error_rate": error_rate,
-
-        "numeric_samples": {
-            "total": numeric_total,
-            "valid": numeric_valid,
-            "mean_evaluation_score": numeric_mean_score,
-            "mean_ref_error": numeric_mean_ref_error
-        },
-
-        "na_samples": {
-            "total": na_total,
-            "pass": na_pass,
-            "fail": na_total - na_pass,
-            "pass_rate": na_pass_rate
-        },
-
-        "overall_legacy": {
-            "mean_evaluation_score_all": mean_score,
-            "mean_evaluation_score_valid": mean_score_valid,
-            "mean_ref_error_all": mean_ref_error,
-            "mean_ref_error_valid": mean_ref_error_valid
-        },
-
-        "config": {
-            "batch_size": args.batch_size,
-            "num_gpus": num_gpus,
-            "mode": "single_process_72b_frm_cheat",
-            "dataset_path": args.dataset_path,
-            "model_path": args.model_path,
-            "output_file": args.output_file
-        }
+        "mean_evaluation_score": mean_score_final,
+        "mean_ref_error": mean_ref_error_final,
+        "batch_size": args.batch_size,
+        "num_gpus": num_gpus,
+        "mode": "single_process_72b_frm_cheat",
+        "dataset_path": args.dataset_path,
+        "model_path": args.model_path,
+        "output_file": args.output_file
     }
     with open(summary_file, 'w', encoding='utf-8') as f:
         json.dump(summary, f, indent=2, ensure_ascii=False)
@@ -615,14 +511,14 @@ def run_text_demo_inference_single(args):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Text Demo Progress Estimation - Single Process (72B Optimized, FRM Cheat Prompt)"
+        description="Visual Demo Progress Estimation - Single Process (72B Optimized, FRM Cheat Prompt)"
     )
 
     # Required arguments
     parser.add_argument("--model-path", type=str, required=True,
                         help="Path to the Qwen2-VL model")
     parser.add_argument("--dataset-path", type=str, required=True,
-                        help="Path to the Text Demo dataset (JSONL format)")
+                        help="Path to the Visual Demo dataset (JSONL format)")
     parser.add_argument("--output-file", type=str, required=True,
                         help="Output JSONL file path for results")
 
@@ -668,7 +564,7 @@ def main():
         sys.exit(1)
 
     # Run inference
-    run_text_demo_inference_single(args)
+    run_visual_demo_inference_single(args)
 
 
 if __name__ == "__main__":

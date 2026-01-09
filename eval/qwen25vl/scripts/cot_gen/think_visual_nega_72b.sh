@@ -1,22 +1,23 @@
 #!/bin/bash
 
 #####################################################################
-# Text Demo Progress Estimation Script - 72B Model (Model Parallelism)
+# Visual Demo Progress Estimation Script - 72B Model (Model Parallelism)
 #
-# This script runs progress estimation on Text Demo dataset using
+# This script runs progress estimation on Visual Demo dataset using
 # Qwen2-VL-72B model with model parallelism across multiple GPUs.
 # Uses FRM's cheat prompt system with ground-truth.
 #
 # Expected JSONL format (NEW VERSION):
 # {
-#   "id": "h5_tienkung_xsens_1rgb/battery_insertion_with_pullout/2024-09-19-10-35-18",
-#   "task_goal": "inserting a battery into a power bank and then removing it",
-#   "text_demo": ["reach for the power bank", "insert the battery into the power bank", "remove the battery from the power bank"],
-#   "total_steps": 3,
-#   "stage_to_estimate": "camera_top_0474.jpg",
-#   "closest_idx": 1,  # 1-based index (1 means first text_demo)
-#   "progress_score": "33%",
-#   "data_source": "h5_tienkung_xsens_1rgb"
+#   "id": "h5_tienkung_xsens_1rgb/brick_piled_then_press_thrice/2024-10-17-10-53-16",
+#   "task_goal": "Put the blue block next to the purple block in front.",
+#   "visual_demo": ["camera_top_0000.jpg", "camera_top_0041.jpg", "camera_top_0068.jpg", "camera_top_0191.jpg", "camera_top_0394.jpg"],
+#   "total_steps": "4",
+#   "stage_to_estimate": ["camera_top_0013.jpg"],
+#   "closest_idx": "1",
+#   "delta": "+7%",
+#   "progress_score": "8%",
+#   "data_source": "robomind_h5_tienkung_xsens_1rgb"
 # }
 #####################################################################
 
@@ -28,23 +29,21 @@ MODEL_PATH="${MODEL_PATH:-/projects/p32958/chengxuan/models/Qwen2.5-VL-72B-Instr
 
 # Dataset configuration
 # Support environment variable override: export DATASET_PATH=/custom/dataset.jsonl
-DATASET_PATH="${DATASET_PATH:-/projects/p32958/chengxuan/ProgressLM/data/sft_data/text_nega_new/new_text_nega_raw.jsonl}"
-# DATASET_PATH="/projects/p32958/chengxuan/results/nega_think_new/rl/new_nega_text_rl_redo.jsonl"
-
-IMAGE_ROOT="${IMAGE_ROOT:-/projects/p32958/chengxuan/data/images}"
+DATASET_PATH="${DATASET_PATH:-/projects/p32958/chengxuan/ProgressLM/data/train/sft/now/sft_visual_normal_raw.jsonl}"
+IMAGE_ROOT="${IMAGE_ROOT:-/projects/p32958/chengxuan/new_extracted_images/images}"  # Optional: root directory for relative image paths
 
 # Output configuration
 # Support environment variable override: export OUTPUT_DIR=/custom/output
-OUTPUT_DIR="${OUTPUT_DIR:-/projects/p32958/chengxuan/results/nega_think_new/think/reredo}"
+OUTPUT_DIR="${OUTPUT_DIR:-/projects/p32958/chengxuan/results/nega_edit_think_new}"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-TIMESTAMPED_DIR="${OUTPUT_DIR}/text_demo_72b-${TIMESTAMP}"
-OUTPUT_FILE="${TIMESTAMPED_DIR}/text_nega_think_72b_${TIMESTAMP}.jsonl"
-LOG_FILE="${TIMESTAMPED_DIR}/text_demo_72b_${TIMESTAMP}.log"
+TIMESTAMPED_DIR="${OUTPUT_DIR}/visual_demo_72b-${TIMESTAMP}"
+OUTPUT_FILE="${TIMESTAMPED_DIR}/visual_demo_72b_results_${TIMESTAMP}.jsonl"
+LOG_FILE="${TIMESTAMPED_DIR}/visual_demo_72b_${TIMESTAMP}.log"
 
 # GPU configuration
-# Support environment variable override: export GPU_IDS="0,1" BATCH_SIZE=80
+# Support environment variable override: export GPU_IDS="0,1" BATCH_SIZE=16
 GPU_IDS="${GPU_IDS:-0,1,2,3}"  # Comma-separated GPU IDs to use (72B requires multiple GPUs for model parallelism)
-BATCH_SIZE="${BATCH_SIZE:-40}"  # Batch size (reduced to 1 for 72B model due to high memory requirements)
+BATCH_SIZE="${BATCH_SIZE:-8}"  # Batch size (reduced to 1 for 72B model due to high memory requirements)
 
 # Inference configuration
 NUM_INFERENCES="${NUM_INFERENCES:-1}"  # Number of inferences per sample (data expansion factor)
@@ -53,7 +52,7 @@ NUM_INFERENCES="${NUM_INFERENCES:-1}"  # Number of inferences per sample (data e
 TEMPERATURE="${TEMPERATURE:-0.6}"  # Higher temperature for diversity across multiple inferences
 TOP_P="${TOP_P:-0.9}"
 TOP_K="${TOP_K:-50}"
-MAX_NEW_TOKENS="${MAX_NEW_TOKENS:-40000}"  # Increased from 30000 to 40000 for longer CoT reasoning chains
+MAX_NEW_TOKENS="${MAX_NEW_TOKENS:-40000}"  # Increased from 5120 to 40000 for longer CoT reasoning chains
 MIN_PIXELS="${MIN_PIXELS:-$((1280*28*28))}"
 MAX_PIXELS="${MAX_PIXELS:-$((5120*28*28))}"
 
@@ -66,7 +65,7 @@ VERBOSE="${VERBOSE:-false}"  # Set to true for detailed output
 # ======================== Auto Configuration ========================
 
 echo "======================================================================"
-echo "Text Demo Progress Estimation - 72B Model (Model Parallelism + FRM Cheat)"
+echo "Visual Demo Progress Estimation - 72B Model (Model Parallelism + FRM Cheat)"
 echo "======================================================================"
 echo "Dataset: $DATASET_PATH"
 echo "Output: $OUTPUT_FILE"
@@ -81,7 +80,7 @@ echo "======================================================================"
 # Check if dataset path is provided
 if [ -z "$DATASET_PATH" ]; then
     echo "Error: DATASET_PATH is not set!"
-    echo "Please set DATASET_PATH to your Text Demo dataset JSONL file."
+    echo "Please set DATASET_PATH to your Visual Demo dataset JSONL file."
     exit 1
 fi
 
@@ -107,14 +106,14 @@ export CUDA_VISIBLE_DEVICES=$GPU_IDS
 
 # Get the script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
-FRM_DIR="$PROJECT_DIR/frm"
+QWEN25VL_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
+CODES_DIR="$QWEN25VL_DIR/codes"
 
-# Change to frm directory
-cd "$FRM_DIR" || exit 1
+# Change to codes directory
+cd "$CODES_DIR" || exit 1
 
 # Build command - using single process script for 72B
-CMD="python run_text_demo_single.py \
+CMD="python run_visual_nega_72B.py \
     --model-path $MODEL_PATH \
     --dataset-path $DATASET_PATH \
     --output-file $OUTPUT_FILE \

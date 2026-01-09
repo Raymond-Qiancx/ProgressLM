@@ -11,13 +11,10 @@ import traceback
 import multiprocessing as mp
 from multiprocessing import Manager, Process, Queue
 
-# Add parent directory to path for imports
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 # Local imports
-from visual_demo_dataset import load_visual_demo_dataset, validate_image_paths
-from visual_demo_prompt import build_visual_demo_prompt_from_item, VISUAL_DEMO_SYSTEM_PROMPT
-from qwen2_vl.model import Qwen2VLChat
+from datasets.visual_demo_dataset_cot_gen import load_visual_demo_dataset, validate_image_paths
+from prompts.visual_demo_prompt_cot_gen import build_visual_demo_prompt_from_item, VISUAL_DEMO_SYSTEM_PROMPT
+from core.model import Qwen2VLChat
 
 
 def parse_visual_demo_response(response: str) -> Dict[str, Any]:

@@ -35,6 +35,24 @@ from .text_object_replacement_prompt import (
     TEXT_OBJECT_REPLACEMENT_SYSTEM_PROMPT,
 )
 
+# CoT generation prompts
+from .text_nega_prompt import (
+    build_text_demo_prompt_from_item as build_text_nega_prompt_from_item,
+    TEXT_DEMO_SYSTEM_PROMPT as TEXT_NEGA_SYSTEM_PROMPT,
+)
+from .visual_nega_prompt import (
+    build_visual_demo_prompt_from_item as build_visual_nega_prompt_from_item,
+    VISUAL_DEMO_SYSTEM_PROMPT as VISUAL_NEGA_SYSTEM_PROMPT,
+)
+from .text_demo_prompt_cot_gen import (
+    build_text_demo_prompt_from_item as build_text_demo_prompt_cot_gen_from_item,
+    TEXT_DEMO_SYSTEM_PROMPT as TEXT_DEMO_COT_GEN_SYSTEM_PROMPT,
+)
+from .visual_demo_prompt_cot_gen import (
+    build_visual_demo_prompt_from_item as build_visual_demo_prompt_cot_gen_from_item,
+    VISUAL_DEMO_SYSTEM_PROMPT as VISUAL_DEMO_COT_GEN_SYSTEM_PROMPT,
+)
+
 __all__ = [
     # Text demo
     'build_text_demo_prompt',
@@ -63,4 +81,14 @@ __all__ = [
     # Text object replacement
     'build_text_object_replacement_prompt_from_item',
     'TEXT_OBJECT_REPLACEMENT_SYSTEM_PROMPT',
+    # CoT generation - nega
+    'build_text_nega_prompt_from_item',
+    'TEXT_NEGA_SYSTEM_PROMPT',
+    'build_visual_nega_prompt_from_item',
+    'VISUAL_NEGA_SYSTEM_PROMPT',
+    # CoT generation - cot_gen
+    'build_text_demo_prompt_cot_gen_from_item',
+    'TEXT_DEMO_COT_GEN_SYSTEM_PROMPT',
+    'build_visual_demo_prompt_cot_gen_from_item',
+    'VISUAL_DEMO_COT_GEN_SYSTEM_PROMPT',
 ]

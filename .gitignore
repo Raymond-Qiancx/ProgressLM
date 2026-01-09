@@ -5,6 +5,7 @@ data/benchmark/human/images
 data/benchmark/human/images_compressed
 data/benchmark/human/results
 .claude
+ref/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

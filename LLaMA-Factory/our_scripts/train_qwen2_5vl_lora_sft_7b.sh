@@ -18,7 +18,7 @@ set -e  # Exit on error
 export CUDA_VISIBLE_DEVICES=0,1,2,3
 
 # ==================== W&B Configuration ====================
-export WANDB_API_KEY=ac3c3d795e02ca8885235198ec9a222725622805
+export WANDB_API_KEY=
 
 # ==================== Configuration ====================
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

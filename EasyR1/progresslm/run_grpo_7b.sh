@@ -11,8 +11,8 @@ MODEL_PATH="/projects/p32958/Results/full_model/qwen25vl_7b_sft"
 TIMESTAMP=$(date +"%Y%m%d-%H%M%S")
 
 # ===== 🟢 wandb 设置 =====
-# export WANDB_API_KEY="a055c70d645ef2b98309254662429133b73ac639"
-export WANDB_API_KEY="ac3c3d795e02ca8885235198ec9a222725622805"
+# export WANDB_API_KEY=""
+export WANDB_API_KEY=""
 export WANDB_PROJECT="progresslm_grpo_7b"
 export WANDB_RUN_GROUP="qwen2_5_vl_7b_progresslm_grpo"
 export WANDB_NAME="visual_demo_qwen2p5vl7b_${TIMESTAMP}"

@@ -12,7 +12,7 @@ MODEL_PATH="/projects/p32958/Results/sft_model/qwen25vl_3b_think_sft"
 TIMESTAMP="20251209-154236"
 
 # ===== 🟢 wandb 设置 =====
-export WANDB_API_KEY="ac3c3d795e02ca8885235198ec9a222725622805"
+export WANDB_API_KEY=""
 export WANDB_PROJECT="progresslm_grpo"
 export WANDB_RUN_GROUP="qwen2_5_vl_3b_progresslm"
 export WANDB_NAME="visual_demo_qwen2p5vl3b_no_coin_${TIMESTAMP}"

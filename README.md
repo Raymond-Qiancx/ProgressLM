@@ -50,9 +50,6 @@ This design allows us to disentangle perception, temporal reasoning, and uncerta
 Data statistics of <b>Progress-Bench</b> and <b>ProgressLM-45K</b> (25K for SFT while 20K for RL). Traj and Samp denote the numbers of task trajectories and sampled observations to be estimated, respectively. The upper-right panel shows the four distinct robotic embodiments included, while the lower-right panel visualizes the diversity of objects involved in task interactions.
 </p>
 
-### Under Construction
-
-
 
 
 ## Installation
@@ -116,30 +113,6 @@ Human activity benchmarks for progress reasoning evaluation.
 
 ## SFT Training
 
-### Data Preparation
-
-Convert your CoT responses to LLaMA-Factory format:
-
-```bash
-cd LLaMA-Factory/our_scripts/data_convert
-
-# Convert Text Demo data
-python convert_text_demo.py \
-    --original-data /path/to/text_demo.jsonl \
-    --cot-responses /path/to/cot_responses.jsonl \
-    --output-file /path/to/output.json \
-    --filter-success
-
-# Convert Visual Demo data
-python convert_visual_demo.py \
-    --original-data /path/to/visual_demo.jsonl \
-    --cot-responses /path/to/cot_responses.jsonl \
-    --output-file /path/to/output.json \
-    --filter-success
-
-# Batch convert and merge all datasets
-bash run_convert_and_merge.sh
-```
 
 ### Configuration Files
 
@@ -192,6 +165,91 @@ llamafactory-cli export LLaMA-Factory/our_scripts/merge_qwen25vl_7b_lora.yaml
 | `num_train_epochs` | Training epochs | `3.0` |
 | `per_device_train_batch_size` | Batch size per GPU | `2` |
 | `gradient_accumulation_steps` | Gradient accumulation | `8` |
+
+
+### Scaling more CoT Data?
+
+**Step 1: Generate CoT responses using Qwen2.5-VL**
+
+```bash
+cd eval/qwen25vl/scripts/cot_gen
+
+# Generate CoT for Text Demo data
+MODEL_PATH=/path/to/Qwen2.5-VL-32B-Instruct \
+DATASET_PATH=/path/to/text_demo.jsonl \
+IMAGE_ROOT=/path/to/images \
+OUTPUT_DIR=/path/to/output \
+GPU_IDS=0,1,2,3 \
+BATCH_SIZE=5 \
+bash think_text_demo.sh
+
+# Generate CoT for Visual Demo data
+MODEL_PATH=/path/to/Qwen2.5-VL-32B-Instruct \
+DATASET_PATH=/path/to/visual_demo.jsonl \
+IMAGE_ROOT=/path/to/images \
+OUTPUT_DIR=/path/to/output \
+GPU_IDS=0,1,2,3 \
+BATCH_SIZE=2 \
+bash think_visual_demo.sh
+```
+
+**Environment Variables:**
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `MODEL_PATH` | Path to Qwen2.5-VL model | Required |
+| `DATASET_PATH` | Input JSONL dataset path | Required |
+| `IMAGE_ROOT` | Root directory for images | Required |
+| `OUTPUT_DIR` | Output directory for results | Required |
+| `GPU_IDS` | Comma-separated GPU IDs | `0,1,2,3` |
+| `BATCH_SIZE` | Batch size per GPU | `5` (text) / `2` (visual) |
+| `NUM_INFERENCES` | Inferences per sample | `1` |
+| `TEMPERATURE` | Sampling temperature | `0.6` |
+| `LIMIT` | Limit samples (-1 for all) | `-1` |
+
+We also provide scripts for **Qwen2.5-VL-72B** with multi-GPU model parallelism:
+
+```bash
+# 72B model for Text Demo (requires 4+ GPUs for model parallelism)
+MODEL_PATH=/path/to/Qwen2.5-VL-72B-Instruct \
+DATASET_PATH=/path/to/text_demo.jsonl \
+GPU_IDS=0,1,2,3 \
+BATCH_SIZE=40 \
+bash think_text_demo_72b.sh
+
+# 72B model for Visual Demo
+MODEL_PATH=/path/to/Qwen2.5-VL-72B-Instruct \
+DATASET_PATH=/path/to/visual_demo.jsonl \
+GPU_IDS=0,1,2,3 \
+BATCH_SIZE=20 \
+bash think_visual_demo_72b.sh
+```
+
+**Step 2: Convert CoT responses to LLaMA-Factory format**
+
+```bash
+cd LLaMA-Factory/our_scripts/data_convert
+
+# Convert Text Demo data
+python convert_text_demo.py \
+    --original-data /path/to/text_demo.jsonl \
+    --cot-responses /path/to/cot_responses.jsonl \
+    --output-file /path/to/output.json \
+    --filter-success
+
+# Convert Visual Demo data
+python convert_visual_demo.py \
+    --original-data /path/to/visual_demo.jsonl \
+    --cot-responses /path/to/cot_responses.jsonl \
+    --output-file /path/to/output.json \
+    --filter-success
+
+# Batch convert and merge all datasets
+bash run_convert_and_merge.sh
+```
+
+
+
 
 ## RL Training (GRPO)
 
@@ -370,6 +428,36 @@ python run_visual_demo_nothink.py \
 | **N/A Recall** | Recall for unanswerable samples (predicting "n/a" correctly) |
 
 ### Other Model Evaluation
+
+#### Qwen3-VL
+
+We support Qwen3-VL series models (2B, 4B, 8B, 32B, 30B-MoE) with both thinking and non-thinking modes:
+
+```bash
+cd eval/qwen3vl/scripts
+
+# Run all benchmarks for a specific model size
+bash run_all/run_8b.sh          # Qwen3-VL-8B with thinking
+bash run_all/run_8b_nothink.sh  # Qwen3-VL-8B without thinking
+
+# Or run specific benchmarks
+bash normal_text/qwen3vl_8b.sh   # Text Demo evaluation
+bash normal_view/qwen3vl_8b.sh   # Visual Demo evaluation
+bash nega_text/qwen3vl_8b.sh     # Negative Text evaluation
+bash multi_view/qwen3vl_8b.sh    # Multi-view evaluation
+```
+
+**Available Model Sizes:**
+
+| Model | Script Suffix | Parameters |
+|-------|---------------|------------|
+| Qwen3-VL-2B | `_2b.sh` | 2B |
+| Qwen3-VL-4B | `_4b.sh` | 4B |
+| Qwen3-VL-8B | `_8b.sh` | 8B |
+| Qwen3-VL-32B | `_32b.sh` | 32B |
+| Qwen3-VL-30B-A3B (MoE) | `_30b_moe.sh` | 30B (3B active) |
+
+Add `_nothink` suffix for non-thinking mode (e.g., `qwen3vl_8b_nothink.sh`).
 
 #### InternVL
 

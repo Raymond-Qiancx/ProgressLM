@@ -1,10 +1,9 @@
 <p align="center">
-  <img src="docs/imgs/icon.png" height="50" />&nbsp;
+  <img src="docs/imgs/icon.png" height="60" />&nbsp;
   <b><font size="7">ProgressLM</font></b>
+  <br>
+  <b><i><font size="5">Towards Progress Reasoning in Vision-Language Models</font></i></b>
 </p>
-<h3 align="center">
-  <b><i>Towards Progress Reasoning in Vision-Language Models</i></b>
-</h3>
 
 ### Under Construction
 

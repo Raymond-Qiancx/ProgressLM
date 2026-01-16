@@ -15,6 +15,14 @@
   <a href="https://huggingface.co/datasets/Raymond-Qiancx/ProgressLM-Dataset"><img src="https://img.shields.io/badge/🤗-Dataset-yellow?style=for-the-badge" alt="Dataset" /></a>
 </p>
 
+<p align="center">
+  <img src="docs/imgs/teaser.png" width="100%" />
+</p>
+
+<p align="center">
+  <em>Given a task demonstration and a single observation, the goal is to estimate <b>how much of the task has already been completed</b>. Direct prediction can often judge whether the task is unfinished, but struggles to assign a well-calibrated progress score. Progress reasoning instead follows a coarse-to-fine process: it first performs <b>episodic retrieval</b> to coarsely locate the observation along the demonstrated task, then applies <b>mental simulation</b> to imagine the transition from the retrieved anchor to the current observation, enabling a fine-grained estimate of completed progress.</em>
+</p>
+
 ### Under Construction
 
 

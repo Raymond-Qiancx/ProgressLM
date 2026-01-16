@@ -475,3 +475,15 @@ export OPENAI_API_KEY=your_api_key
 python run_text_demo.py --dataset-path /path/to/data.jsonl
 python run_visual_demo.py --dataset-path /path/to/data.jsonl
 ```
+
+## Citation
+
+If you find this work useful, please cite our paper:
+
+```bibtex
+@article{zhang2025progresslm,
+  title={ProgressLM: Towards Progress Reasoning in Vision-Language Models},
+  author={Zhang, Jianshu and Qian, Chengxuan and Sun, Haosen and Lu, Haoran and Wang, Dingcheng and Xue, Letian and Liu, Han},
+  year={2025}
+}
+```

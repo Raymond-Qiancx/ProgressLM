@@ -1,4 +1,6 @@
-# ProgressLM: Towards Progress Reasoning in Vision-Language Models
+<h1 align="center">
+  <img src="docs/imgs/icon.png" height="30" />&nbsp;ProgressLM: Towards Progress Reasoning in Vision-Language Models
+</h1>
 
 ### Under Construction
 

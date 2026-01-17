@@ -233,6 +233,51 @@ a:hover {
   color: var(--accent-color);
 }
 
+/* Collapsible Sections */
+.collapsible-section {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.collapsible-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 24px;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  list-style: none;
+  transition: background-color 0.2s ease;
+}
+
+.collapsible-title::-webkit-details-marker {
+  display: none;
+}
+
+.collapsible-title:hover {
+  background-color: var(--bg-tertiary);
+}
+
+.collapsible-title .collapse-icon {
+  color: var(--accent-color);
+  font-size: 1rem;
+  transition: transform 0.3s ease;
+}
+
+details.collapsible-section:not([open]) .collapse-icon {
+  transform: rotate(-90deg);
+}
+
+.collapsible-content {
+  padding: 0 24px 24px;
+}
+
 /* Sections */
 section {
   padding: 80px 0;

@@ -91,13 +91,20 @@
     <!-- Progress Annotation Section -->
     <section id="progress-annotation">
         <div class="container">
-            <h2>How do we annotate progress under controlled shifts?</h2>
-            <div class="annotation-image" style="margin-bottom: 24px;">
-                <img src="imgs/bench_curation.png" alt="Progress Annotation" style="width: 100%; max-width: 1000px; margin: 0 auto; display: block; border-radius: 8px;">
-            </div>
-            <p style="text-align: justify; line-height: 1.8; max-width: 1000px; margin: 0 auto;">
-                We construct progress data by pairing each task demonstration with a single observation sampled from intermediate or boundary moments during execution, and assign its progress label via temporal interpolation between adjacent key steps. To systematically probe progress reasoning beyond static matching, we introduce controlled shifts along three dimensions: <strong>demonstration modality</strong> (vision-based vs. text-based), <strong>viewpoint correspondence</strong> (same-view vs. cross-view for vision demos), and <strong>answerability</strong>, where semantic mismatches are injected so that progress becomes ill-defined and the correct output is N/A.
-            </p>
+            <details class="collapsible-section" open>
+                <summary class="collapsible-title">
+                    <i class="fas fa-chevron-down collapse-icon"></i>
+                    How do we annotate progress under controlled shifts?
+                </summary>
+                <div class="collapsible-content">
+                    <div class="annotation-image" style="margin-bottom: 24px;">
+                        <img src="imgs/bench_curation.png" alt="Progress Annotation" style="width: 100%; border-radius: 8px;">
+                    </div>
+                    <p style="text-align: justify; line-height: 1.8;">
+                        We construct progress data by pairing each task demonstration with a single observation sampled from intermediate or boundary moments during execution, and assign its progress label via temporal interpolation between adjacent key steps. To systematically probe progress reasoning beyond static matching, we introduce controlled shifts along three dimensions: <strong>demonstration modality</strong> (vision-based vs. text-based), <strong>viewpoint correspondence</strong> (same-view vs. cross-view for vision demos), and <strong>answerability</strong>, where semantic mismatches are injected so that progress becomes ill-defined and the correct output is N/A.
+                    </p>
+                </div>
+            </details>
         </div>
     </section>
 

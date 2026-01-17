@@ -455,7 +455,7 @@ bash multi_view/qwen3vl_8b.sh    # Multi-view evaluation
 | Qwen3-VL-4B | `_4b.sh` | 4B |
 | Qwen3-VL-8B | `_8b.sh` | 8B |
 | Qwen3-VL-32B | `_32b.sh` | 32B |
-| Qwen3-VL-30B-A3B (MoE) | `_30b_moe.sh` | 30B (3B active) |
+
 
 Add `_nothink` suffix for non-thinking mode (e.g., `qwen3vl_8b_nothink.sh`).
 

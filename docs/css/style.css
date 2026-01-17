@@ -235,12 +235,13 @@ a:hover {
 
 /* Collapsible Sections */
 .collapsible-section {
-  background-color: var(--bg-secondary);
-  border: 2px solid var(--accent-color);
+  background-color: #e8f0fe;
+  border: none;
   border-radius: 16px;
   overflow: hidden;
   max-width: 1000px;
   margin: 0 auto;
+  box-shadow: 0 4px 20px rgba(88, 166, 255, 0.15);
 }
 
 .collapsible-title {
@@ -250,8 +251,8 @@ a:hover {
   padding: 24px 32px;
   font-size: 1.4rem;
   font-weight: 700;
-  color: white;
-  background: linear-gradient(135deg, var(--accent-color), var(--gradient-end));
+  color: #1a1a2e;
+  background: linear-gradient(90deg, var(--accent-color), var(--gradient-end));
   cursor: pointer;
   list-style: none;
   transition: opacity 0.2s ease;
@@ -284,7 +285,16 @@ details.collapsible-section[open] .collapse-icon::before {
 
 .collapsible-content {
   padding: 32px;
-  background-color: var(--bg-primary);
+  background-color: #e8f0fe;
+  color: #1a1a2e;
+}
+
+.collapsible-content p {
+  color: #2d3748;
+}
+
+.collapsible-content strong {
+  color: #1a1a2e;
 }
 
 /* Sections */

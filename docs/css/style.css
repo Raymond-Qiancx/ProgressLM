@@ -125,6 +125,22 @@ a:hover {
   font-weight: 400;
 }
 
+/* Teaser Caption */
+.teaser-caption {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  max-width: 900px;
+  margin: 16px auto 0;
+  text-align: justify;
+  line-height: 1.6;
+  padding: 0 16px;
+}
+
+.teaser-caption em {
+  color: var(--accent-color);
+  font-style: italic;
+}
+
 /* Buttons */
 .buttons {
   display: flex;

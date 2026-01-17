@@ -68,6 +68,12 @@
 
             <div class="teaser-image">
                 <img src="imgs/teaser.png" alt="ProgressLM Teaser" style="width: 100%; max-width: 900px; margin-top: 32px; border-radius: 8px;">
+                <p class="teaser-caption">
+                    Given a task demonstration and a single observation, the goal is to estimate how much of the task has already been completed.
+                    Direct prediction can often judge whether the task is unfinished, but struggles to assign a well-calibrated progress score.
+                    Progress reasoning instead follows a coarse-to-fine process: it first performs <em>episodic retrieval</em> to coarsely locate the observation along the demonstrated task,
+                    then applies <em>mental simulation</em> to imagine the transition from the retrieved anchor to the current observation, enabling a fine-grained estimate of completed progress.
+                </p>
             </div>
         </div>
     </section>
@@ -77,17 +83,17 @@
         <div class="container">
             <h2>Abstract</h2>
             <p>
-                Given a task demonstration and a single observation, the goal is to estimate <strong>how much of the task has already been completed</strong>.
-                Direct prediction can often judge whether the task is unfinished, but struggles to assign a well-calibrated progress score.
-                Progress reasoning instead follows a coarse-to-fine process: it first performs <strong>episodic retrieval</strong> to coarsely locate the observation along the demonstrated task,
-                then applies <strong>mental simulation</strong> to imagine the transition from the retrieved anchor to the current observation, enabling a fine-grained estimate of completed progress.
+                Estimating task progress requires reasoning over long-horizon dynamics rather than recognizing static visual content.
+                While modern Vision-Language Models (VLMs) excel at describing what is visible, it remains unclear whether they can infer how far a task has progressed from partial observations.
+                In this work, we introduce <strong>Progress-Bench</strong>, a benchmark for systematically evaluating progress reasoning in VLMs.
+                We further explore a human-inspired two-stage progress reasoning paradigm that combines <strong>episodic retrieval</strong> with <strong>mental simulation</strong>.
             </p>
             <p>
-                <em>Can vision-language models acquire progress estimation as a general reasoning capability from a single observation?</em>
-                To systematically study this question, we select robotic manipulation tasks as a controlled and representative domain,
-                where task execution exhibits clear, interpretable, and temporally ordered progressions.
-                Each instance provides a task <strong>demonstration</strong> and a single <strong>observation</strong>,
-                and the model is required to predict a normalized <strong>progress score</strong> indicating how far the task has progressed.
+                We instantiate this paradigm through both training-free prompting and a training-based approach built on an automatically curated dataset, <strong>ProgressLM-45K</strong>.
+                Evaluating 14 VLMs on Progress-Bench, we find that current models struggle to reliably estimate task progress.
+                While training-free prompting that enforces structured progress reasoning yields improvements, these gains are limited and model-dependent.
+                In contrast, <strong>ProgressLM-3B</strong> achieves consistent improvements in accuracy, robustness to viewpoint variation, and calibrated handling of unanswerable cases, even at small model scale.
+                Further analyses reveal characteristic error patterns of existing VLMs and clarify when and why progress reasoning succeeds or fails.
             </p>
         </div>
     </section>
